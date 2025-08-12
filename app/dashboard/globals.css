@@ -1,0 +1,34 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: 'Geist Sans';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Geist Sans');
+}
+
+@font-face {
+  font-family: 'Geist Mono';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Geist Mono');
+}
+
+:root {
+  --font-geist-sans: 'Geist Sans', sans-serif;
+  --font-geist-mono: 'Geist Mono', monospace;
+}
+
+body {
+  font-family: var(--font-geist-sans);
+}
+
+/* Prevent Grammarly from modifying input fields */
+input,
+textarea,
+[contenteditable='true'] {
+  /* Disable Grammarly extension */
+  caret-color: transparent !important;
+}

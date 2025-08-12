@@ -1,0 +1,13 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "Building Next.js app..."
+npx next build
+
+# Check if the build succeeded
+if [ $? -ne 0 ]; then
+  echo "Error: Next.js build failed! Fix the errors before pushing."
+  exit 1
+fi
+
+echo "Build successful. Proceeding with push."
