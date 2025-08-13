@@ -4,35 +4,35 @@ networks:
   public_network:
   private_network:
 
-volumes:
-  mongodb_data:
+# volumes:
+#   mongodb_data:
 
 services:
   frontend:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: frontend_service
+    container_name: dapp_mentors_official
     restart: unless-stopped
     ports:
-      - '3003:3000'
+      - '3005:3000'
     networks:
       - public_network
     env_file:
       - .env
-    depends_on:
-      - mongodb_service
+    # depends_on:
+    #   - mongodb_service
 
-  mongodb_service:
-    image: mongo:latest
-    container_name: mongodb_service
-    restart: unless-stopped
-    networks:
-      - private_network
-    ports:
-      - '27017:27017' # Exposing MongoDB for development
-    volumes:
-      - mongodb_data:/data/db
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=${NEXT_PRIVATE_MONGO_USERNAME}
-      - MONGO_INITDB_ROOT_PASSWORD=${NEXT_PRIVATE_MONGO_PASSWORD}
+  # mongodb_service:
+  #   image: mongo:latest
+  #   container_name: mongodb_service
+  #   restart: unless-stopped
+  #   networks:
+  #     - private_network
+  #   ports:
+  #     - '27017:27017' # Exposing MongoDB for development
+  #   volumes:
+  #     - mongodb_data:/data/db
+  #   environment:
+  #     - MONGO_INITDB_ROOT_USERNAME=${NEXT_PRIVATE_MONGO_USERNAME}
+  #     - MONGO_INITDB_ROOT_PASSWORD=${NEXT_PRIVATE_MONGO_PASSWORD}

@@ -1,6 +1,7 @@
-import Link from 'next/link'
-import React from 'react'
-import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin } from 'react-icons/fa'
+import Link from "next/link";
+import React from "react";
+import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin } from "react-icons/fa";
+import Button from "./Button";
 
 const Footer = () => {
   return (
@@ -24,11 +25,11 @@ const Footer = () => {
                 placeholder="Enter your email"
                 className="w-full sm:w-2/3 px-4 py-3 rounded-lg bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#D2145A]"
               />
-              {/* <Button label="Subscribe Now" className="w-full sm:w-1/3 px-6 py-3 bg-[#D2145A] text-white rounded-lg hover:bg-[#FFBAD4] transition-colors duration-300"/> */}
 
-              <button className="w-full sm:w-1/3 px-6 py-3 bg-[#D2145A] text-white rounded-lg hover:bg-[#FFBAD4] transition-colors duration-300">
-                Subscribe Now
-              </button>
+              <Button
+                label="Subscribe Now"
+                className="bg-[#D2145A] text-white hover:bg-white hover:text-[#D2145A] hover:border hover:border-[#D2145A] w-full h-10 sm:h-12 rounded-lg transition-all duration-300 text-sm sm:text-base font-medium"
+              />
             </div>
           </div>
 
@@ -39,32 +40,50 @@ const Footer = () => {
               <h3 className="text-lg font-bold mb-4">QUICK LINKS</h3>
               <ul className="space-y-2">
                 <li>
-                  <Link href="/about" className="text-gray-300 hover:text-[#D2145A]">
+                  <Link
+                    href="/about"
+                    className="text-gray-300 hover:text-[#D2145A]"
+                  >
                     About Us
                   </Link>
                 </li>
                 <li>
-                  <Link href="/events" className="text-gray-300 hover:text-[#D2145A]">
+                  <Link
+                    href="/events"
+                    className="text-gray-300 hover:text-[#D2145A]"
+                  >
                     Events
                   </Link>
                 </li>
                 <li>
-                  <Link href="/testimonials" className="text-gray-300 hover:text-[#D2145A]">
+                  <Link
+                    href="/testimonials"
+                    className="text-gray-300 hover:text-[#D2145A]"
+                  >
                     Testimonials
                   </Link>
                 </li>
                 <li>
-                  <Link href="/donate" className="text-gray-300 hover:text-[#D2145A]">
+                  <Link
+                    href="/donate"
+                    className="text-gray-300 hover:text-[#D2145A]"
+                  >
                     Donate
                   </Link>
                 </li>
                 <li>
-                  <Link href="/projects" className="text-gray-300 hover:text-[#D2145A]">
+                  <Link
+                    href="/projects"
+                    className="text-gray-300 hover:text-[#D2145A]"
+                  >
                     Projects
                   </Link>
                 </li>
                 <li>
-                  <Link href="Volunteers" className="text-gray-300 hover:text-[#D2145A]">
+                  <Link
+                    href="Volunteers"
+                    className="text-gray-300 hover:text-[#D2145A]"
+                  >
                     Volunteers
                   </Link>
                 </li>
@@ -81,12 +100,18 @@ const Footer = () => {
                   </Link>
                 </li>
                 <li>
-                  <Link href="/privacy" className="text-gray-300 hover:text-[#D2145A]">
+                  <Link
+                    href="/privacy"
+                    className="text-gray-300 hover:text-[#D2145A]"
+                  >
                     Privacy Policy
                   </Link>
                 </li>
                 <li>
-                  <Link href="/contact" className="text-gray-300 hover:text-[#D2145A]">
+                  <Link
+                    href="/contact"
+                    className="text-gray-300 hover:text-[#D2145A]"
+                  >
                     Contact Us
                   </Link>
                 </li>
@@ -115,12 +140,14 @@ const Footer = () => {
 
           {/* Copyright Section */}
           <div className="w-full max-w-7xl mx-auto text-center border-t border-gray-800 pt-8">
-            <p className="text-gray-300">DMF @ 2024. All rights reserved.</p>
+            <p className="text-gray-300">
+              Dapp Mentors @{new Date().getFullYear()}. All rights reserved.
+            </p>
           </div>
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Footer
+export default Footer;

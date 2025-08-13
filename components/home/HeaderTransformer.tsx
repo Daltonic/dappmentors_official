@@ -39,7 +39,7 @@ const HeaderTransformer: React.FC = () => {
   return (
     <div
       className={`border-b border-[#F2F2F2] dark:border-[#1A1A1A] bg-white dark:bg-black
-        z-50 md:px-8 fixed top-0 left-0 right-0 w-full p-4 overflow-hidden
+        z-40 md:px-8 fixed top-0 left-0 right-0 w-full p-4 overflow-hidden
         transition-transform duration-300 ${
           showHeader ? "translate-y-0" : "-translate-y-full"
         }`}
@@ -59,9 +59,6 @@ const HeaderTransformer: React.FC = () => {
           </div>
           <div className="ml-2">
             <h1 className="text-lg font-bold leading-tight">DAPP MENTORS</h1>
-            <span className="text-[11px] font-light tracking-[5px]">
-              FOUNDATION
-            </span>
           </div>
         </Link>
 

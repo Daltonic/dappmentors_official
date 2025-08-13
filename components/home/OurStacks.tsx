@@ -1,12 +1,12 @@
-import Image from 'next/image'
+import Image from "next/image";
 
-const OurDonors: React.FC = () => {
+const OurStacks: React.FC = () => {
   return (
     <div className="bg-[#201A44] dark:bg-[#1A1A1A] w-full h-fit">
       <div className="max-w-screen-xl p-4 mx-auto h-[144px] pt-12 pr-8 pb-12 pl-8 gap-16 md:flex flex-col md:flex-row items-center">
         <div className="w-full md:w-[162px] h-[36px] mb-4 md:mb-0">
           <h1 className="font-cambo font-normal text-[32px] leading-[35.9px] tracking-[-0.02em] text-center text-[#FFFFFF]">
-            Our Donors
+            Our Stacks
           </h1>
         </div>
 
@@ -25,7 +25,7 @@ const OurDonors: React.FC = () => {
                 />
               </div>
 
-              <h1 className="text-[#FFFFFF] text-[22px]">Layers</h1>
+              <h1 className="text-[#FFFFFF] text-[22px]">Ethereum</h1>
             </div>
 
             <div className="w-[146px] h-[48px] flex items-center gap-2">
@@ -39,7 +39,7 @@ const OurDonors: React.FC = () => {
                 />
               </div>
 
-              <h1 className="text-[#FFFFFF] text-[22px]">Sisyphus</h1>
+              <h1 className="text-[#FFFFFF] text-[22px]">Polygon</h1>
             </div>
 
             <div className="w-[146px] h-[48px] flex items-center gap-2">
@@ -53,7 +53,7 @@ const OurDonors: React.FC = () => {
                 />
               </div>
 
-              <h1 className="text-[#FFFFFF] text-[22px]">Circooles</h1>
+              <h1 className="text-[#FFFFFF] text-[22px]">Chainlink</h1>
             </div>
 
             <div className="w-[146px] h-[48px] flex items-center gap-2">
@@ -67,7 +67,7 @@ const OurDonors: React.FC = () => {
                 />
               </div>
 
-              <h1 className="text-[#FFFFFF] text-[22px]">Catalog</h1>
+              <h1 className="text-[#FFFFFF] text-[22px]">Uniswap</h1>
             </div>
 
             <div className="w-[146px] h-[48px] flex items-center gap-2">
@@ -81,13 +81,13 @@ const OurDonors: React.FC = () => {
                 />
               </div>
 
-              <h1 className="text-[#FFFFFF] text-[22px]">Quotient</h1>
+              <h1 className="text-[#FFFFFF] text-[22px]">Aave</h1>
             </div>
           </div>
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default OurDonors
+export default OurStacks;

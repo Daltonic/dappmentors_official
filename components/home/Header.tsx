@@ -38,9 +38,6 @@ const Header: React.FC = () => {
           </div>
           <div className="text-white ml-2">
             <h1 className="text-lg font-bold leading-tight">DAPP MENTORS</h1>
-            <span className="text-[11px] font-light text-gray-300 tracking-[5px]">
-              FOUNDATION
-            </span>
           </div>
         </Link>
 

@@ -1,0 +1,67 @@
+name: Deployment to Ubuntu VPS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  prepare_environment:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Ensure target directory exists on VPS
+        uses: appleboy/ssh-action@v0.1.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            if [ ! -d "/dockerized/containers/daltonic_llc" ]; then
+              mkdir -p /dockerized/containers/daltonic_llc
+            else
+              rm -rf /dockerized/containers/daltonic_llc/*
+            fi
+
+      - name: Copy Github files to VPS
+        uses: appleboy/scp-action@v0.1.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: './'
+          target: '/dockerized/containers/daltonic_llc'
+
+  deploy_with_compose:
+    needs: prepare_environment
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Rebuild and restart only updated services (Zero Downtime)
+        uses: appleboy/ssh-action@v0.1.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /dockerized/containers/daltonic_llc
+            # Build only the frontend service, keep others running
+            docker compose build frontend
+            docker compose up -d --no-deps frontend
+
+  clean_up_dangling_images:
+    needs: deploy_with_compose
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Remove dangling Docker images
+        uses: appleboy/ssh-action@v0.1.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            docker image prune -af
