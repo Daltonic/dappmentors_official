@@ -1,22 +1,28 @@
-import MarketingLayout from '@/components/layouts/MarketingLayout'
-import OurStory from '../../components/about/OurStory'
-import MissionAndVision from '../../components/about/MissionAndVision'
-import WhatWeAddress from '../../components/about/WhatWeAddress'
-import OurNiche from '../../components/about/OurNiche'
-import RecentBlogPosts from '../../components/about/RecentBlogPosts';
+import ConnectSection from "@/components/about/ConnectSection";
+import ExpertiseSection from "@/components/about/ExpertSection";
+import HeroSection from "@/components/about/HeroSection";
+import ImpactSection from "@/components/about/ImpactSection";
+import MissionSection from "@/components/about/MissionSection";
+import OfferingsSection from "@/components/about/OfferingsSection";
+import WhoWeAreSection from "@/components/about/WhoWeAreSection";
+import MarketingLayout from "@/components/layouts/MarketingLayout";
+import React from "react";
 
+// Main About Page Component
 const Page = () => {
   return (
     <MarketingLayout>
-      <div className="max-w-screen-xl mx-auto space-y-10">
-        <OurStory/>
-        <MissionAndVision/>
-        <WhatWeAddress/>
-        <OurNiche/>
-        <RecentBlogPosts/>
+      <div className="mx-auto space-y-10">
+        <HeroSection />
+        <WhoWeAreSection />
+        <MissionSection />
+        <OfferingsSection />
+        <ExpertiseSection />
+        <ImpactSection />
+        <ConnectSection />
       </div>
     </MarketingLayout>
-  )
-}
+  );
+};
 
-export default Page
+export default Page;
