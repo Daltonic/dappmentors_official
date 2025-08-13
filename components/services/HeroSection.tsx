@@ -20,23 +20,24 @@ const HeroSection = () => {
 
       <div className="max-w-7xl mx-auto px-4 relative z-10">
         <div className="text-center">
-          <div className="inline-flex items-center gap-3 bg-gradient-to-r from-[#D2145A]/10 to-[#FFBAD4]/10 backdrop-blur-sm rounded-full px-6 py-2 mb-8">
+          <div className="inline-flex items-center gap-3 bg-gradient-to-r from-[#D2145A]/10 to-[#FFBAD4]/10 backdrop-blur-sm rounded-full px-6 py-2 mb-8 animate-pulse">
             <span className="text-[#D2145A] font-semibold text-sm uppercase tracking-wider">
-              About Us
+              Our Services
             </span>
             <div className="w-2 h-2 bg-[#D2145A] rounded-full animate-pulse"></div>
           </div>
 
           <h1 className="font-cambo text-5xl md:text-7xl lg:text-8xl font-normal tracking-tight text-gray-900 dark:text-white mb-8">
-            About{" "}
+            Empowering Your{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#D2145A] to-[#FF4081] animate-pulse">
-              Dapp Mentors
-            </span>
+              Web3 Journey
+            </span>{" "}
+            with Expert Solutions
           </h1>
 
-          <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 max-w-4xl mx-auto leading-relaxed">
-            Empowering the next generation of Web3 innovators through education,
-            mentorship, and hands-on support.
+          <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 max-w-5xl mx-auto leading-relaxed">
+            From hands-on education to professional development, we provide the
+            tools, expertise, and support to bring your Web3 vision to life.
           </p>
         </div>
       </div>
