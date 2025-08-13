@@ -40,7 +40,7 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cat << EOF > /dockerized/containers/daltonic_llc/.env
+            cat << EOF > /dockerized/containers/dapp_mentors_official/.env
             NEXT_PUBLIC_API_KEY=""
             EOF
 
