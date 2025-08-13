@@ -18,10 +18,10 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            if [ ! -d "/dockerized/containers/daltonic_llc" ]; then
-              mkdir -p /dockerized/containers/daltonic_llc
+            if [ ! -d "/dockerized/containers/dapp_mentors_official" ]; then
+              mkdir -p /dockerized/containers/dapp_mentors_official
             else
-              rm -rf /dockerized/containers/daltonic_llc/*
+              rm -rf /dockerized/containers/dapp_mentors_official/*
             fi
 
       - name: Copy Github files to VPS
@@ -31,7 +31,7 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: './'
-          target: '/dockerized/containers/daltonic_llc'
+          target: '/dockerized/containers/dapp_mentors_official'
 
   deploy_with_compose:
     needs: prepare_environment
@@ -46,7 +46,7 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd /dockerized/containers/daltonic_llc
+            cd /dockerized/containers/dapp_mentors_official
             # Build only the frontend service, keep others running
             docker compose build frontend
             docker compose up -d --no-deps frontend
