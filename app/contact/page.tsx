@@ -54,6 +54,10 @@ const Page = () => {
         subtitle="Join thousands of developers who have transformed their careers with Dapp Mentors. Let's build the decentralized applications of tomorrow, together."
         primaryButtonText="Start Learning Today"
         secondaryButtonText="Join Community"
+        gradientFrom="from-gray-900"
+        gradientTo="to-purple-900"
+        darkGradientFrom="dark:from-black"
+        darkGradientTo="dark:to-purple-900"
       />
     </MarketingLayout>
   );

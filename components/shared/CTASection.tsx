@@ -15,8 +15,8 @@ const CTASection: React.FC<CTASectionProps> = ({
   primaryButtonClassName = "group bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white px-10 py-5 rounded-2xl font-bold text-xl transition-all duration-500 hover:scale-105 hover:shadow-2xl",
   secondaryButtonClassName = "group bg-white/10 backdrop-blur-sm border-2 border-white/30 text-white px-10 py-5 rounded-2xl font-bold text-xl transition-all duration-300 hover:bg-white hover:text-gray-900",
 }) => {
-  // Dynamically construct the background gradient class
-  const backgroundGradient = `bg-gradient-to-br from-${gradientFrom} to-${gradientTo} dark:from-${darkGradientFrom} dark:to-${darkGradientTo}`;
+  // Dynamically construct the background gradient class with proper Tailwind syntax
+  const backgroundGradient = `bg-gradient-to-br ${gradientFrom} ${gradientTo} ${darkGradientFrom} ${darkGradientTo}`;
 
   // Function to split title and highlight the specified text
   const renderHighlightedTitle = () => {
@@ -43,7 +43,13 @@ const CTASection: React.FC<CTASectionProps> = ({
   };
 
   return (
-    <section className={`py-20 ${backgroundGradient} relative overflow-hidden`}>
+    <section
+      className={`py-20 ${backgroundGradient} relative overflow-hidden`}
+      style={{
+        // Fallback inline style in case Tailwind classes fail
+        background: `linear-gradient(to bottom right, ${gradientFrom.includes("#") ? gradientFrom : `#${gradientFrom}`}, ${gradientTo.includes("#") ? gradientTo : `#${gradientTo}`})`,
+      }}
+    >
       <div className="absolute inset-0 opacity-20">
         <div
           className="absolute inset-0"

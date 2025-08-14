@@ -27,6 +27,10 @@ const Page = () => {
         subtitle="Dapp Mentors is more than just a learning platform—it's a movement to empower developers to shape the future of the internet. Join our community today and start building the decentralized applications of tomorrow."
         primaryButtonText="Start Learning Today"
         secondaryButtonText="Join Community"
+        gradientFrom="from-gray-900"
+        gradientTo="to-purple-900"
+        darkGradientFrom="dark:from-black"
+        darkGradientTo="dark:to-purple-900"
       />
       <ExpertiseSection />
       <ImpactSection />

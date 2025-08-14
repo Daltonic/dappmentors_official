@@ -32,6 +32,10 @@ const Page = () => {
         subtitle="Whether you're looking to master blockchain development, launch a groundbreaking dApp, or hire top Web3 talent, we're here to make it happen. Get Started Today"
         primaryButtonText="Get Started Today"
         secondaryButtonText="View All Services"
+        gradientFrom="from-gray-900"
+        gradientTo="to-purple-900"
+        darkGradientFrom="dark:from-black"
+        darkGradientTo="dark:to-purple-900"
       />
     </MarketingLayout>
   );

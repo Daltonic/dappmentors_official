@@ -30,6 +30,10 @@ const Page = () => {
         subtitle="Whether you're mastering smart contracts, launching a dApp, or accelerating your project with ready-to-use codebases, our products provide the tools you need to succeed."
         primaryButtonText="Explore Our Services"
         secondaryButtonText="Contact Us"
+        gradientFrom="from-gray-900"
+        gradientTo="to-purple-900"
+        darkGradientFrom="dark:from-black"
+        darkGradientTo="dark:to-purple-900"
       />
     </MarketingLayout>
   );
