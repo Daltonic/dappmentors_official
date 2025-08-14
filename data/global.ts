@@ -11,7 +11,7 @@ export const navlinks = [
   { label: "Services", link: "/services" },
   { label: "About", link: "/about" },
   { label: "Contact", link: "/contact" },
-  { label: "Blog", link: "/blog" },
+  { label: "Blogs", link: "/blogs" },
 ];
 
 export const events: EventStruct[] = [

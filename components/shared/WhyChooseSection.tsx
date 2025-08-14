@@ -1,5 +1,5 @@
 // Why Choose Us Section
-const WhyChooseUsSection = () => {
+const WhyChooseSection = () => {
   const benefits = [
     {
       title: "Proven Expertise",
@@ -79,4 +79,4 @@ const WhyChooseUsSection = () => {
   );
 };
 
-export default WhyChooseUsSection;
+export default WhyChooseSection;

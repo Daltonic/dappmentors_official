@@ -249,3 +249,27 @@ export interface SearchResult {
     _id?: string; // Used for user, donation
   };
 }
+
+export interface HeroSectionProps {
+  tagText: string;
+  title: string;
+  highlightText: string;
+  subtitle: string;
+  gradientFrom?: string;
+  gradientTo?: string;
+  backgroundGradient?: string;
+}
+
+export interface CTASectionProps {
+  title?: string;
+  highlightText?: string;
+  subtitle?: string;
+  primaryButtonText?: string;
+  secondaryButtonText?: string;
+  gradientFrom?: string;
+  gradientTo?: string;
+  darkGradientFrom?: string;
+  darkGradientTo?: string;
+  primaryButtonClassName?: string;
+  secondaryButtonClassName?: string;
+}

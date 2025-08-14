@@ -81,10 +81,13 @@ const ContactFormSection = () => {
                 onChange={handleInputChange}
                 className="w-full p-4 rounded-lg bg-white/80 dark:bg-gray-900/80 border border-gray-200/50 dark:border-gray-700/50 focus:ring-2 focus:ring-[#D2145A] outline-none"
               >
-                <option value="">Select Service Type</option>
-                <option value="consulting">Consulting</option>
-                <option value="development">Development</option>
-                <option value="training">Training</option>
+                <option value="">Select a service</option>
+                <option value="education">Web3 Education</option>
+                <option value="mentorship">Personalized Mentorship</option>
+                <option value="development">Professional Development</option>
+                <option value="writing">Technical Writing</option>
+                <option value="hiring">Developer Hiring</option>
+                <option value="community">Community Engagement</option>
               </select>
               <button
                 type="submit"
