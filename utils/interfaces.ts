@@ -273,3 +273,17 @@ export interface CTASectionProps {
   primaryButtonClassName?: string;
   secondaryButtonClassName?: string;
 }
+
+export interface ProductProp {
+  title: string;
+  description: string;
+  type: string;
+  duration: string;
+  level: string;
+  price: string;
+  image: string;
+  imageSrc: string;
+  alt: string;
+  gradient: string;
+  features: string[];
+}

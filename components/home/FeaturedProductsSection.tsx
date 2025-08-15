@@ -6,137 +6,11 @@ import "swiper/css/navigation";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Pagination, Navigation } from "swiper/modules";
 import { SkeletonTheme } from "react-loading-skeleton";
-import Image from "next/image";
-
-interface ProductProp {
-  title: string;
-  description: string;
-  type: string;
-  duration: string;
-  level: string;
-  price: string;
-  image: string;
-  imageSrc: string;
-  alt: string;
-  gradient: string;
-  features: string[];
-}
+import { products } from "@/data/global";
+import ProductCard from "../shared/ProductCard";
 
 const FeaturedProductsSection = () => {
   const [loading, setLoading] = useState(true);
-
-  const products: ProductProp[] = [
-    {
-      title: "Solana dApp Development Bootcamp",
-      description:
-        "Build a complete crowdfunding platform in 6 weeks with hands-on instruction. Master Rust, Anchor, and React integration.",
-      type: "Bootcamp",
-      duration: "6 weeks",
-      level: "Intermediate",
-      price: "$299",
-      image: "🚀",
-      imageSrc: "/assets/images/products/01_solana_thumbnail.jpg",
-      alt: "Solana dApp Development Bootcamp",
-      gradient: "from-purple-500 to-indigo-500",
-      features: [
-        "Live Sessions",
-        "1-on-1 Mentoring",
-        "Project Portfolio",
-        "Certificate",
-      ],
-    },
-    {
-      title: "Solidity for Smart Contract Development",
-      description:
-        "Master Ethereum smart contract development with comprehensive modules covering security, testing, and deployment.",
-      type: "Course",
-      duration: "4 weeks",
-      level: "Beginner",
-      price: "$199",
-      image: "⚡",
-      imageSrc: "/assets/images/products/02_ethereum_thumbnail.jpg",
-      alt: "Solidity Smart Contract Development Course",
-      gradient: "from-yellow-500 to-orange-500",
-      features: [
-        "Self-paced",
-        "Code Examples",
-        "Assignments",
-        "Community Access",
-      ],
-    },
-    {
-      title: "Decentralized Storage Mastery",
-      description:
-        "Learn IPFS, Filecoin, and Sia integration for scalable, decentralized data storage solutions in your dApps.",
-      type: "eBook + Course",
-      duration: "2 weeks",
-      level: "Intermediate",
-      price: "$149",
-      image: "🗄️",
-      imageSrc: "/assets/images/products/03_filecoin_thumbnail.jpg",
-      alt: "Decentralized Storage Mastery Course",
-      gradient: "from-green-500 to-emerald-500",
-      features: ["PDF Guide", "Video Tutorials", "Code Repository", "Updates"],
-    },
-    {
-      title: "DeFi Protocol Development",
-      description:
-        "Build advanced DeFi protocols with yield farming, liquidity pools, and governance mechanisms.",
-      type: "Advanced Course",
-      duration: "8 weeks",
-      level: "Advanced",
-      price: "$399",
-      image: "💰",
-      imageSrc: "/assets/images/products/04_defi_thumbnail.jpg",
-      alt: "DeFi Protocol Development Course",
-      gradient: "from-blue-500 to-cyan-500",
-      features: [
-        "Advanced Projects",
-        "Real Protocols",
-        "Gas Optimization",
-        "Security Audits",
-      ],
-    },
-    {
-      title: "NFT Marketplace Creation",
-      description:
-        "Create and deploy your own NFT marketplace with advanced features like royalties and lazy minting.",
-      type: "Project Course",
-      duration: "5 weeks",
-      level: "Intermediate",
-      price: "$249",
-      image: "🎨",
-      imageSrc: "/assets/images/products/05_nft_thumbnail.jpg",
-      alt: "NFT Marketplace Creation Course",
-      gradient: "from-pink-500 to-rose-500",
-      features: [
-        "Full Stack",
-        "IPFS Integration",
-        "Smart Contracts",
-        "Frontend UI",
-      ],
-    },
-    {
-      title: "Web3 Security Fundamentals",
-      description:
-        "Learn to identify and prevent common vulnerabilities in smart contracts and dApps.",
-      type: "Security Course",
-      duration: "3 weeks",
-      level: "Intermediate",
-      price: "$179",
-      image: "🔐",
-      imageSrc: "/assets/images/products/06_security_thumbnail.jpg",
-      alt: "Web3 Security Fundamentals Course",
-      gradient: "from-red-500 to-orange-500",
-      features: [
-        "Vulnerability Testing",
-        "Audit Tools",
-        "Best Practices",
-        "Case Studies",
-      ],
-    },
-  ];
-
   const shouldAutoScroll = products.length > 3;
 
   useEffect(() => {
@@ -272,7 +146,7 @@ const FeaturedProductsSection = () => {
                   </Swiper>
 
                   {/* Desktop Navigation and Pagination */}
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between mx-[32px]">
                     {/* Navigation Arrows */}
                     {shouldAutoScroll && (
                       <div className="flex items-center gap-4">
@@ -310,7 +184,7 @@ const FeaturedProductsSection = () => {
                     )}
 
                     {/* Pagination */}
-                    <div className="desktop-pagination flex items-center justify-center gap-2 ml-auto">
+                    <div className="desktop-pagination flex items-center justify-end gap-2 ml-auto">
                       {/* Pagination bullets will be rendered here by Swiper */}
                     </div>
                   </div>
@@ -380,92 +254,5 @@ const FeaturedProductsSection = () => {
     </section>
   );
 };
-
-// ProductCard component with thumbnail image
-const ProductCard = ({ product }: { product: ProductProp }) => (
-  <div className="group relative bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-3xl overflow-hidden hover:shadow-2xl transition-all duration-700 border border-gray-200/50 dark:border-gray-700/50 hover:border-transparent w-full max-w-[380px]">
-    <div
-      className={`absolute inset-0 bg-gradient-to-br ${product.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-500`}
-    ></div>
-
-    <div className="relative z-10">
-      {/* Thumbnail Image */}
-      <div className="relative h-48 sm:h-52 overflow-hidden">
-        <Image
-          src={product.imageSrc}
-          alt={product.alt}
-          fill
-          style={{ objectFit: "cover" }}
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 380px"
-          className="rounded-t-3xl group-hover:scale-105 transition-transform duration-500"
-        />
-        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300" />
-
-        {/* Floating Icon */}
-        <div
-          className={`absolute top-4 left-4 w-12 h-12 bg-gradient-to-br ${product.gradient} rounded-xl flex items-center justify-center text-xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 shadow-lg`}
-        >
-          {product.image}
-        </div>
-
-        {/* Product Type Badge */}
-        <div className="absolute top-4 right-4">
-          <div className="bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white px-3 py-1 rounded-full text-sm font-semibold shadow-lg">
-            {product.type}
-          </div>
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="p-6 sm:p-8">
-        <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-4 leading-tight group-hover:text-[#D2145A] transition-colors duration-300 line-clamp-2">
-          {product.title}
-        </h3>
-
-        <p className="text-gray-600 dark:text-gray-300 mb-6 leading-relaxed text-sm sm:text-base line-clamp-3">
-          {product.description}
-        </p>
-
-        {/* Meta Info */}
-        <div className="flex flex-wrap gap-4 mb-6 text-sm">
-          <div className="flex items-center gap-2">
-            <span className="text-gray-500">⏱️</span>
-            <span className="text-gray-600 dark:text-gray-300">
-              {product.duration}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-gray-500">📈</span>
-            <span className="text-gray-600 dark:text-gray-300">
-              {product.level}
-            </span>
-          </div>
-        </div>
-
-        {/* Features */}
-        <div className="grid grid-cols-2 gap-2 mb-6">
-          {product.features.map((feature, idx) => (
-            <div key={idx} className="flex items-center gap-2">
-              <div className="w-1.5 h-1.5 bg-[#D2145A] rounded-full flex-shrink-0"></div>
-              <span className="text-sm text-gray-600 dark:text-gray-300">
-                {feature}
-              </span>
-            </div>
-          ))}
-        </div>
-
-        {/* Price & CTA */}
-        <div className="flex items-center justify-between">
-          <div className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-            {product.price}
-          </div>
-          <button className="bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white px-6 py-3 rounded-xl font-semibold hover:scale-105 transition-all duration-300 text-sm sm:text-base">
-            Enroll Now
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-);
 
 export default FeaturedProductsSection;
