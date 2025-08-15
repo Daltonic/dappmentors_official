@@ -1,153 +1,106 @@
-import Link from "next/link";
-import React from "react";
-import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin } from "react-icons/fa";
-import Button from "./Button";
+// Footer Section
 
-const Footer = () => {
+const FooterSection = () => {
+  const footerLinks = {
+    Learn: ["Premium Courses", "Bootcamps", "Free Tutorials", "eBooks"],
+    Services: [
+      "Smart Contract Development",
+      "dApp Development",
+      "Technical Writing",
+      "Developer Hiring",
+    ],
+    Community: ["Discord", "YouTube Channel", "LinkedIn", "X (Twitter)"],
+    Company: ["About Us", "Blog", "Contact", "Privacy Policy"],
+  };
+
   return (
-    <div className="p-4">
-      <div className="w-full rounded-2xl bg-[#2B202D] dark:bg-[#1A1A1A] text-white py-12 px-4 sm:px-8 lg:px-16">
-        <div className="max-w-screen-xl p-4 mx-auto">
-          {/* Newsletter Section */}
-          <div className="w-full max-w-7xl mx-auto flex flex-col lg:flex-row justify-between items-center gap-8 mb-12">
-            <div className="w-full lg:w-1/2">
-              <h2 className="text-2xl font-bold mb-4">
-                Subscribe to our newsletter to receive updates!
-              </h2>
-              <p className="text-gray-300">
-                Subscribe to stay informed about our new campaigns, blogs, and
-                other projects.
-              </p>
-            </div>
-            <div className="w-full lg:w-1/2 flex flex-col sm:flex-row gap-4">
-              <input
-                type="email"
-                placeholder="Enter your email"
-                className="w-full sm:w-2/3 px-4 py-3 rounded-lg bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#D2145A]"
-              />
-
-              <Button
-                label="Subscribe Now"
-                className="bg-[#D2145A] text-white hover:bg-white hover:text-[#D2145A] hover:border hover:border-[#D2145A] w-full h-10 sm:h-12 rounded-lg transition-all duration-300 text-sm sm:text-base font-medium"
-              />
-            </div>
-          </div>
-
-          {/* Footer Links Section */}
-          <div className="w-full max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mb-12">
-            {/* Quick Links */}
-            <div>
-              <h3 className="text-lg font-bold mb-4">QUICK LINKS</h3>
-              <ul className="space-y-2">
-                <li>
-                  <Link
-                    href="/about"
-                    className="text-gray-300 hover:text-[#D2145A]"
-                  >
-                    About Us
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/events"
-                    className="text-gray-300 hover:text-[#D2145A]"
-                  >
-                    Events
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/testimonials"
-                    className="text-gray-300 hover:text-[#D2145A]"
-                  >
-                    Testimonials
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/donate"
-                    className="text-gray-300 hover:text-[#D2145A]"
-                  >
-                    Donate
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/projects"
-                    className="text-gray-300 hover:text-[#D2145A]"
-                  >
-                    Projects
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="Volunteers"
-                    className="text-gray-300 hover:text-[#D2145A]"
-                  >
-                    Volunteers
-                  </Link>
-                </li>
-              </ul>
+    <footer className="bg-gray-900 dark:bg-black text-white py-16">
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="grid lg:grid-cols-5 gap-8 mb-12">
+          {/* Brand Section */}
+          <div className="lg:col-span-2">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-12 h-12 bg-gradient-to-r from-[#D2145A] to-[#FF4081] rounded-xl flex items-center justify-center text-2xl">
+                🚀
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold">Dapp Mentors</h3>
+                <p className="text-gray-400 text-sm">Blockchain Academy</p>
+              </div>
             </div>
 
-            {/* Policies */}
-            <div>
-              <h3 className="text-lg font-bold mb-4">POLICIES</h3>
-              <ul className="space-y-2">
-                <li>
-                  <Link href="#" className="text-gray-300 hover:text-[#D2145A]">
-                    Terms & Conditions
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/privacy"
-                    className="text-gray-300 hover:text-[#D2145A]"
-                  >
-                    Privacy Policy
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/contact"
-                    className="text-gray-300 hover:text-[#D2145A]"
-                  >
-                    Contact Us
-                  </Link>
-                </li>
-              </ul>
-            </div>
+            <p className="text-gray-400 mb-6 leading-relaxed">
+              Empowering developers, entrepreneurs, and technologists to excel
+              in Web3 and decentralized applications. Join our global community
+              and start building the future today.
+            </p>
 
-            {/* Socials */}
-            <div>
-              <h3 className="text-lg font-bold mb-4">SOCIALS</h3>
-              <div className="flex space-x-4">
-                <a href="#" className="text-gray-300 hover:text-[#D2145A]">
-                  <FaFacebook size={24} />
-                </a>
-                <a href="#" className="text-gray-300 hover:text-[#D2145A]">
-                  <FaTwitter size={24} />
-                </a>
-                <a href="#" className="text-gray-300 hover:text-[#D2145A]">
-                  <FaInstagram size={24} />
-                </a>
-                <a href="#" className="text-gray-300 hover:text-[#D2145A]">
-                  <FaLinkedin size={24} />
-                </a>
+            <div className="flex gap-4">
+              <div className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-[#D2145A] transition-colors duration-300 cursor-pointer">
+                <span className="text-lg">📺</span>
+              </div>
+              <div className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-[#D2145A] transition-colors duration-300 cursor-pointer">
+                <span className="text-lg">💼</span>
+              </div>
+              <div className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-[#D2145A] transition-colors duration-300 cursor-pointer">
+                <span className="text-lg">🐦</span>
+              </div>
+              <div className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-[#D2145A] transition-colors duration-300 cursor-pointer">
+                <span className="text-lg">💬</span>
               </div>
             </div>
           </div>
 
-          {/* Copyright Section */}
-          <div className="w-full max-w-7xl mx-auto text-center border-t border-gray-800 pt-8">
-            <p className="text-gray-300">
-              Dapp Mentors @{new Date().getFullYear()}. All rights reserved.
-            </p>
+          {/* Links Sections */}
+          {Object.entries(footerLinks).map(([title, links]) => (
+            <div key={title}>
+              <h4 className="text-lg font-semibold mb-4">{title}</h4>
+              <ul className="space-y-2">
+                {links.map((link, index) => (
+                  <li key={index}>
+                    <a
+                      href="#"
+                      className="text-gray-400 hover:text-white transition-colors duration-300"
+                    >
+                      {link}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+
+        <div className="border-t border-gray-800 pt-8">
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <div className="text-gray-400 mb-4 md:mb-0">
+              © 2025 Dapp Mentors. All rights reserved.
+            </div>
+            <div className="flex gap-6 text-gray-400">
+              <a
+                href="#"
+                className="hover:text-white transition-colors duration-300"
+              >
+                Terms
+              </a>
+              <a
+                href="#"
+                className="hover:text-white transition-colors duration-300"
+              >
+                Privacy
+              </a>
+              <a
+                href="#"
+                className="hover:text-white transition-colors duration-300"
+              >
+                Cookies
+              </a>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </footer>
   );
 };
 
-export default Footer;
+export default FooterSection;

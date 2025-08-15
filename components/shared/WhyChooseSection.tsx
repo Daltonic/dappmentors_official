@@ -1,33 +1,34 @@
 // Why Choose Us Section
+
 const WhyChooseSection = () => {
-  const benefits = [
+  const features = [
     {
-      title: "Proven Expertise",
+      icon: "👨‍🏫",
+      title: "Expert-Led Learning",
       description:
-        "Our team brings over eight years of experience in blockchain development, full-stack engineering, and technical education.",
-      icon: "🏆",
-      stats: "8+ Years Experience",
+        "Learn from blockchain expert Darlington Gospel with 8+ years of experience in Solidity, Rust, and modern blockchains like Solana, Alephium, and ICP.",
+      gradient: "from-blue-500 to-cyan-500",
     },
     {
-      title: "Tailored Solutions",
-      description:
-        "Whether you're learning Web3, building a dApp, or hiring talent, we customize our services to meet your unique goals.",
-      icon: "🎯",
-      stats: "100% Customized",
-    },
-    {
+      icon: "🛠️",
       title: "Hands-On Approach",
       description:
-        "Our education and development services focus on practical, real-world applications, ensuring actionable skills and deliverable results.",
-      icon: "🛠️",
-      stats: "Real-world Focus",
+        "Build real-world dApps like crowdfunding platforms, voting systems, and NFT marketplaces through practical tutorials and projects.",
+      gradient: "from-green-500 to-emerald-500",
     },
     {
-      title: "Community-Driven",
+      icon: "🌐",
+      title: "Vibrant Community",
       description:
-        "We're more than a service provider—we're a community dedicated to advancing Web3 innovation together.",
-      icon: "🤝",
-      stats: "5,000+ Community",
+        "Connect with thousands of developers on Discord, LinkedIn, and X for networking, collaboration, and the latest Web3 trends.",
+      gradient: "from-purple-500 to-pink-500",
+    },
+    {
+      icon: "🎯",
+      title: "Comprehensive Solutions",
+      description:
+        "From free tutorials to premium education and professional development services, we support every step of your Web3 journey.",
+      gradient: "from-orange-500 to-red-500",
     },
   ];
 
@@ -44,32 +45,27 @@ const WhyChooseSection = () => {
           </div>
 
           <h2 className="text-4xl md:text-5xl font-cambo font-normal text-gray-900 dark:text-white mb-6">
-            Why Choose Our Services?
+            Why Dapp Mentors?
           </h2>
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-4xl mx-auto">
-            We combine deep technical expertise with a passion for education and
-            community building to deliver exceptional Web3 solutions.
+            We bridge the gap between Web2 and Web3 with comprehensive
+            education, expert guidance, and a supportive community.
           </p>
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {benefits.map((benefit, index) => (
+          {features.map((feature, index) => (
             <div key={index} className="group text-center">
-              <div className="relative mb-8">
-                <div className="w-24 h-24 bg-gradient-to-br from-[#D2145A] to-[#FF4081] rounded-3xl flex items-center justify-center text-4xl mx-auto group-hover:scale-110 group-hover:rotate-12 transition-all duration-500 shadow-lg">
-                  {benefit.icon}
-                </div>
-                <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-white dark:bg-gray-900 px-4 py-1 rounded-full text-xs font-bold text-[#D2145A] border-2 border-[#D2145A]/20">
-                  {benefit.stats}
-                </div>
+              <div
+                className={`w-20 h-20 bg-gradient-to-br ${feature.gradient} rounded-3xl flex items-center justify-center text-3xl mx-auto mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500`}
+              >
+                {feature.icon}
               </div>
-
               <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-                {benefit.title}
+                {feature.title}
               </h3>
-
               <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
-                {benefit.description}
+                {feature.description}
               </p>
             </div>
           ))}
