@@ -1,5 +1,7 @@
 // Footer Section
 
+import Image from "next/image";
+
 const FooterSection = () => {
   const footerLinks = {
     Learn: ["Premium Courses", "Bootcamps", "Free Tutorials", "eBooks"],
@@ -20,9 +22,21 @@ const FooterSection = () => {
           {/* Brand Section */}
           <div className="lg:col-span-2">
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 bg-gradient-to-r from-[#D2145A] to-[#FF4081] rounded-xl flex items-center justify-center text-2xl">
-                🚀
+              <div className="relative">
+                <div className="h-10 w-10 rounded-2xl overflow-hidden relative group-hover:scale-110 transition-transform duration-500">
+                  <Image
+                    src="/assets/images/logo.png"
+                    alt="Dapp Mentors Logo"
+                    layout="fill"
+                    objectFit="cover"
+                    className="rounded-2xl"
+                    priority
+                  />
+                </div>
+                {/* Animated ring around logo */}
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-[#D2145A] to-[#FF4081] opacity-0 group-hover:opacity-20 transition-opacity duration-500 animate-pulse"></div>
               </div>
+
               <div>
                 <h3 className="text-2xl font-bold">Dapp Mentors</h3>
                 <p className="text-gray-400 text-sm">Blockchain Academy</p>

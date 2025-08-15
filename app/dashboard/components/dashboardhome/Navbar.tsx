@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
-import ToggleMode from "@/components/home/ToggleMode";
+import ToggleMode from "@/components/shared/ToggleMode";
 import Link from "next/link";
 import { FiPlusCircle } from "react-icons/fi";
 import { IoSearch, IoMenu } from "react-icons/io5";
