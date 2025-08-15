@@ -1,6 +1,6 @@
 "use client";
 
-import { products } from "@/data/global";
+import { products as productx } from "@/data/global";
 import ProductCard from "../shared/ProductCard";
 import { useState } from "react";
 
@@ -8,6 +8,9 @@ import { useState } from "react";
 const CoursesSection = () => {
   const [visibleCourses, setVisibleCourses] = useState(3); // Start with 3 courses
   const coursesPerLoad = 3; // Number of courses to load each time
+  const products = productx
+    .filter((product) => product.type === "Course")
+    .slice(0, visibleCourses);
   const totalCourses = products.length; // Total number of courses
   const hasMoreCourses = visibleCourses < totalCourses; // Check if more courses can be loaded
 
@@ -37,7 +40,7 @@ const CoursesSection = () => {
         </div>
 
         <div className="grid lg:grid-cols-3 gap-8">
-          {products.slice(0, visibleCourses).map((course, index) => (
+          {products.map((course, index) => (
             <ProductCard product={course} key={index} />
           ))}
         </div>

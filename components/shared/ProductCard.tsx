@@ -79,9 +79,24 @@ const ProductCard = ({ product }: { product: ProductProp }) => (
           <div className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
             {product.price}
           </div>
-          <button className="bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white px-6 py-3 rounded-xl font-semibold hover:scale-105 transition-all duration-300 text-sm sm:text-base">
-            Enroll Now
-          </button>
+          {/* Enroll Now Button */}
+          {product.type === "Course" && (
+            <button className="bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg">
+              Enroll Now
+            </button>
+          )}
+
+          {product.type === "Bootcamp" && (
+            <button className="bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg">
+              Reserve Spot
+            </button>
+          )}
+
+          {product.type === "eBook" && (
+            <button className="bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg">
+              Download eBook
+            </button>
+          )}
         </div>
       </div>
     </div>

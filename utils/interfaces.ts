@@ -287,3 +287,18 @@ export interface ProductProp {
   gradient: string;
   features: string[];
 }
+
+export interface PostProp {
+  title: string;
+  excerpt: string;
+  category: string;
+  readTime: string;
+  publishDate: string;
+  topics: string[];
+  imageSrc: string; // Path to the thumbnail image
+  alt: string; // Alt text for accessibility
+  icon: string; // Emoji or icon for the floating badge
+  gradient: string; // Gradient class for styling
+  featured: boolean;
+  relatedProduct: string;
+}

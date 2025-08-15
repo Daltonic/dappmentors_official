@@ -20,12 +20,12 @@ const WhoWeAreSection = () => {
                 applications (dApps).
               </p>
               <p className="text-lg text-gray-600 dark:text-gray-300 leading-relaxed">
-                Based in{" "}
+                Our team of{" "}
                 <span className="text-[#D2145A] font-semibold">
-                  Port Harcourt, Rivers
-                </span>
-                , our team of experienced blockchain developers and educators is
-                committed to empowering the next generation of Web3 innovators.
+                  Experienced Blockchain Developers
+                </span>{" "}
+                and educators is committed to empowering the next generation of
+                Web3 innovators.
               </p>
             </div>
           </div>

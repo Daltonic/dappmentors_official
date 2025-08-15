@@ -96,7 +96,7 @@ const Sidebar: React.FC<SidebarProps> = ({ sidebarOpened, onClose }) => {
       </div>
 
       {/* Navigation Links */}
-      <div className="px-6 py-8 space-y-3 overflow-y-auto h-[calc(100vh-300px)]">
+      <div className="px-6 py-8 space-y-3 overflow-y-auto h-[calc(100vh-350px)]">
         {navlinks.map((item, i) => (
           <Link
             key={i}
