@@ -1,5 +1,6 @@
 "use client";
 
+import MarkdownRenderer from "@/components/blogs/details/MardownRenderer";
 import MarketingLayout from "@/components/layouts/MarketingLayout";
 import Link from "next/link";
 import React, { useState, useEffect } from "react";
@@ -465,58 +466,6 @@ const SocialShare: React.FC<SocialShareProps> = ({ title, url }) => {
   );
 };
 
-// Code Block Component
-interface CodeBlockProps {
-  code: string;
-  language: string;
-}
-
-const CodeBlock: React.FC<CodeBlockProps> = ({ code, language }) => {
-  const [copied, setCopied] = useState<boolean>(false);
-
-  const handleCopy = async () => {
-    try {
-      if (navigator.clipboard) {
-        await navigator.clipboard.writeText(code);
-      } else {
-        // Fallback for older browsers
-        const textArea = document.createElement("textarea");
-        textArea.value = code;
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand("copy");
-        document.body.removeChild(textArea);
-      }
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error("Failed to copy code:", err);
-    }
-  };
-
-  return (
-    <div className="relative group">
-      <div className="absolute top-4 right-4 z-10">
-        <button
-          onClick={handleCopy}
-          className="bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded-lg text-sm font-medium transition-all duration-200 opacity-0 group-hover:opacity-100"
-          aria-label="Copy code"
-        >
-          {copied ? "✓ Copied" : "📋 Copy"}
-        </button>
-      </div>
-      <pre className="bg-gray-900 text-gray-100 p-6 rounded-xl overflow-x-auto">
-        <code className="text-sm">{code}</code>
-      </pre>
-      {language && (
-        <div className="absolute top-2 left-4 text-xs text-gray-400 uppercase">
-          {language}
-        </div>
-      )}
-    </div>
-  );
-};
-
 // Related Articles Component
 const RelatedArticles: React.FC = () => {
   const relatedPosts: RelatedPost[] = [
@@ -630,131 +579,6 @@ const ProgressBar: React.FC = () => {
   );
 };
 
-// Markdown Renderer Component
-interface MarkdownRendererProps {
-  content: string;
-}
-
-const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
-  const renderMarkdown = (content: string): React.ReactNode[] => {
-    const lines = content.split("\n");
-    const elements: React.ReactNode[] = [];
-
-    let inCodeBlock = false;
-    let codeContent = "";
-    let codeLanguage = "";
-
-    lines.forEach((line, index) => {
-      // Handle code blocks
-      if (line.startsWith("```")) {
-        if (inCodeBlock) {
-          // End of code block
-          elements.push(
-            <CodeBlock
-              key={`code-${index}`}
-              code={codeContent.trim()}
-              language={codeLanguage}
-            />,
-          );
-          inCodeBlock = false;
-          codeContent = "";
-          codeLanguage = "";
-        } else {
-          // Start of code block
-          inCodeBlock = true;
-          codeLanguage = line.replace("```", "").trim();
-        }
-        return;
-      }
-
-      if (inCodeBlock) {
-        codeContent += line + "\n";
-        return;
-      }
-
-      // Headers
-      if (line.startsWith("### ")) {
-        const text = line.replace("### ", "");
-        const id = text.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-        elements.push(
-          <h3
-            key={index}
-            id={id}
-            className="text-2xl font-bold text-gray-900 dark:text-white mt-8 mb-4"
-          >
-            {text}
-          </h3>,
-        );
-      } else if (line.startsWith("## ")) {
-        const text = line.replace("## ", "");
-        const id = text.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-        elements.push(
-          <h2
-            key={index}
-            id={id}
-            className="text-3xl font-bold text-gray-900 dark:text-white mt-10 mb-6"
-          >
-            {text}
-          </h2>,
-        );
-      } else if (line.startsWith("# ")) {
-        const text = line.replace("# ", "");
-        const id = text.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-        elements.push(
-          <h1
-            key={index}
-            id={id}
-            className="text-4xl font-bold text-gray-900 dark:text-white mt-12 mb-8"
-          >
-            {text}
-          </h1>,
-        );
-      } else if (line.includes("`") && !line.startsWith("```")) {
-        // Inline code
-        const parts = line.split("`");
-        const renderedParts = parts.map((part, i) =>
-          i % 2 === 1 ? (
-            <code
-              key={i}
-              className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-sm font-mono"
-            >
-              {part}
-            </code>
-          ) : (
-            part
-          ),
-        );
-        elements.push(
-          <p
-            key={index}
-            className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4"
-          >
-            {renderedParts}
-          </p>,
-        );
-      } else if (line.trim()) {
-        // Regular paragraphs
-        elements.push(
-          <p
-            key={index}
-            className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4"
-          >
-            {line}
-          </p>,
-        );
-      } else {
-        // Empty lines
-        elements.push(<br key={index} />);
-      }
-    });
-
-    return elements;
-  };
-
-  return <>{renderMarkdown(content)}</>;
-};
-
-// Main Blog Detail Page Component
 const Page: React.FC = () => {
   const [isBookmarked, setIsBookmarked] = useState<boolean>(false);
   const [showMobileToc, setShowMobileToc] = useState<boolean>(false);
@@ -916,35 +740,29 @@ const Page: React.FC = () => {
 
             {/* Main Content */}
             <div className="lg:col-span-3">
-              <article className="prose prose-lg max-w-none">
-                <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-3xl p-8 md:p-12 border border-gray-200/50 dark:border-gray-700/50">
-                  <div className="blog-content space-y-6">
+              <article className="prose prose-sm sm:prose-lg max-w-none">
+                <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 lg:p-12 border border-gray-200/50 dark:border-gray-700/50">
+                  <div className="blog-content space-y-4 sm:space-y-6">
                     <MarkdownRenderer content={blogPost.content} />
                   </div>
                 </div>
               </article>
 
-              {/* Article Footer */}
-              <div className="mt-12 bg-gradient-to-r from-[#D2145A]/5 to-[#FF4081]/5 rounded-3xl p-8 border border-[#D2145A]/20">
+              {/* Article Footer - Responsive */}
+              <div className="mt-8 sm:mt-12 bg-gradient-to-r from-[#D2145A]/5 to-[#FF4081]/5 rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 border border-[#D2145A]/20">
                 <div className="text-center">
-                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                  <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">
                     Found this tutorial helpful?
                   </h3>
-                  <p className="text-gray-600 dark:text-gray-300 mb-6">
+                  <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 mb-4 sm:mb-6 px-2">
                     Join our community to get more Web3 development insights and
                     connect with fellow developers.
                   </p>
-                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                    <button
-                      className="bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white px-8 py-3 rounded-2xl font-semibold hover:scale-105 transition-all duration-300"
-                      onClick={() => console.log("Join Discord Community")}
-                    >
+                  <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center max-w-md sm:max-w-none mx-auto">
+                    <button className="bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white px-6 sm:px-8 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-semibold text-sm sm:text-base hover:scale-105 transition-all duration-300 w-full sm:w-auto">
                       Join Discord Community
                     </button>
-                    <button
-                      className="border-2 border-[#D2145A] text-[#D2145A] hover:bg-[#D2145A] hover:text-white px-8 py-3 rounded-2xl font-semibold transition-all duration-300"
-                      onClick={() => console.log("Subscribe to Newsletter")}
-                    >
+                    <button className="border-2 border-[#D2145A] text-[#D2145A] hover:bg-[#D2145A] hover:text-white px-6 sm:px-8 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-semibold text-sm sm:text-base transition-all duration-300 w-full sm:w-auto">
                       Subscribe to Newsletter
                     </button>
                   </div>
