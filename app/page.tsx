@@ -3,6 +3,7 @@
 import ServicesSection from "@/components/contact/ServicesSection";
 import FeaturedContentSection from "@/components/home/FeaturedContentSection";
 import FeaturedProductsSection from "@/components/home/FeaturedProductsSection";
+import RecentBlogsSection from "@/components/home/RecentBlogsSection";
 import MarketingLayout from "@/components/layouts/MarketingLayout";
 import CommunityStatsSection from "@/components/shared/CommunityStatsSection";
 import CTASection from "@/components/shared/CTASection";
@@ -50,6 +51,7 @@ const HomePage = () => {
       <ServicesSection />
       <FeaturedContentSection />
       <CommunityStatsSection />
+      <RecentBlogsSection />
       <CTASection
         title="Ready to Shape the Decentralized Future?"
         highlightText="Decentralized Future"

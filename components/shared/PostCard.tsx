@@ -86,12 +86,6 @@ const PostCard = ({ post }: { post: PostProp }) => (
             Read More →
           </button>
         </div>
-
-        <div className="bg-gradient-to-r from-[#D2145A]/5 to-[#FF4081]/5 rounded-xl p-4 border border-[#D2145A]/20">
-          <p className="text-sm text-gray-700 dark:text-gray-300">
-            <strong>Related:</strong> {post.relatedProduct}
-          </p>
-        </div>
       </div>
     </div>
   </div>
