@@ -1,6 +1,10 @@
 "use client";
 
 import MarkdownRenderer from "@/components/blogs/details/MardownRenderer";
+import ProgressBar from "@/components/blogs/details/ProgressBar";
+import RelatedArticles from "@/components/blogs/details/RelatedArticles";
+import SocialShare from "@/components/blogs/details/SocialShare";
+import TableOfContents from "@/components/blogs/details/TableOfContent";
 import MarketingLayout from "@/components/layouts/MarketingLayout";
 import Link from "next/link";
 import React, { useState, useEffect } from "react";
@@ -26,29 +30,6 @@ interface BlogPost {
   content: string;
 }
 
-interface RelatedPost {
-  title: string;
-  excerpt: string;
-  category: string;
-  readTime: string;
-  gradient: string;
-  image: string;
-}
-
-interface ShareLink {
-  name: string;
-  icon: string;
-  url?: string;
-  color: string;
-  onClick?: () => void;
-}
-
-interface TocItem {
-  level: number;
-  text: string;
-  id: string;
-}
-
 // Mock blog data - in real app, this would come from your CMS/API
 const blogPost: BlogPost = {
   id: 1,
@@ -70,6 +51,10 @@ const blogPost: BlogPost = {
 # Introduction
 
 Building a crowdfunding dApp on Solana combines the power of blockchain technology with the accessibility of decentralized finance. In this comprehensive tutorial, we'll walk through creating a complete crowdfunding platform using Rust, Anchor, and React.
+
+[Watch the complete tutorial](https://youtu.be/U7vR_9B2EqA)
+
+![Solana dApp Architecture](https://pbs.twimg.com/media/GyBjTKoXkAAwBeq?format=jpg&name=large)
 
 ## What You'll Learn
 
@@ -318,265 +303,6 @@ You've now built a complete crowdfunding dApp on Solana! This tutorial covered t
 
 **Happy coding! 🚀**
   `,
-};
-
-// Table of Contents Component
-interface TableOfContentsProps {
-  content: string;
-}
-
-const TableOfContents: React.FC<TableOfContentsProps> = ({ content }) => {
-  const [activeSection, setActiveSection] = useState<string>("");
-
-  // Extract headings from markdown content
-  const headings = content.match(/^#{1,3} .+$/gm) || [];
-  const tocItems: TocItem[] = headings.map((heading) => {
-    const levelMatch = heading.match(/^#+/);
-    const level = levelMatch ? levelMatch[0].length : 1;
-    const text = heading.replace(/^#+\s/, "");
-    const id = text.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-    return { level, text, id };
-  });
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollPosition = window.scrollY + 100;
-
-      for (let i = tocItems.length - 1; i >= 0; i--) {
-        const element = document.getElementById(tocItems[i].id);
-        if (element && element.offsetTop <= scrollPosition) {
-          setActiveSection(tocItems[i].id);
-          break;
-        }
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [tocItems]);
-
-  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
-    e.preventDefault();
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
-    }
-  };
-
-  return (
-    <div className="sticky top-8 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-2xl p-6 border border-gray-200/50 dark:border-gray-700/50">
-      <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-        📋 Table of Contents
-      </h3>
-      <nav className="space-y-2">
-        {tocItems.map((item, index) => (
-          <a
-            key={index}
-            href={`#${item.id}`}
-            onClick={(e) => handleClick(e, item.id)}
-            className={`block text-sm transition-colors duration-200 hover:text-[#D2145A] ${
-              item.level === 1
-                ? "font-semibold"
-                : item.level === 2
-                  ? "pl-4"
-                  : "pl-8"
-            } ${
-              activeSection === item.id
-                ? "text-[#D2145A] font-semibold"
-                : "text-gray-600 dark:text-gray-400"
-            }`}
-          >
-            {item.text}
-          </a>
-        ))}
-      </nav>
-    </div>
-  );
-};
-
-// Social Share Component
-interface SocialShareProps {
-  title: string;
-  url: string;
-}
-
-const SocialShare: React.FC<SocialShareProps> = ({ title, url }) => {
-  const handleCopyLink = () => {
-    if (navigator.clipboard) {
-      navigator.clipboard
-        .writeText(url)
-        .then(() => {
-          alert("Link copied to clipboard!");
-        })
-        .catch(() => {
-          // Fallback for older browsers
-          const textArea = document.createElement("textarea");
-          textArea.value = url;
-          document.body.appendChild(textArea);
-          textArea.select();
-          document.execCommand("copy");
-          document.body.removeChild(textArea);
-          alert("Link copied to clipboard!");
-        });
-    }
-  };
-
-  const shareLinks: ShareLink[] = [
-    {
-      name: "Twitter",
-      icon: "🐦",
-      url: `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`,
-      color: "hover:bg-blue-500",
-    },
-    {
-      name: "LinkedIn",
-      icon: "💼",
-      url: `https://linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
-      color: "hover:bg-blue-600",
-    },
-    {
-      name: "Copy Link",
-      icon: "🔗",
-      color: "hover:bg-gray-500",
-      onClick: handleCopyLink,
-    },
-  ];
-
-  const handleLinkClick = (link: ShareLink) => {
-    if (link.onClick) {
-      link.onClick();
-    } else if (link.url) {
-      window.open(link.url, "_blank", "noopener,noreferrer");
-    }
-  };
-
-  return (
-    <div className="flex gap-3">
-      {shareLinks.map((link, index) => (
-        <button
-          key={index}
-          onClick={() => handleLinkClick(link)}
-          className={`w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-lg transition-all duration-300 hover:scale-110 ${link.color} hover:text-white`}
-          aria-label={`Share on ${link.name}`}
-        >
-          {link.icon}
-        </button>
-      ))}
-    </div>
-  );
-};
-
-// Related Articles Component
-const RelatedArticles: React.FC = () => {
-  const relatedPosts: RelatedPost[] = [
-    {
-      title: "Mastering Solidity: Writing Secure Smart Contracts",
-      excerpt: "Learn advanced Solidity patterns and security best practices.",
-      category: "Smart Contracts",
-      readTime: "12 min",
-      gradient: "from-yellow-500 to-orange-500",
-      image: "⚡",
-    },
-    {
-      title: "DeFi Development: Building Yield Farming Protocols",
-      excerpt: "Step-by-step guide to creating DeFi yield farming mechanisms.",
-      category: "DeFi",
-      readTime: "18 min",
-      gradient: "from-green-500 to-emerald-500",
-      image: "🌱",
-    },
-    {
-      title: "Web3 Security: Protecting Your dApps",
-      excerpt: "Essential security practices for decentralized applications.",
-      category: "Security",
-      readTime: "14 min",
-      gradient: "from-red-500 to-pink-500",
-      image: "🛡️",
-    },
-  ];
-
-  const handleArticleClick = (title: string) => {
-    // In a real app, this would navigate to the article
-    console.log(`Navigate to article: ${title}`);
-  };
-
-  return (
-    <section className="py-16 bg-gradient-to-br from-gray-50 to-purple-50 dark:from-[#1A1A1A] dark:to-purple-900/10">
-      <div className="max-w-7xl mx-auto px-4">
-        <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-8 text-center">
-          Related Articles
-        </h3>
-        <div className="grid md:grid-cols-3 gap-6">
-          {relatedPosts.map((post, index) => (
-            <article
-              key={index}
-              className="group bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-2xl p-6 hover:shadow-2xl transition-all duration-500 cursor-pointer border border-gray-200/50 dark:border-gray-700/50"
-              onClick={() => handleArticleClick(post.title)}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  handleArticleClick(post.title);
-                }
-              }}
-            >
-              <div
-                className={`w-12 h-12 bg-gradient-to-br ${post.gradient} rounded-xl flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform duration-300`}
-              >
-                {post.image}
-              </div>
-              <span
-                className={`bg-gradient-to-r ${post.gradient} text-white px-3 py-1 rounded-full text-xs font-semibold mb-3 inline-block`}
-              >
-                {post.category}
-              </span>
-              <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-2 group-hover:text-[#D2145A] transition-colors duration-300">
-                {post.title}
-              </h4>
-              <p className="text-gray-600 dark:text-gray-300 text-sm mb-3">
-                {post.excerpt}
-              </p>
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-500 dark:text-gray-400">
-                  ⏱️ {post.readTime}
-                </span>
-                <span className="text-[#D2145A] hover:text-[#FF4081] font-semibold text-sm transition-colors duration-300">
-                  Read →
-                </span>
-              </div>
-            </article>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-};
-
-// Progress Bar Component
-const ProgressBar: React.FC = () => {
-  const [progress, setProgress] = useState<number>(0);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollTop = window.scrollY;
-      const docHeight =
-        document.documentElement.scrollHeight - window.innerHeight;
-      const scrollPercent = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
-      setProgress(Math.min(Math.max(scrollPercent, 0), 100));
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  return (
-    <div className="fixed top-0 left-0 w-full h-1 bg-gray-200 dark:bg-gray-800 z-50">
-      <div
-        className="h-full bg-gradient-to-r from-[#D2145A] to-[#FF4081] transition-all duration-150"
-        style={{ width: `${progress}%` }}
-      />
-    </div>
-  );
 };
 
 const Page: React.FC = () => {

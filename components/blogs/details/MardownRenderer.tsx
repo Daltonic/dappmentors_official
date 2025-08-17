@@ -208,60 +208,7 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ code, language }) => {
 };
 
 const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
-  // Function to parse images
-  const parseImages = (text: string): React.ReactNode[] => {
-    const imageRegex = /!\[([^\]]*)\]\(([^)]+)\)/g;
-    const parts: React.ReactNode[] = [];
-    let lastIndex = 0;
-    let match;
-
-    while ((match = imageRegex.exec(text)) !== null) {
-      // Add text before the image
-      if (match.index > lastIndex) {
-        parts.push(
-          ...parseTextFormatting(text.substring(lastIndex, match.index)),
-        );
-      }
-
-      // Add the image
-      const [, altText, imageUrl] = match;
-      parts.push(
-        <Image
-          key={match.index}
-          src={imageUrl}
-          alt={altText}
-          style={{
-            maxWidth: "100%",
-            height: "auto",
-            borderRadius: "8px",
-            margin: "16px 0",
-            display: "block",
-          }}
-          onError={(e) => {
-            const target = e.target as HTMLImageElement;
-            target.style.display = "none";
-            // Show fallback text
-            const fallback = document.createElement("div");
-            fallback.textContent = `[Image: ${altText || "Failed to load"}]`;
-            fallback.style.cssText =
-              "color: #6b7280; font-style: italic; padding: 16px; background: #f3f4f6; border-radius: 8px; margin: 16px 0;";
-            target.parentNode?.insertBefore(fallback, target);
-          }}
-        />,
-      );
-
-      lastIndex = imageRegex.lastIndex;
-    }
-
-    // Add remaining text
-    if (lastIndex < text.length) {
-      parts.push(...parseTextFormatting(text.substring(lastIndex)));
-    }
-
-    return parts.length > 0 ? parts : parseTextFormatting(text);
-  };
-
-  // Function to parse and render markdown links
+  // Function to parse and render markdown links (inline only)
   const parseLinks = (text: string): React.ReactNode[] => {
     const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
     const parts: React.ReactNode[] = [];
@@ -274,47 +221,25 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
         parts.push(text.substring(lastIndex, match.index));
       }
 
-      // Add the link
+      // Add the link (only regular links, not YouTube embeds in inline context)
       const [, linkText, linkUrl] = match;
 
-      // Check if it's a YouTube embed
-      const youtubeMatch = linkUrl.match(
-        /(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/,
+      parts.push(
+        <a
+          key={match.index}
+          href={linkUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            color: "#60a5fa",
+            textDecoration: "underline",
+            wordWrap: "break-word",
+            overflowWrap: "break-word",
+          }}
+        >
+          {linkText}
+        </a>,
       );
-      if (youtubeMatch) {
-        const videoId = youtubeMatch[1];
-        parts.push(
-          <div key={match.index} style={{ margin: "16px 0" }}>
-            <iframe
-              width="100%"
-              height="315"
-              src={`https://www.youtube.com/embed/${videoId}`}
-              title={linkText}
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-              style={{ borderRadius: "8px", maxWidth: "560px" }}
-            />
-          </div>,
-        );
-      } else {
-        parts.push(
-          <a
-            key={match.index}
-            href={linkUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              color: "#60a5fa",
-              textDecoration: "underline",
-              wordWrap: "break-word",
-              overflowWrap: "break-word",
-            }}
-          >
-            {linkText}
-          </a>,
-        );
-      }
 
       lastIndex = linkRegex.lastIndex;
     }
@@ -329,7 +254,6 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
 
   // Function to parse bold, italic, and strikethrough text
   const parseTextFormatting = (text: string): React.ReactNode[] => {
-    // const parts: React.ReactNode[] = [];
     const currentText = text;
     let keyCounter = 0;
 
@@ -474,22 +398,194 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
     return parts.length > 0 ? parts : parseLinks(text);
   };
 
-  // Main text parsing function that handles all inline formatting
-  const parseAllInlineFormatting = (text: string): React.ReactNode[] => {
-    // First parse images (they can contain other formatting in alt text)
-    const imageParsed = parseImages(text);
+  // Function for inline formatting only (no block elements)
+  const parseInlineFormatting = (text: string): React.ReactNode[] => {
+    // Parse inline code first, then text formatting
+    const codeProcessed = parseInlineCode(text);
 
-    // Then parse inline code and links for non-image parts
+    // Process each part for text formatting if it's a string
     const finalParts: React.ReactNode[] = [];
-    imageParsed.forEach((part) => {
+    codeProcessed.forEach((part) => {
       if (typeof part === "string") {
-        finalParts.push(...parseInlineCode(part));
+        finalParts.push(...parseTextFormatting(part));
       } else {
         finalParts.push(part);
       }
     });
 
     return finalParts;
+  };
+
+  // Function to check if a line contains block-level elements
+  const containsBlockElements = (text: string): boolean => {
+    // Check for images or YouTube links
+    const imageRegex = /!\[([^\]]*)\]\(([^)]+)\)/;
+    const youtubeRegex =
+      /\[([^\]]+)\]\((https?:\/\/(?:www\.)?)(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)\)/;
+
+    return imageRegex.test(text) || youtubeRegex.test(text);
+  };
+
+  // Function to render a line that may contain block elements
+  const renderLineWithBlockElements = (
+    text: string,
+    baseKey: string,
+  ): React.ReactNode[] => {
+    const elements: React.ReactNode[] = [];
+    let remaining = text;
+    let elementKey = 0;
+
+    // Process images
+    const imageRegex = /!\[([^\]]*)\]\(([^)]+)\)/g;
+    let match;
+
+    while ((match = imageRegex.exec(remaining)) !== null) {
+      // Add text before image
+      if (match.index > 0) {
+        const beforeText = remaining.substring(0, match.index);
+        if (beforeText.trim()) {
+          elements.push(
+            <p
+              key={`${baseKey}-text-${elementKey++}`}
+              style={{
+                fontSize:
+                  typeof window !== "undefined" && window.innerWidth < 640
+                    ? "14px"
+                    : "16px",
+                lineHeight: "1.6",
+                marginBottom: "16px",
+                wordWrap: "break-word",
+                overflowWrap: "break-word",
+              }}
+            >
+              {parseInlineFormatting(beforeText)}
+            </p>,
+          );
+        }
+      }
+
+      // Add the image
+      const [, altText, imageUrl] = match;
+      elements.push(
+        <Image
+          key={`${baseKey}-img-${elementKey++}`}
+          src={imageUrl}
+          alt={altText}
+          width={800}
+          height={400}
+          style={{
+            maxWidth: "100%",
+            height: "auto",
+            borderRadius: "8px",
+            margin: "16px 0",
+            display: "block",
+          }}
+          onError={(e) => {
+            const target = e.target as HTMLImageElement;
+            target.style.display = "none";
+            // Show fallback text
+            const fallback = document.createElement("div");
+            fallback.textContent = `[Image: ${altText || "Failed to load"}]`;
+            fallback.style.cssText =
+              "color: #6b7280; font-style: italic; padding: 16px; background: #f3f4f6; border-radius: 8px; margin: 16px 0;";
+            target.parentNode?.insertBefore(fallback, target);
+          }}
+        />,
+      );
+
+      // Update remaining text
+      remaining = remaining.substring(match.index + match[0].length);
+      imageRegex.lastIndex = 0; // Reset regex
+    }
+
+    // Process YouTube links
+    const youtubeRegex =
+      /\[([^\]]+)\]\((https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)[^)]*)\)/g;
+
+    while ((match = youtubeRegex.exec(remaining)) !== null) {
+      // Add text before video
+      if (match.index > 0) {
+        const beforeText = remaining.substring(0, match.index);
+        if (beforeText.trim()) {
+          elements.push(
+            <p
+              key={`${baseKey}-text-${elementKey++}`}
+              style={{
+                fontSize:
+                  typeof window !== "undefined" && window.innerWidth < 640
+                    ? "14px"
+                    : "16px",
+                lineHeight: "1.6",
+                marginBottom: "16px",
+                wordWrap: "break-word",
+                overflowWrap: "break-word",
+              }}
+            >
+              {parseInlineFormatting(beforeText)}
+            </p>,
+          );
+        }
+      }
+
+      // Add YouTube embed
+      const [, linkText, , videoId] = match;
+      elements.push(
+        <div
+          key={`${baseKey}-video-${elementKey++}`}
+          style={{
+            margin: "16px 0",
+            position: "relative",
+            paddingBottom: "56.25%", // 16:9 aspect ratio
+            height: 0,
+            overflow: "hidden",
+            width: "100%",
+          }}
+        >
+          <iframe
+            src={`https://www.youtube.com/embed/${videoId}`}
+            title={linkText}
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              borderRadius: "8px",
+            }}
+          />
+        </div>,
+      );
+
+      // Update remaining text
+      remaining = remaining.substring(match.index + match[0].length);
+      youtubeRegex.lastIndex = 0; // Reset regex
+    }
+
+    // Add any remaining text
+    if (remaining.trim()) {
+      elements.push(
+        <p
+          key={`${baseKey}-text-${elementKey++}`}
+          style={{
+            fontSize:
+              typeof window !== "undefined" && window.innerWidth < 640
+                ? "14px"
+                : "16px",
+            lineHeight: "1.6",
+            marginBottom: "16px",
+            wordWrap: "break-word",
+            overflowWrap: "break-word",
+          }}
+        >
+          {parseInlineFormatting(remaining)}
+        </p>,
+      );
+    }
+
+    return elements;
   };
 
   const renderMarkdown = (content: string): React.ReactNode[] => {
@@ -543,7 +639,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
               borderRadius: "4px",
             }}
           >
-            {parseAllInlineFormatting(quoteContent)}
+            {parseInlineFormatting(quoteContent)}
           </blockquote>,
         );
         return;
@@ -601,7 +697,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
               >
                 {isNumbered ? marker : "•"}
               </span>
-              <span>{parseAllInlineFormatting(listContent)}</span>
+              <span>{parseInlineFormatting(listContent)}</span>
             </div>,
           );
         }
@@ -629,7 +725,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
               overflowWrap: "break-word",
             }}
           >
-            {parseAllInlineFormatting(text)}
+            {parseInlineFormatting(text)}
           </h3>,
         );
       } else if (line.startsWith("## ")) {
@@ -652,7 +748,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
               overflowWrap: "break-word",
             }}
           >
-            {parseAllInlineFormatting(text)}
+            {parseInlineFormatting(text)}
           </h2>,
         );
       } else if (line.startsWith("# ")) {
@@ -675,28 +771,34 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
               overflowWrap: "break-word",
             }}
           >
-            {parseAllInlineFormatting(text)}
+            {parseInlineFormatting(text)}
           </h1>,
         );
       } else if (line.trim()) {
-        // Regular paragraphs with all inline formatting parsing
-        elements.push(
-          <p
-            key={index}
-            style={{
-              fontSize:
-                typeof window !== "undefined" && window.innerWidth < 640
-                  ? "14px"
-                  : "16px",
-              lineHeight: "1.6",
-              marginBottom: "16px",
-              wordWrap: "break-word",
-              overflowWrap: "break-word",
-            }}
-          >
-            {parseAllInlineFormatting(line)}
-          </p>,
-        );
+        // Check if the line contains block elements
+        if (containsBlockElements(line)) {
+          // Render with block elements handling
+          elements.push(...renderLineWithBlockElements(line, `line-${index}`));
+        } else {
+          // Regular paragraphs with only inline formatting
+          elements.push(
+            <p
+              key={index}
+              style={{
+                fontSize:
+                  typeof window !== "undefined" && window.innerWidth < 640
+                    ? "14px"
+                    : "16px",
+                lineHeight: "1.6",
+                marginBottom: "16px",
+                wordWrap: "break-word",
+                overflowWrap: "break-word",
+              }}
+            >
+              {parseInlineFormatting(line)}
+            </p>,
+          );
+        }
       } else {
         elements.push(<br key={index} />);
       }
