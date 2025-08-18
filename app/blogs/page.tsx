@@ -1,39 +1,71 @@
-"use client";
+import { Metadata } from "next";
+import PageClient from "./PageClient";
 
-import AllPostsSection from "@/components/blogs/AllPostsSection";
-import FeaturedPostsSection from "@/components/blogs/FeaturedPostSection";
-import SearchFilterSection from "@/components/blogs/SearchFilterSection";
-import MarketingLayout from "@/components/layouts/MarketingLayout";
-import CTASection from "@/components/shared/CTASection";
-import HeroSection from "@/components/shared/HeroSection";
-import React from "react";
+// Metadata for SEO
+export const metadata: Metadata = {
+  title: "Dapp Mentors Blog | Web3 & Blockchain Development Insights",
+  description:
+    "Explore free, high-quality tutorials, guides, and insights on blockchain development, Web3, smart contracts, and more from Dapp Mentors’ expert team.",
+  keywords: [
+    "web3 blog",
+    "blockchain tutorials",
+    "smart contract guides",
+    "web3 development",
+    "blockchain development",
+    "crypto tutorials",
+    "dapp mentors blog",
+    "web3 insights",
+  ],
+  authors: [{ name: "Dapp Mentors" }],
+  creator: "Dapp Mentors",
+  publisher: "Dapp Mentors",
+  openGraph: {
+    title: "Dapp Mentors Blog | Web3 & Blockchain Development Insights",
+    description:
+      "Free tutorials, guides, and insights on Web3 and blockchain development from Dapp Mentors’ expert team.",
+    url: "https://dappmentors.org/blogs", // Replace with your actual domain
+    siteName: "Dapp Mentors",
+    images: [
+      {
+        url: "/images/og-blog.jpg", // Replace with your Open Graph image for the blog page
+        width: 1200,
+        height: 630,
+        alt: "Dapp Mentors Blog - Web3 Insights",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Dapp Mentors Blog | Web3 & Blockchain Insights",
+    description:
+      "Discover Web3 and blockchain development tutorials, guides, and insights from Dapp Mentors’ expert team.",
+    images: ["/images/twitter-blog.jpg"], // Replace with your Twitter card image for the blog page
+    creator: "@dappmentors", // Replace with your Twitter handle
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  verification: {
+    google: "your-google-verification-code", // Replace with your Google verification code
+  },
+  alternates: {
+    canonical: "https://dappmentors.org/blog", // Replace with your actual domain
+  },
+};
 
-// Main Blogs Page Component
+// Server component that exports metadata
 const Page = () => {
-  return (
-    <MarketingLayout>
-      <HeroSection
-        tagText="Web3 Blog"
-        title="Your Source for Web3 Insights"
-        highlightText="Web3 Insights"
-        subtitle="Free, high-quality tutorials, guides, and insights into the ever-evolving world of blockchain development from our expert team."
-      />
-      <SearchFilterSection />
-      <FeaturedPostsSection />
-      <AllPostsSection />
-      <CTASection
-        title="Ready to Start Your Web3 Journey?"
-        highlightText="Web3 Journey"
-        subtitle="Explore our blog posts, join our community, and take advantage of our premium courses and bootcamps to accelerate your Web3 development skills."
-        primaryButtonText="Join Discord Community"
-        secondaryButtonText="View All Courses"
-        gradientFrom="from-gray-900"
-        gradientTo="to-purple-900"
-        darkGradientFrom="dark:from-black"
-        darkGradientTo="dark:to-purple-900"
-      />
-    </MarketingLayout>
-  );
+  return <PageClient />;
 };
 
 export default Page;

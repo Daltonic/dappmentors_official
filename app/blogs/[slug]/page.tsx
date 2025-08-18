@@ -1,36 +1,8 @@
-"use client";
+import { Metadata } from "next";
+import PageClient from "./PageClient";
+import { BlogPost } from "./PageClient"; // Import BlogPost type
 
-import MarkdownRenderer from "@/components/blogs/details/MardownRenderer";
-import ProgressBar from "@/components/blogs/details/ProgressBar";
-import RelatedArticles from "@/components/blogs/details/RelatedArticles";
-import SocialShare from "@/components/blogs/details/SocialShare";
-import TableOfContents from "@/components/blogs/details/TableOfContent";
-import MarketingLayout from "@/components/layouts/MarketingLayout";
-import Link from "next/link";
-import React, { useState, useEffect } from "react";
-
-// Type definitions
-interface Author {
-  name: string;
-  avatar: string;
-  bio: string;
-}
-
-interface BlogPost {
-  id: number;
-  title: string;
-  excerpt: string;
-  category: string;
-  readTime: string;
-  publishDate: string;
-  author: Author;
-  topics: string[];
-  image: string;
-  gradient: string;
-  content: string;
-}
-
-// Mock blog data - in real app, this would come from your CMS/API
+// Mock blog data - in a real app, this would come from a CMS/API
 const blogPost: BlogPost = {
   id: 1,
   title: "How to Build a Solana Crowdfunding dApp: A Step-by-Step Guide",
@@ -305,244 +277,83 @@ You've now built a complete crowdfunding dApp on Solana! This tutorial covered t
   `,
 };
 
-const Page: React.FC = () => {
-  const [isBookmarked, setIsBookmarked] = useState<boolean>(false);
-  const [showMobileToc, setShowMobileToc] = useState<boolean>(false);
-
-  const currentUrl = typeof window !== "undefined" ? window.location.href : "";
-
-  const handleBookmark = () => {
-    setIsBookmarked(!isBookmarked);
-    // In a real app, you'd save this to localStorage or send to your API
-    if (typeof window !== "undefined") {
-      localStorage.setItem(
-        `bookmark-${blogPost.id}`,
-        (!isBookmarked).toString(),
-      );
-    }
+// Dynamic metadata based on slug
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  // In a real app, fetch the blog post data based on slug
+  // const blogPost = await fetchBlogPostBySlug(slug);
+  // For now, use the mock data
+  return {
+    title: `${blogPost.title} | Dapp Mentors Blog`,
+    description: blogPost.excerpt,
+    keywords: blogPost.topics.concat([
+      "blockchain tutorial",
+      "web3 guide",
+      "dapp mentors",
+    ]),
+    authors: [{ name: blogPost.author.name }],
+    creator: "Dapp Mentors",
+    publisher: "Dapp Mentors",
+    openGraph: {
+      title: `${blogPost.title} | Dapp Mentors Blog`,
+      description: blogPost.excerpt,
+      url: `https://dappmentors.org/blog/${slug}`, // Replace with your actual domain
+      siteName: "Dapp Mentors",
+      images: [
+        {
+          url: "/images/og-blog-post.jpg", // Replace with your Open Graph image for blog posts
+          width: 1200,
+          height: 630,
+          alt: blogPost.title,
+        },
+      ],
+      locale: "en_US",
+      type: "article",
+      publishedTime: blogPost.publishDate,
+      authors: [blogPost.author.name],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${blogPost.title} | Dapp Mentors Blog`,
+      description: blogPost.excerpt,
+      images: ["/images/twitter-blog-post.jpg"], // Replace with your Twitter card image for blog posts
+      creator: "@dappmentors", // Replace with your Twitter handle
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-video-preview": -1,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+      },
+    },
+    verification: {
+      google: "your-google-verification-code", // Replace with your Google verification code
+    },
+    alternates: {
+      canonical: `https://dappmentors.org/blog/${slug}`, // Replace with your actual domain
+    },
   };
+}
 
-  const handleNavClick = (
-    e: React.MouseEvent<HTMLAnchorElement>,
-    href: string,
-  ) => {
-    e.preventDefault();
-    // In a real Next.js app, you'd use router.push(href)
-    console.log(`Navigate to: ${href}`);
-  };
+// Server component for dynamic route
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  console.log(`Fetching blog post for slug: ${slug}`);
 
-  useEffect(() => {
-    // Load bookmark state
-    if (typeof window !== "undefined") {
-      const bookmarkState = localStorage.getItem(`bookmark-${blogPost.id}`);
-      if (bookmarkState) {
-        setIsBookmarked(bookmarkState === "true");
-      }
-    }
-  }, []);
-
-  return (
-    <MarketingLayout>
-      <ProgressBar />
-
-      {/* Hero Section */}
-      <section className="relative pt-20 pb-16 bg-gradient-to-br from-gray-50 via-white to-purple-50 dark:from-gray-900 dark:via-[#0A0A0A] dark:to-purple-900/20 overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-5 dark:opacity-10">
-          <div
-            className="absolute inset-0"
-            style={{
-              backgroundImage: `radial-gradient(circle at 1px 1px, rgba(255,255,255,0.3) 1px, transparent 0)`,
-              backgroundSize: "32px 32px",
-            }}
-          />
-        </div>
-
-        <div className="max-w-4xl mx-auto px-4 relative z-10">
-          {/* Breadcrumb */}
-          <nav
-            className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-8"
-            aria-label="Breadcrumb"
-          >
-            <Link
-              href="/"
-              onClick={(e) => handleNavClick(e, "/")}
-              className="hover:text-[#D2145A] transition-colors duration-200"
-            >
-              Home
-            </Link>
-            <span>/</span>
-            <Link
-              href="/blog"
-              onClick={(e) => handleNavClick(e, "/blog")}
-              className="hover:text-[#D2145A] transition-colors duration-200"
-            >
-              Blog
-            </Link>
-            <span>/</span>
-            <span className="text-gray-900 dark:text-white">
-              {blogPost.category}
-            </span>
-          </nav>
-
-          {/* Article Header */}
-          <div className="text-center mb-12">
-            <div className="flex items-center justify-center gap-4 mb-6">
-              <span className="bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white px-4 py-2 rounded-full text-sm font-semibold">
-                {blogPost.category}
-              </span>
-              <span className="text-gray-500 dark:text-gray-400">
-                {blogPost.publishDate}
-              </span>
-              <span className="text-gray-500 dark:text-gray-400">•</span>
-              <span className="text-gray-500 dark:text-gray-400">
-                {blogPost.readTime}
-              </span>
-            </div>
-
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-cambo font-normal text-gray-900 dark:text-white mb-8 leading-tight">
-              {blogPost.title}
-            </h1>
-
-            <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 leading-relaxed max-w-3xl mx-auto">
-              {blogPost.excerpt}
-            </p>
-
-            {/* Author & Actions */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-[#D2145A] to-[#FF4081] rounded-full flex items-center justify-center text-xl">
-                  {blogPost.author.avatar}
-                </div>
-                <div className="text-left">
-                  <div className="font-semibold text-gray-900 dark:text-white">
-                    {blogPost.author.name}
-                  </div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400">
-                    {blogPost.author.bio}
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-4">
-                <SocialShare title={blogPost.title} url={currentUrl} />
-                <button
-                  onClick={handleBookmark}
-                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 ${
-                    isBookmarked
-                      ? "bg-[#D2145A] text-white"
-                      : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-[#D2145A] hover:text-white"
-                  }`}
-                  aria-label={isBookmarked ? "Remove bookmark" : "Add bookmark"}
-                >
-                  {isBookmarked ? "♥" : "♡"}
-                </button>
-              </div>
-            </div>
-
-            {/* Topics */}
-            <div className="flex flex-wrap justify-center gap-2 mt-8">
-              {blogPost.topics.map((topic, index) => (
-                <span
-                  key={index}
-                  className="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-3 py-1 rounded-full text-sm font-medium hover:bg-[#D2145A] hover:text-white transition-colors duration-300 cursor-pointer"
-                >
-                  {topic}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Article Content */}
-      <section className="py-16">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="grid lg:grid-cols-4 gap-12">
-            {/* Table of Contents - Desktop */}
-            <div className="lg:col-span-1 hidden lg:block">
-              <TableOfContents content={blogPost.content} />
-            </div>
-
-            {/* Main Content */}
-            <div className="lg:col-span-3">
-              <article className="prose prose-sm sm:prose-lg max-w-none">
-                <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 lg:p-12 border border-gray-200/50 dark:border-gray-700/50">
-                  <div className="blog-content space-y-4 sm:space-y-6">
-                    <MarkdownRenderer content={blogPost.content} />
-                  </div>
-                </div>
-              </article>
-
-              {/* Article Footer - Responsive */}
-              <div className="mt-8 sm:mt-12 bg-gradient-to-r from-[#D2145A]/5 to-[#FF4081]/5 rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 border border-[#D2145A]/20">
-                <div className="text-center">
-                  <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">
-                    Found this tutorial helpful?
-                  </h3>
-                  <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 mb-4 sm:mb-6 px-2">
-                    Join our community to get more Web3 development insights and
-                    connect with fellow developers.
-                  </p>
-                  <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center max-w-md sm:max-w-none mx-auto">
-                    <button className="bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white px-6 sm:px-8 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-semibold text-sm sm:text-base hover:scale-105 transition-all duration-300 w-full sm:w-auto">
-                      Join Discord Community
-                    </button>
-                    <button className="border-2 border-[#D2145A] text-[#D2145A] hover:bg-[#D2145A] hover:text-white px-6 sm:px-8 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-semibold text-sm sm:text-base transition-all duration-300 w-full sm:w-auto">
-                      Subscribe to Newsletter
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Related Articles */}
-      <RelatedArticles />
-
-      {/* Mobile TOC Toggle */}
-      <div className="lg:hidden fixed bottom-4 right-4 z-40">
-        <button
-          className="bg-[#D2145A] text-white w-12 h-12 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform duration-300"
-          onClick={() => setShowMobileToc(!showMobileToc)}
-          aria-label="Toggle table of contents"
-        >
-          📋
-        </button>
-      </div>
-
-      {/* Mobile TOC Overlay */}
-      {showMobileToc && (
-        <div
-          className="lg:hidden fixed inset-0 z-50 bg-black/50"
-          onClick={() => setShowMobileToc(false)}
-        >
-          <div
-            className="absolute right-4 top-20 bottom-20 w-80 max-w-[calc(100vw-2rem)]"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="h-full bg-white dark:bg-gray-900 rounded-2xl p-6 overflow-y-auto">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-                  Table of Contents
-                </h3>
-                <button
-                  onClick={() => setShowMobileToc(false)}
-                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-xl"
-                  aria-label="Close table of contents"
-                >
-                  ×
-                </button>
-              </div>
-              <TableOfContents content={blogPost.content} />
-            </div>
-          </div>
-        </div>
-      )}
-    </MarketingLayout>
-  );
-};
-
-export default Page;
+  // In a real app, fetch the blog post data based on slug
+  // const blogPost = await fetchBlogPostBySlug(slug);
+  // For now, pass the mock data
+  return <PageClient blogPost={blogPost} />;
+}
