@@ -1,18 +1,50 @@
-// Footer Section
-
 import Image from "next/image";
+import Link from "next/link";
+import { FaDiscord, FaYoutube, FaLinkedin, FaTwitter } from "react-icons/fa";
 
 const FooterSection = () => {
+  // Define footer links based on navlinks and contactMethods
   const footerLinks = {
-    Learn: ["Premium Courses", "Bootcamps", "Free Tutorials", "eBooks"],
-    Services: [
-      "Smart Contract Development",
-      "dApp Development",
-      "Technical Writing",
-      "Developer Hiring",
+    Learn: [
+      { label: "Premium Courses", link: "/products" },
+      { label: "Bootcamps", link: "/products" },
+      { label: "Free Tutorials", link: "/blogs" },
+      { label: "eBooks", link: "/products" },
     ],
-    Community: ["Discord", "YouTube Channel", "LinkedIn", "X (Twitter)"],
-    Company: ["About Us", "Blog", "Contact", "Privacy Policy"],
+    Services: [
+      { label: "Smart Contract Development", link: "/services" },
+      { label: "dApp Development", link: "/services" },
+      { label: "Technical Writing", link: "/services" },
+      { label: "Developer Hiring", link: "/services" },
+    ],
+    Community: [
+      {
+        label: "Discord",
+        link: "https://discord.gg/PgFDUVT6n9",
+        icon: <FaDiscord />,
+      },
+      {
+        label: "YouTube Channel",
+        link: "https://youtube.com/@dappmentors",
+        icon: <FaYoutube />,
+      },
+      {
+        label: "LinkedIn",
+        link: "https://linkedin.com/company/dappmentors",
+        icon: <FaLinkedin />,
+      },
+      {
+        label: "X (Twitter)",
+        link: "https://twitter.com/iDaltonic",
+        icon: <FaTwitter />,
+      },
+    ],
+    Company: [
+      { label: "About Us", link: "/about" },
+      { label: "Blog", link: "/blogs" },
+      { label: "Contact", link: "/contact" },
+      { label: "Privacy Policy", link: "/privacy" },
+    ],
   };
 
   return (
@@ -50,18 +82,38 @@ const FooterSection = () => {
             </p>
 
             <div className="flex gap-4">
-              <div className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-[#D2145A] transition-colors duration-300 cursor-pointer">
-                <span className="text-lg">📺</span>
-              </div>
-              <div className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-[#D2145A] transition-colors duration-300 cursor-pointer">
-                <span className="text-lg">💼</span>
-              </div>
-              <div className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-[#D2145A] transition-colors duration-300 cursor-pointer">
-                <span className="text-lg">🐦</span>
-              </div>
-              <div className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-[#D2145A] transition-colors duration-300 cursor-pointer">
-                <span className="text-lg">💬</span>
-              </div>
+              <a
+                href="https://discord.gg/PgFDUVT6n9"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-gradient-to-r hover:from-indigo-500 hover:to-purple-500 transition-colors duration-300"
+              >
+                <FaDiscord className="text-lg" />
+              </a>
+              <a
+                href="https://youtube.com/@dappmentors"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-gradient-to-r hover:from-red-500 hover:to-pink-500 transition-colors duration-300"
+              >
+                <FaYoutube className="text-lg" />
+              </a>
+              <a
+                href="https://linkedin.com/company/dappmentors"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-gradient-to-r hover:from-blue-500 hover:to-blue-600 transition-colors duration-300"
+              >
+                <FaLinkedin className="text-lg" />
+              </a>
+              <a
+                href="https://twitter.com/iDaltonic"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-gradient-to-r hover:from-gray-600 hover:to-gray-800 transition-colors duration-300"
+              >
+                <FaTwitter className="text-lg" />
+              </a>
             </div>
           </div>
 
@@ -70,14 +122,25 @@ const FooterSection = () => {
             <div key={title}>
               <h4 className="text-lg font-semibold mb-4">{title}</h4>
               <ul className="space-y-2">
-                {links.map((link, index) => (
+                {links.map((item, index) => (
                   <li key={index}>
-                    <a
-                      href="#"
-                      className="text-gray-400 hover:text-white transition-colors duration-300"
-                    >
-                      {link}
-                    </a>
+                    {item.link.startsWith("http") ? (
+                      <Link
+                        href={item.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-gray-400 hover:text-white transition-colors duration-300 flex items-center gap-2"
+                      >
+                        {item.label}
+                      </Link>
+                    ) : (
+                      <Link
+                        href={item.link}
+                        className="text-gray-400 hover:text-white transition-colors duration-300 flex items-center gap-2"
+                      >
+                        {item.label}
+                      </Link>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -88,27 +151,15 @@ const FooterSection = () => {
         <div className="border-t border-gray-800 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="text-gray-400 mb-4 md:mb-0">
-              © 2025 Dapp Mentors. All rights reserved.
+              © {new Date().getFullYear()} Dapp Mentors. All rights reserved.
             </div>
             <div className="flex gap-6 text-gray-400">
-              <a
-                href="#"
+              <Link
+                href="/privacy"
                 className="hover:text-white transition-colors duration-300"
               >
-                Terms
-              </a>
-              <a
-                href="#"
-                className="hover:text-white transition-colors duration-300"
-              >
-                Privacy
-              </a>
-              <a
-                href="#"
-                className="hover:text-white transition-colors duration-300"
-              >
-                Cookies
-              </a>
+                Privacy Policy
+              </Link>
             </div>
           </div>
         </div>
