@@ -4,9 +4,11 @@ import { HeroSectionProps } from "@/utils/interfaces";
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 
-// Extend the HeroSectionProps to include children
+// Extend the HeroSectionProps to include children and layout options
 interface ExtendedHeroSectionProps extends HeroSectionProps {
   children?: React.ReactNode;
+  layout?: "centered" | "grid";
+  rightContent?: React.ReactNode;
 }
 
 type Particle = {
@@ -33,6 +35,8 @@ const HeroSection: React.FC<ExtendedHeroSectionProps> = ({
   gradientTo = "#FF4081",
   backgroundGradient = "from-gray-50 via-white to-purple-50 dark:from-gray-900 dark:via-[#0A0A0A] dark:to-purple-900/20",
   children,
+  layout = "centered",
+  rightContent,
 }) => {
   const particleCount = 20;
 
@@ -87,6 +91,42 @@ const HeroSection: React.FC<ExtendedHeroSectionProps> = ({
     );
   };
 
+  // Content component for reuse
+  const HeroContent = () => (
+    <div className={layout === "centered" ? "text-center" : ""}>
+      {/* Tag */}
+      <div
+        className={`inline-flex items-center gap-3 bg-gradient-to-r from-[${gradientFrom}]/10 to-[${gradientTo}]/10 backdrop-blur-sm rounded-full px-6 py-2 mb-8 animate-pulse`}
+      >
+        <span
+          className={`text-[${gradientFrom}] font-semibold text-sm uppercase tracking-wider`}
+        >
+          {tagText}
+        </span>
+        <div
+          className={`w-2 h-2 bg-[${gradientFrom}] rounded-full animate-pulse`}
+        />
+      </div>
+
+      {/* Title */}
+      <h1
+        className={`font-cambo text-5xl md:text-7xl ${layout === "centered" ? "lg:text-8xl" : "lg:text-6xl"} font-normal tracking-tight text-gray-900 dark:text-white mb-8 ${layout === "grid" ? "leading-tight" : ""}`}
+      >
+        {renderHighlightedTitle()}
+      </h1>
+
+      {/* Subtitle */}
+      <p
+        className={`text-xl md:text-2xl text-gray-600 dark:text-gray-300 leading-relaxed mb-12 ${layout === "centered" ? "max-w-5xl mx-auto" : ""}`}
+      >
+        {subtitle}
+      </p>
+
+      {/* Children Slot */}
+      {children}
+    </div>
+  );
+
   return (
     <section
       className={`relative w-full bg-gradient-to-br ${backgroundGradient} py-20 lg:py-32 overflow-hidden`}
@@ -139,34 +179,14 @@ const HeroSection: React.FC<ExtendedHeroSectionProps> = ({
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 relative z-10">
-        <div className="text-center">
-          {/* Tag */}
-          <div
-            className={`inline-flex items-center gap-3 bg-gradient-to-r from-[${gradientFrom}]/10 to-[${gradientTo}]/10 backdrop-blur-sm rounded-full px-6 py-2 mb-8 animate-pulse`}
-          >
-            <span
-              className={`text-[${gradientFrom}] font-semibold text-sm uppercase tracking-wider`}
-            >
-              {tagText}
-            </span>
-            <div
-              className={`w-2 h-2 bg-[${gradientFrom}] rounded-full animate-pulse`}
-            />
+        {layout === "grid" ? (
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <HeroContent />
+            {rightContent && <div className="relative">{rightContent}</div>}
           </div>
-
-          {/* Title */}
-          <h1 className="font-cambo text-5xl md:text-7xl lg:text-8xl font-normal tracking-tight text-gray-900 dark:text-white mb-8">
-            {renderHighlightedTitle()}
-          </h1>
-
-          {/* Subtitle */}
-          <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 max-w-5xl mx-auto leading-relaxed mb-12">
-            {subtitle}
-          </p>
-
-          {/* Children Slot */}
-          {children}
-        </div>
+        ) : (
+          <HeroContent />
+        )}
       </div>
     </section>
   );

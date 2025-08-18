@@ -2,12 +2,41 @@
 
 import ContactFormSection from "@/components/contact/ContactFormSection";
 import ContactMethodsSection from "@/components/contact/ContactMethodsSection";
-import FAQSection from "@/components/contact/FAQSection";
 import MentorshipSection from "@/components/contact/MentorshipSection";
 import ServicesSection from "@/components/contact/ServicesSection";
 import MarketingLayout from "@/components/layouts/MarketingLayout";
 import CTASection from "@/components/shared/CTASection";
+import FAQSection from "@/components/shared/FAQSection";
 import HeroSection from "@/components/shared/HeroSection";
+import { FAQs } from "@/utils/interfaces";
+
+const faqs: FAQs[] = [
+  {
+    question: "How quickly do you respond to inquiries?",
+    answer:
+      "We aim to respond within 24-48 hours for email inquiries, and provide real-time responses in our Discord community.",
+  },
+  {
+    question: "What blockchain ecosystems do you specialize in?",
+    answer:
+      "We have expertise in Solana, Alephium, Sia, ICP Bitfinity, and Ethereum, with projects ranging from crowdfunding dApps to decentralized storage systems.",
+  },
+  {
+    question: "Do you offer beginner-friendly content?",
+    answer:
+      "Absolutely! Our tutorials and courses are designed for all levels, from complete beginners to advanced practitioners. We provide clear learning paths for everyone.",
+  },
+  {
+    question: "Can you help with existing projects?",
+    answer:
+      "Yes! We offer debugging services, code reviews, and guidance for existing Web3 projects through our mentorship programs.",
+  },
+  {
+    question: "What's included in the Academy membership?",
+    answer:
+      "Academy members get access to premium courses, exclusive books, video content, and in-depth learning materials on DeFi, NFTs, and decentralized storage solutions.",
+  },
+];
 
 // Main Contact Page Component
 const Page = () => {
@@ -47,7 +76,10 @@ const Page = () => {
       <ContactFormSection />
       <MentorshipSection />
       <ServicesSection />
-      <FAQSection />
+      <FAQSection
+        subtitle="Quick answers to common questions about our services and community"
+        faqs={faqs}
+      />
       <CTASection
         title="Ready to Start Your Web3 Journey?"
         highlightText="Web3 Journey"

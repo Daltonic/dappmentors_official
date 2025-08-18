@@ -302,3 +302,64 @@ export interface PostProp {
   featured: boolean;
   relatedProduct: string;
 }
+
+export interface ProductModule {
+  title: string;
+  duration: string;
+  lessons: number;
+  description: string;
+}
+
+export interface ProductTestimonial {
+  name: string;
+  role: string;
+  rating: number;
+  comment: string;
+  avatar: string;
+}
+
+export interface FAQs {
+  question: string;
+  answer: string;
+}
+
+export interface ProductFeature {
+  icon: string;
+  title: string;
+  description: string;
+}
+
+export interface ProductStruct {
+  id: string;
+  type: "Course" | "Bootcamp" | "Ebook" | "Codebase";
+  title: string;
+  subtitle: string;
+  description: string;
+  longDescription: string;
+  price: number;
+  originalPrice?: number;
+  currency: string;
+  rating: number;
+  totalRatings: number;
+  studentsEnrolled: number;
+  duration: string;
+  level: "Beginner" | "Intermediate" | "Advanced" | "All Levels";
+  language: string;
+  lastUpdated: string;
+  instructor: {
+    name: string;
+    bio: string;
+    avatar: string;
+    credentials: string[];
+  };
+  features: ProductFeature[];
+  modules?: ProductModule[];
+  technologies?: string[];
+  includes: string[];
+  testimonials: ProductTestimonial[];
+  faqs: FAQs[];
+  videoPreviewUrl?: string;
+  imageUrl: string;
+  category: string;
+  tags: string[];
+}
