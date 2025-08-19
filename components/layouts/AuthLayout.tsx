@@ -98,7 +98,7 @@ const AuthLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="w-full max-w-md relative z-10"
+        className="w-full max-w-lg relative z-10"
       >
         <div className="flex justify-center items-center mb-4">
           <ToggleMode />
