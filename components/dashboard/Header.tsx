@@ -273,26 +273,31 @@ const Header: React.FC<HeaderProps> = ({ userName, userAvatar = "👨‍💻" })
             <nav className="hidden lg:block">
               <div className="bg-gray-50/80 dark:bg-gray-800/80 backdrop-blur-sm px-6 py-2 rounded-2xl border border-gray-200/50 dark:border-gray-700/50">
                 <div className="flex justify-center space-x-6">
-                  {["Overview", "Products", "Blogs", "Users", "Settings"].map(
-                    (item, i) => (
-                      <button
-                        key={i}
-                        className={`
-                          relative px-3 py-2 font-semibold text-sm transition-all duration-300 rounded-xl
-                          ${
-                            i === 0
-                              ? "text-[#D2145A] bg-gradient-to-r from-[#D2145A]/10 to-[#FF4081]/10"
-                              : "text-gray-700 dark:text-gray-300 hover:text-[#D2145A] dark:hover:text-[#FF4081] hover:bg-gray-100/50 dark:hover:bg-gray-700/50"
-                          }
-                        `}
-                      >
-                        {item}
-                        {i === 0 && (
-                          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-[#D2145A] rounded-full animate-pulse" />
-                        )}
-                      </button>
-                    ),
-                  )}
+                  {[
+                    { label: "Overview", link: "/dashboard" },
+                    { label: "Products", link: "/dashboard/products" },
+                    { label: "Blogs", link: "/dashboard/blogs" },
+                    { label: "Users", link: "/dashboard/users" },
+                    { label: "Settings", link: "/dashboard/settings" },
+                  ].map((item, i) => (
+                    <Link
+                      key={i}
+                      href={item.link}
+                      className={`
+                        relative px-3 py-2 font-semibold text-sm transition-all duration-300 rounded-xl
+                        ${
+                          i === 0
+                            ? "text-[#D2145A] bg-gradient-to-r from-[#D2145A]/10 to-[#FF4081]/10"
+                            : "text-gray-700 dark:text-gray-300 hover:text-[#D2145A] dark:hover:text-[#FF4081] hover:bg-gray-100/50 dark:hover:bg-gray-700/50"
+                        }
+                      `}
+                    >
+                      {item.label}
+                      {i === 0 && (
+                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-[#D2145A] rounded-full animate-pulse" />
+                      )}
+                    </Link>
+                  ))}
                 </div>
               </div>
             </nav>

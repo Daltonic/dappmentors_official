@@ -159,3 +159,23 @@ export interface QuickAction {
   icon: React.ReactNode; // Changed from string to ReactNode for react-icons
   href: string;
 }
+
+export interface Product {
+  id: string;
+  title: string;
+  description: string;
+  type: "Course" | "Bootcamp" | "eBook" | "Codebase";
+  price: number;
+  status: "published" | "draft" | "archived";
+  category: string;
+  difficulty: "Beginner" | "Intermediate" | "Advanced";
+  duration: string;
+  enrollments: number;
+  rating: number;
+  totalReviews: number;
+  instructor: string;
+  createdAt: string;
+  updatedAt: string;
+  featured: boolean;
+  thumbnail: string;
+}
