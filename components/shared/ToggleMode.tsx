@@ -60,7 +60,7 @@ const ToggleMode: React.FC = () => {
       onClick={toggleDarkMode}
       className={`
         relative overflow-hidden group
-        w-14 h-14 rounded-2xl font-extrabold
+        w-10 h-10 rounded-xl font-extrabold
         transition-all duration-500 ease-in-out
         hover:scale-110 active:scale-95
         ${
@@ -75,7 +75,7 @@ const ToggleMode: React.FC = () => {
       {/* Background glow effect */}
       <div
         className={`
-        absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-30 transition-opacity duration-300
+        absolute inset-0 rounded-xl opacity-0 group-hover:opacity-30 transition-opacity duration-300
         ${
           isDarkMode
             ? "bg-gradient-to-r from-purple-500 to-pink-500"
@@ -95,17 +95,17 @@ const ToggleMode: React.FC = () => {
         {isDarkMode ? (
           <div className="relative">
             <BsMoonStarsFill
-              size={24}
+              size={18}
               className="drop-shadow-lg group-hover:drop-shadow-xl transition-all duration-300"
             />
             {/* Twinkling stars effect */}
-            <div className="absolute -top-1 -right-1 w-1 h-1 bg-yellow-300 rounded-full opacity-0 group-hover:opacity-100 animate-ping"></div>
-            <div className="absolute -bottom-1 -left-1 w-0.5 h-0.5 bg-white rounded-full opacity-0 group-hover:opacity-100 animate-pulse delay-200"></div>
+            <div className="absolute -top-0.5 -right-0.5 w-0.5 h-0.5 bg-yellow-300 rounded-full opacity-0 group-hover:opacity-100 animate-ping"></div>
+            <div className="absolute -bottom-0.5 -left-0.5 w-0.5 h-0.5 bg-white rounded-full opacity-0 group-hover:opacity-100 animate-pulse delay-200"></div>
           </div>
         ) : (
           <div className="relative">
             <IoSunny
-              size={28}
+              size={20}
               className="drop-shadow-lg group-hover:drop-shadow-xl transition-all duration-300 group-hover:rotate-45"
             />
             {/* Sun rays effect */}
@@ -126,7 +126,7 @@ const ToggleMode: React.FC = () => {
           <div
             key={i}
             className={`
-              absolute w-1 h-1 rounded-full
+              absolute w-0.5 h-0.5 rounded-full
               ${isDarkMode ? "bg-purple-300" : "bg-yellow-400"}
               animate-bounce
             `}
@@ -143,7 +143,7 @@ const ToggleMode: React.FC = () => {
       {/* Ripple effect on click */}
       <div
         className={`
-        absolute inset-0 rounded-2xl opacity-0 pointer-events-none
+        absolute inset-0 rounded-xl opacity-0 pointer-events-none
         ${isAnimating ? "animate-ping opacity-30" : ""}
         ${
           isDarkMode

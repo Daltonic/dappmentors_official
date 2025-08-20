@@ -1,31 +1,45 @@
-import React, { useState, useEffect } from "react";
+"use client";
+
+import React, { useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { IoClose } from "react-icons/io5";
-import { GiHamburgerMenu } from "react-icons/gi";
-import ToggleMode from "../shared/ToggleMode";
+import {
+  FaChartPie,
+  FaBox,
+  FaPen,
+  FaUsers,
+  FaChartLine,
+  FaCog,
+  FaUserShield,
+} from "react-icons/fa";
+import { usePathname } from "next/navigation";
 
-interface HeaderProps {
-  userName: string;
-  userAvatar?: string;
-  notificationCount?: number;
-}
-
-interface DashboardSidebarProps {
+interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
   userName: string;
-  userAvatar?: string;
+  userAvatar?: React.ReactNode;
 }
 
-const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
+const Sidebar: React.FC<SidebarProps> = ({
   isOpen,
   onClose,
   userName,
-  userAvatar = "👨‍💻",
+  userAvatar = <FaUserShield className="text-white" />,
 }) => {
+  const firstRender = useRef(true);
+  const pathname = usePathname();
+  const prevPath = useRef(pathname);
+
   // Prevent body scroll when sidebar is open
   useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false;
+      prevPath.current = pathname;
+      return;
+    }
+
     if (isOpen) {
       document.body.style.overflow = "hidden";
     } else {
@@ -46,12 +60,36 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
         : "Good evening";
 
   const dashboardNavLinks = [
-    { label: "Overview", link: "/dashboard", icon: "📊" },
-    { label: "Products", link: "/dashboard/products", icon: "📦" },
-    { label: "Blogs", link: "/dashboard/blogs", icon: "📝" },
-    { label: "Users", link: "/dashboard/users", icon: "👥" },
-    { label: "Analytics", link: "/dashboard/analytics", icon: "📈" },
-    { label: "Settings", link: "/dashboard/settings", icon: "⚙️" },
+    {
+      label: "Overview",
+      link: "/dashboard",
+      icon: <FaChartPie className="text-lg" />,
+    },
+    {
+      label: "Products",
+      link: "/dashboard/products",
+      icon: <FaBox className="text-lg" />,
+    },
+    {
+      label: "Blogs",
+      link: "/dashboard/blogs",
+      icon: <FaPen className="text-lg" />,
+    },
+    {
+      label: "Users",
+      link: "/dashboard/users",
+      icon: <FaUsers className="text-lg" />,
+    },
+    {
+      label: "Analytics",
+      link: "/dashboard/analytics",
+      icon: <FaChartLine className="text-lg" />,
+    },
+    {
+      label: "Settings",
+      link: "/dashboard/settings",
+      icon: <FaCog className="text-lg" />,
+    },
   ];
 
   const handleLinkClick = () => {
@@ -145,16 +183,16 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                 group flex items-center w-full p-4 rounded-2xl font-semibold relative
                 transition-all duration-300 hover:scale-[0.98] active:scale-95
                 ${
-                  i === 0
+                  pathname === item.link
                     ? "bg-gradient-to-r from-[#D2145A]/10 to-[#FF4081]/10 text-[#D2145A] border border-[#D2145A]/20"
                     : "text-gray-700 dark:text-gray-300 hover:bg-gray-100/80 dark:hover:bg-gray-800/80 hover:text-[#D2145A] dark:hover:text-[#FF4081]"
                 }
               `}
             >
               <div className="flex items-center gap-3 w-full">
-                <span className="text-lg">{item.icon}</span>
+                {item.icon}
                 <span className="flex-1">{item.label}</span>
-                {i === 0 && (
+                {pathname === item.link && (
                   <div className="w-2 h-2 bg-[#D2145A] rounded-full animate-pulse"></div>
                 )}
               </div>
@@ -206,134 +244,4 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   );
 };
 
-const Header: React.FC<HeaderProps> = ({ userName, userAvatar = "👨‍💻" }) => {
-  const [isSideBarOpen, setIsSideBarOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  const currentHour = new Date().getHours();
-  const greeting =
-    currentHour < 12
-      ? "Good morning"
-      : currentHour < 17
-        ? "Good afternoon"
-        : "Good evening";
-
-  return (
-    <>
-      <header
-        className={`
-          fixed top-0 w-full z-50 transition-all duration-500 ease-in-out
-          ${
-            isScrolled
-              ? "bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200/20 dark:border-gray-700/20 shadow-lg"
-              : "bg-white/90 dark:bg-black/90 backdrop-blur-sm border-b border-gray-100/50 dark:border-gray-800/50"
-          }
-        `}
-      >
-        <div className="max-w-7xl mx-auto px-4 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            {/* Logo Section - Dashboard Version */}
-            <div className="flex items-center gap-4">
-              <Link href="/" className="flex items-center gap-3 group">
-                <div className="relative">
-                  <div className="h-12 w-12 rounded-2xl overflow-hidden relative group-hover:scale-110 transition-transform duration-500">
-                    <Image
-                      src="/assets/images/logo.png"
-                      alt="Dashboard Logo"
-                      layout="fill"
-                      objectFit="cover"
-                      className="rounded-2xl"
-                      priority
-                    />
-                  </div>
-                  {/* Animated ring around logo */}
-                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-[#D2145A] to-[#FF4081] opacity-0 group-hover:opacity-20 transition-opacity duration-500 animate-pulse" />
-                </div>
-                <div className="hidden sm:block">
-                  <h1 className="text-xl font-bold leading-tight text-gray-900 dark:text-white group-hover:text-[#D2145A] transition-colors duration-300">
-                    Dashboard
-                  </h1>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
-                    {greeting}, {userName}! 👋
-                  </p>
-                </div>
-              </Link>
-            </div>
-
-            {/* Center Navigation - Desktop */}
-            <nav className="hidden lg:block">
-              <div className="bg-gray-50/80 dark:bg-gray-800/80 backdrop-blur-sm px-6 py-2 rounded-2xl border border-gray-200/50 dark:border-gray-700/50">
-                <div className="flex justify-center space-x-6">
-                  {["Overview", "Products", "Blogs", "Users", "Settings"].map(
-                    (item, i) => (
-                      <button
-                        key={i}
-                        className={`
-                          relative px-3 py-2 font-semibold text-sm transition-all duration-300 rounded-xl
-                          ${
-                            i === 0
-                              ? "text-[#D2145A] bg-gradient-to-r from-[#D2145A]/10 to-[#FF4081]/10"
-                              : "text-gray-700 dark:text-gray-300 hover:text-[#D2145A] dark:hover:text-[#FF4081] hover:bg-gray-100/50 dark:hover:bg-gray-700/50"
-                          }
-                        `}
-                      >
-                        {item}
-                        {i === 0 && (
-                          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-[#D2145A] rounded-full animate-pulse" />
-                        )}
-                      </button>
-                    ),
-                  )}
-                </div>
-              </div>
-            </nav>
-
-            {/* Right Section */}
-            <div className="flex items-center gap-3">
-              <ToggleMode />
-
-              {/* User Avatar */}
-              <div className="w-10 h-10 bg-gradient-to-r from-[#D2145A] to-[#FF4081] rounded-xl flex items-center justify-center text-2xl cursor-pointer hover:scale-105 transition-transform duration-300">
-                {userAvatar}
-              </div>
-
-              {/* Mobile Menu Button */}
-              <button
-                onClick={() => setIsSideBarOpen(!isSideBarOpen)}
-                className={`
-                  lg:hidden p-2 rounded-xl text-gray-700 dark:text-gray-300 hover:text-[#D2145A] dark:hover:text-[#FF4081] hover:bg-gray-100/50 dark:hover:bg-gray-800/50 transition-all duration-300
-                  ${isSideBarOpen ? "bg-gradient-to-r from-[#D2145A]/10 to-[#FF4081]/10 text-[#D2145A]" : ""}
-                `}
-              >
-                {isSideBarOpen ? (
-                  <IoClose size={24} />
-                ) : (
-                  <GiHamburgerMenu size={24} />
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Dashboard Mobile Sidebar */}
-      <DashboardSidebar
-        isOpen={isSideBarOpen}
-        onClose={() => setIsSideBarOpen(false)}
-        userName={userName}
-        userAvatar={userAvatar}
-      />
-    </>
-  );
-};
-
-export default Header;
+export default Sidebar;
