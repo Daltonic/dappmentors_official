@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
 import { IoClose } from "react-icons/io5";
@@ -12,12 +11,7 @@ interface HeaderProps {
   notificationCount?: number;
 }
 
-const Header: React.FC<HeaderProps> = ({
-  userName,
-  userAvatar = "👨‍💻",
-  notificationCount = 3,
-}) => {
-  const [showNotifications, setShowNotifications] = useState<boolean>(false);
+const Header: React.FC<HeaderProps> = ({ userName, userAvatar = "👨‍💻" }) => {
   const [isSideBarOpen, setIsSideBarOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
@@ -109,95 +103,6 @@ const Header: React.FC<HeaderProps> = ({
 
           {/* Right Section */}
           <div className="flex items-center gap-3">
-            {/* Search - Desktop Only */}
-            <div className="hidden md:flex relative">
-              <input
-                type="text"
-                placeholder="Search..."
-                className="bg-gray-50/80 dark:bg-gray-800/80 border border-gray-200/50 dark:border-gray-700/50 rounded-xl px-4 py-2 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF4081]/50 transition-all backdrop-blur-sm"
-              />
-              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500">
-                🔍
-              </div>
-            </div>
-
-            {/* Notifications */}
-            <div className="relative">
-              <button
-                onClick={() => setShowNotifications(!showNotifications)}
-                className="relative p-2 text-gray-700 dark:text-gray-300 hover:text-[#D2145A] dark:hover:text-[#FF4081] rounded-xl hover:bg-gray-100/50 dark:hover:bg-gray-800/50 transition-colors duration-300"
-              >
-                🔔
-                {notificationCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-[#D2145A] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                    {notificationCount}
-                  </span>
-                )}
-              </button>
-
-              {/* Notifications Dropdown */}
-              <AnimatePresence>
-                {showNotifications && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 z-50"
-                  >
-                    <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-                      <h3 className="font-semibold text-gray-900 dark:text-white">
-                        Notifications
-                      </h3>
-                    </div>
-                    <div className="max-h-96 overflow-y-auto">
-                      {[
-                        {
-                          title: "New student enrollment",
-                          time: "5 min ago",
-                          type: "success",
-                        },
-                        {
-                          title: "Course review submitted",
-                          time: "1 hour ago",
-                          type: "info",
-                        },
-                        {
-                          title: "Payment received",
-                          time: "2 hours ago",
-                          type: "success",
-                        },
-                      ].map((notification, index) => (
-                        <div
-                          key={index}
-                          className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-100 dark:border-gray-600 last:border-b-0"
-                        >
-                          <div className="flex items-start gap-3">
-                            <div
-                              className={`w-2 h-2 rounded-full mt-2 ${
-                                notification.type === "info"
-                                  ? "bg-blue-500"
-                                  : notification.type === "success"
-                                    ? "bg-green-500"
-                                    : "bg-yellow-500"
-                              }`}
-                            />
-                            <div className="flex-1">
-                              <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                {notification.title}
-                              </p>
-                              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                {notification.time}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
             <ToggleMode />
 
             {/* User Avatar */}
