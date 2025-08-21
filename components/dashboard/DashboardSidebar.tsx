@@ -187,15 +187,15 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                 <Link
                   href={item.link}
                   className={`
-                                        group flex items-center w-full p-4 rounded-2xl font-semibold relative
-                                        transition-all duration-300 hover:scale-[0.98] active:scale-95
-                                        ${isCollapsed ? "justify-center" : ""}
-                                        ${
-                                          isActiveLink(item.link)
-                                            ? "bg-gradient-to-r from-[#D2145A]/10 to-[#FF4081]/10 text-[#D2145A] border border-[#D2145A]/20"
-                                            : "text-gray-700 dark:text-gray-300 hover:bg-gray-100/80 dark:hover:bg-gray-800/80 hover:text-[#D2145A] dark:hover:text-[#FF4081]"
-                                        }
-                                    `}
+                      group flex items-center w-full p-4 rounded-2xl font-semibold relative
+                      transition-all duration-300 hover:scale-[0.98] active:scale-95
+                      ${isCollapsed ? "justify-center" : ""}
+                      ${
+                        isActiveLink(item.link)
+                          ? "bg-gradient-to-r from-[#D2145A]/10 to-[#FF4081]/10 text-[#D2145A] border border-[#D2145A]/20"
+                          : "text-gray-700 dark:text-gray-300 hover:bg-gray-100/80 dark:hover:bg-gray-800/80 hover:text-[#D2145A] dark:hover:text-[#FF4081]"
+                      }
+                  `}
                 >
                   <div
                     className={`flex items-center gap-3 ${isCollapsed ? "" : "w-full"}`}
@@ -221,10 +221,10 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                   {/* Hover effect indicator */}
                   <div
                     className={`
-                                            absolute left-0 top-1/2 transform -translate-y-1/2 w-1 h-0 
-                                            bg-gradient-to-b from-[#D2145A] to-[#FF4081] rounded-r-full
-                                            transition-all duration-300 opacity-0 group-hover:opacity-100 group-hover:h-8
-                                        `}
+                        absolute left-0 top-1/2 transform -translate-y-1/2 w-1 h-0 
+                        bg-gradient-to-b from-[#D2145A] to-[#FF4081] rounded-r-full
+                        transition-all duration-300 opacity-0 group-hover:opacity-100 group-hover:h-8
+                    `}
                   />
                 </Link>
 
@@ -253,9 +253,13 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
             {/* Quick Actions */}
             {!isCollapsed && (
               <div className="grid grid-cols-2 gap-3">
-                <button className="p-3 bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white font-semibold rounded-xl hover:scale-105 transition-all duration-300 hover:shadow-lg active:scale-95 text-sm">
+                <Link
+                  href="/dashboard/products/new"
+                  className="p-3 bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white font-semibold text-center
+                  rounded-xl hover:scale-105 transition-all duration-300 hover:shadow-lg active:scale-95 text-sm"
+                >
                   + New
-                </button>
+                </Link>
                 <button className="p-3 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-300 text-sm">
                   Reports
                 </button>
@@ -302,13 +306,13 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
       {/* Mobile Sidebar */}
       <div
         className={`
-                fixed top-0 left-0 h-full w-80 max-w-[85vw] lg:hidden
-                bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl
-                border-r border-gray-200/50 dark:border-gray-700/50
-                transform transition-transform duration-500 ease-in-out
-                z-50 shadow-2xl
-                ${isMobileOpen ? "translate-x-0" : "-translate-x-full"}
-                `}
+          fixed top-0 left-0 h-full w-80 max-w-[85vw] lg:hidden
+          bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl
+          border-r border-gray-200/50 dark:border-gray-700/50
+          transform transition-transform duration-500 ease-in-out
+          z-50 shadow-2xl
+          ${isMobileOpen ? "translate-x-0" : "-translate-x-full"}
+        `}
       >
         {/* Mobile Header */}
         <div className="p-6 border-b border-gray-200/50 dark:border-gray-700/50">
@@ -371,14 +375,14 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
               href={item.link}
               onClick={() => setIsMobileOpen(false)}
               className={`
-                                    group flex items-center w-full p-4 rounded-2xl font-semibold relative
-                                    transition-all duration-300 hover:scale-[0.98] active:scale-95
-                                    ${
-                                      isActiveLink(item.link)
-                                        ? "bg-gradient-to-r from-[#D2145A]/10 to-[#FF4081]/10 text-[#D2145A] border border-[#D2145A]/20"
-                                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100/80 dark:hover:bg-gray-800/80 hover:text-[#D2145A] dark:hover:text-[#FF4081]"
-                                    }
-                            `}
+                group flex items-center w-full p-4 rounded-2xl font-semibold relative
+                transition-all duration-300 hover:scale-[0.98] active:scale-95
+                ${
+                  isActiveLink(item.link)
+                    ? "bg-gradient-to-r from-[#D2145A]/10 to-[#FF4081]/10 text-[#D2145A] border border-[#D2145A]/20"
+                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-100/80 dark:hover:bg-gray-800/80 hover:text-[#D2145A] dark:hover:text-[#FF4081]"
+                }
+              `}
             >
               <div className="flex items-center gap-3 w-full">
                 {item.icon}
@@ -397,10 +401,10 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
 
               <div
                 className={`
-                            absolute left-0 top-1/2 transform -translate-y-1/2 w-1 h-0 
-                            bg-gradient-to-b from-[#D2145A] to-[#FF4081] rounded-r-full
-                            transition-all duration-300 opacity-0 group-hover:opacity-100 group-hover:h-8
-                            `}
+                  absolute left-0 top-1/2 transform -translate-y-1/2 w-1 h-0 
+                  bg-gradient-to-b from-[#D2145A] to-[#FF4081] rounded-r-full
+                  transition-all duration-300 opacity-0 group-hover:opacity-100 group-hover:h-8
+                `}
               />
             </Link>
           ))}
@@ -410,9 +414,13 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
         <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-white/80 to-transparent dark:from-gray-900/80 backdrop-blur-sm border-t border-gray-200/50 dark:border-gray-700/50">
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
-              <button className="p-3 bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white font-semibold rounded-xl hover:scale-105 transition-all duration-300 hover:shadow-lg active:scale-95 text-sm">
+              <Link
+                href="/dashboard/products/new"
+                className="p-3 bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white font-semibold text-center
+                rounded-xl hover:scale-105 transition-all duration-300 hover:shadow-lg active:scale-95 text-sm"
+              >
                 + New Product
-              </button>
+              </Link>
               <button className="p-3 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-300 text-sm">
                 View Reports
               </button>

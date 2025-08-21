@@ -6,8 +6,8 @@ import { FaBox, FaCheckCircle, FaPen, FaDollarSign } from "react-icons/fa";
 import { Product } from "@/utils/interfaces";
 import ProductCard from "@/components/dashboard/products/ProductCard";
 import ProductTable from "@/components/dashboard/products/ProductTable";
-import CreateProductModal from "@/components/dashboard/products/CreateProductModal";
 import Controls from "@/components/dashboard/products/Controls";
+import Link from "next/link";
 
 // Mock data
 const mockProducts: Product[] = [
@@ -139,10 +139,7 @@ const mockProducts: Product[] = [
   },
 ];
 
-const EmptyState: React.FC<{ searchTerm: string; onCreate: () => void }> = ({
-  searchTerm,
-  onCreate,
-}) => (
+const EmptyState: React.FC<{ searchTerm: string }> = ({ searchTerm }) => (
   <div className="text-center py-16">
     <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
       <svg
@@ -167,17 +164,17 @@ const EmptyState: React.FC<{ searchTerm: string; onCreate: () => void }> = ({
         ? `No products match "${searchTerm}"`
         : "Get started by creating your first product"}
     </p>
-    <button
-      onClick={onCreate}
+    <Link
+      href="/dashboard/products/new"
       className="bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white px-6 py-3 rounded-xl font-semibold hover:scale-105 transition-transform duration-300"
     >
       Create Product
-    </button>
+    </Link>
   </div>
 );
 
 // Header Component
-const Header: React.FC<{ onCreateClick: () => void }> = ({ onCreateClick }) => (
+const Header: React.FC = () => (
   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
     <div>
       <h1 className="text-4xl md:text-5xl font-cambo font-normal text-gray-900 dark:text-white mb-2">
@@ -187,10 +184,8 @@ const Header: React.FC<{ onCreateClick: () => void }> = ({ onCreateClick }) => (
         Manage your courses, bootcamps, eBooks, and codebases
       </p>
     </div>
-    <motion.button
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
-      onClick={onCreateClick}
+    <Link
+      href="/dashboard/products/new"
       className="relative bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white px-6 py-3 rounded-2xl font-semibold transition-all duration-500 hover:shadow-2xl overflow-hidden group"
     >
       <span className="relative z-10 flex items-center gap-2">
@@ -210,7 +205,7 @@ const Header: React.FC<{ onCreateClick: () => void }> = ({ onCreateClick }) => (
         </svg>
       </span>
       <div className="absolute inset-0 bg-white/20 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
-    </motion.button>
+    </Link>
   </div>
 );
 
@@ -303,7 +298,6 @@ const Page: React.FC = () => {
     "all",
   );
   const [searchTerm, setSearchTerm] = useState("");
-  const [showProductModal, setShowProductModal] = useState(false);
   const [selectedProducts, setSelectedProducts] = useState<Set<string>>(
     new Set(),
   );
@@ -383,7 +377,7 @@ const Page: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-50 dark:from-gray-900 dark:via-[#0A0A0A] dark:to-purple-900/20 p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
-        <Header onCreateClick={() => setShowProductModal(true)} />
+        <Header />
         <StatsCards products={mockProducts} />
         <Controls
           searchTerm={searchTerm}
@@ -397,10 +391,7 @@ const Page: React.FC = () => {
           selectedProducts={selectedProducts}
         />
         {sortedProducts.length === 0 ? (
-          <EmptyState
-            searchTerm={searchTerm}
-            onCreate={() => setShowProductModal(true)}
-          />
+          <EmptyState searchTerm={searchTerm} />
         ) : viewMode === "grid" ? (
           <ProductGrid
             products={sortedProducts}
@@ -418,10 +409,6 @@ const Page: React.FC = () => {
             allProductsLength={mockProducts.length}
           />
         )}
-        <CreateProductModal
-          show={showProductModal}
-          onClose={() => setShowProductModal(false)}
-        />
       </div>
     </div>
   );
