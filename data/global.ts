@@ -1,4 +1,13 @@
 import { PostProp, ProductProp, ProductStruct } from "@/utils/interfaces";
+// @/config/dashboardConfig.ts
+import {
+  FaChartPie,
+  FaBox,
+  FaPen,
+  FaUsers,
+  FaChartLine,
+  FaCog,
+} from "react-icons/fa";
 
 export const navlinks = [
   { label: "Home", link: "/" },
@@ -375,3 +384,48 @@ export const sampleProduct: ProductStruct = {
   category: "Smart Contracts",
   tags: ["Solidity", "Ethereum", "DeFi", "Security", "Best Practices"],
 };
+
+export const dashboardPages = [
+  {
+    path: "/dashboard",
+    label: "Overview",
+    title: "Dashboard Overview",
+    icon: FaChartPie,
+    badge: null,
+  },
+  {
+    path: "/dashboard/products",
+    label: "Products",
+    title: "Products Management",
+    icon: FaBox,
+    badge: "12",
+  },
+  {
+    path: "/dashboard/blogs",
+    label: "Blogs",
+    title: "Blog Posts",
+    icon: FaPen,
+    badge: null,
+  },
+  {
+    path: "/dashboard/users",
+    label: "Users",
+    title: "User Management",
+    icon: FaUsers,
+    badge: "24",
+  },
+  {
+    path: "/dashboard/analytics",
+    label: "Analytics",
+    title: "Analytics Dashboard",
+    icon: FaChartLine,
+    badge: null,
+  },
+  {
+    path: "/dashboard/settings",
+    label: "Settings",
+    title: "System Settings",
+    icon: FaCog,
+    badge: null,
+  },
+];

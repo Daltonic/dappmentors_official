@@ -1,6 +1,6 @@
 "use client";
 
-import { HeroSectionProps } from "@/utils/interfaces";
+import { HeroSectionProps, Particle } from "@/utils/interfaces";
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 
@@ -10,21 +10,6 @@ interface ExtendedHeroSectionProps extends HeroSectionProps {
   layout?: "centered" | "grid";
   rightContent?: React.ReactNode;
 }
-
-type Particle = {
-  top: string;
-  left: string;
-  color: string;
-  baseSize: number;
-  duration: number;
-  xAmp: number;
-  yAmp: number;
-  scaleMax: number;
-  scaleMin: number;
-  opacityBase: number;
-  opacityDelta: number;
-  delay: number;
-};
 
 const HeroSection: React.FC<ExtendedHeroSectionProps> = ({
   tagText = "Premium Products",

@@ -2,21 +2,7 @@
 import { motion } from "framer-motion";
 import React, { useEffect, useState } from "react";
 import ToggleMode from "../shared/ToggleMode";
-
-interface Particle {
-  top: string;
-  left: string;
-  color: string;
-  baseSize: number;
-  duration: number;
-  xAmp: number;
-  yAmp: number;
-  scaleMax: number;
-  scaleMin: number;
-  opacityBase: number;
-  opacityDelta: number;
-  delay: number;
-}
+import { Particle } from "@/utils/interfaces";
 
 const AuthLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [particles, setParticles] = useState<Particle[]>([]);

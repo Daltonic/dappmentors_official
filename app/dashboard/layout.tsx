@@ -6,21 +6,8 @@ import { usePathname } from "next/navigation";
 import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
 import Link from "next/link";
 import { FaPlus, FaCircle } from "react-icons/fa";
-
-type Particle = {
-  top: string;
-  left: string;
-  color: string;
-  baseSize: number;
-  duration: number;
-  xAmp: number;
-  yAmp: number;
-  scaleMax: number;
-  scaleMin: number;
-  opacityBase: number;
-  opacityDelta: number;
-  delay: number;
-};
+import { dashboardPages } from "@/data/global";
+import { Particle } from "@/utils/interfaces";
 
 type PageInfo = {
   title: string;
@@ -80,28 +67,17 @@ export default function DashboardLayout({
 
   // Get page information based on pathname
   const getPageInfo = (pathname: string) => {
-    const pageMap: Record<string, { title: string; breadcrumb: string }> = {
-      "/dashboard": {
-        title: "Dashboard Overview",
-        breadcrumb: "Dashboard/Overview",
-      },
-      "/dashboard/products": {
-        title: "Products Management",
-        breadcrumb: "Dashboard/Products",
-      },
-      "/dashboard/blogs": {
-        title: "Blog Posts",
-        breadcrumb: "Dashboard/Blogs",
-      },
-      "/dashboard/users": {
-        title: "User Management",
-        breadcrumb: "Dashboard/Users",
-      },
-      "/dashboard/settings": {
-        title: "System Settings",
-        breadcrumb: "Dashboard/Settings",
-      },
-    };
+    const pageMap: Record<string, { title: string; breadcrumb: string }> =
+      dashboardPages.reduce(
+        (acc, page) => {
+          acc[page.path] = {
+            title: page.title,
+            breadcrumb: `Dashboard/${page.label}`,
+          };
+          return acc;
+        },
+        {} as Record<string, { title: string; breadcrumb: string }>,
+      );
 
     // Handle nested routes
     for (const [path, info] of Object.entries(pageMap)) {
@@ -178,7 +154,6 @@ export default function DashboardLayout({
       <DashboardSidebar
         userName={userName}
         userAvatar="👨‍💻"
-        notificationCount={3}
         isCollapsed={isSidebarCollapsed}
         onToggleCollapse={handleSidebarToggle}
         onPageChange={handlePageChange}
@@ -252,19 +227,6 @@ export default function DashboardLayout({
               <p className="text-xs text-gray-500 dark:text-gray-400">
                 {currentPageInfo.date}
               </p>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="text-right">
-                <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                  {userName}
-                </p>
-                <p className="text-xs text-[#D2145A] dark:text-[#FF4081]">
-                  Administrator
-                </p>
-              </div>
-              <div className="w-12 h-12 bg-gradient-to-r from-[#D2145A] to-[#FF4081] rounded-xl flex items-center justify-center text-2xl">
-                👨‍💻
-              </div>
             </div>
           </div>
         </div>

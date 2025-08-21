@@ -3,22 +3,14 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { IoClose, IoChevronBack, IoChevronForward } from "react-icons/io5";
-import {
-  FaChartPie,
-  FaBox,
-  FaPen,
-  FaUsers,
-  FaCog,
-  FaBell,
-  FaSignOutAlt,
-  FaCircle, // Added FaCircle for status indicators
-} from "react-icons/fa";
+import { AiOutlineMenu } from "react-icons/ai";
+import { FaSignOutAlt, FaCircle } from "react-icons/fa";
 import ToggleMode from "../shared/ToggleMode";
+import { dashboardPages } from "@/data/global";
 
 type DashboardSidebarProps = {
   userName: string;
   userAvatar: string;
-  notificationCount: number;
   isCollapsed: boolean;
   onToggleCollapse: (collapsed: boolean) => void;
   onPageChange: (pageInfo: {
@@ -31,7 +23,6 @@ type DashboardSidebarProps = {
 const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   userName,
   userAvatar = "👨‍💻",
-  notificationCount = 0,
   isCollapsed = false,
   onToggleCollapse,
 }) => {
@@ -60,38 +51,12 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
         ? "Good afternoon"
         : "Good evening";
 
-  const dashboardNavLinks = [
-    {
-      label: "Overview",
-      link: "/dashboard",
-      icon: <FaChartPie className="text-lg" />,
-      badge: null,
-    },
-    {
-      label: "Products",
-      link: "/dashboard/products",
-      icon: <FaBox className="text-lg" />,
-      badge: "12",
-    },
-    {
-      label: "Blogs",
-      link: "/dashboard/blogs",
-      icon: <FaPen className="text-lg" />,
-      badge: null,
-    },
-    {
-      label: "Users",
-      link: "/dashboard/users",
-      icon: <FaUsers className="text-lg" />,
-      badge: "24",
-    },
-    {
-      label: "Settings",
-      link: "/dashboard/settings",
-      icon: <FaCog className="text-lg" />,
-      badge: null,
-    },
-  ];
+  const dashboardNavLinks = dashboardPages.map((page) => ({
+    label: page.label,
+    link: page.path,
+    icon: <page.icon className="text-lg" />,
+    badge: page.badge,
+  }));
 
   const handleMobileToggle = () => {
     setIsMobileOpen(!isMobileOpen);
@@ -112,9 +77,9 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
       {/* Mobile Toggle Button */}
       <button
         onClick={handleMobileToggle}
-        className="lg:hidden fixed top-4 left-4 z-[60] p-3 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-xl border border-gray-200/50 dark:border-gray-700/50 text-gray-700 dark:text-gray-300 hover:text-[#D2145A] dark:hover:text-[#FF4081] hover:bg-gray-100/80 dark:hover:bg-gray-800/80 transition-all duration-300 shadow-lg"
+        className="lg:hidden fixed top-4 right-4 z-[60] p-3 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-xl border border-gray-200/50 dark:border-gray-700/50 text-gray-700 dark:text-gray-300 hover:text-[#D2145A] dark:hover:text-[#FF4081] hover:bg-gray-100/80 dark:hover:bg-gray-800/80 transition-all duration-300 shadow-lg"
       >
-        <FaChartPie size={20} />
+        <AiOutlineMenu size={20} />
       </button>
 
       {/* Mobile Backdrop Overlay */}
@@ -222,15 +187,15 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                 <Link
                   href={item.link}
                   className={`
-                    group flex items-center w-full p-4 rounded-2xl font-semibold relative
-                    transition-all duration-300 hover:scale-[0.98] active:scale-95
-                    ${isCollapsed ? "justify-center" : ""}
-                    ${
-                      isActiveLink(item.link)
-                        ? "bg-gradient-to-r from-[#D2145A]/10 to-[#FF4081]/10 text-[#D2145A] border border-[#D2145A]/20"
-                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100/80 dark:hover:bg-gray-800/80 hover:text-[#D2145A] dark:hover:text-[#FF4081]"
-                    }
-                  `}
+                                        group flex items-center w-full p-4 rounded-2xl font-semibold relative
+                                        transition-all duration-300 hover:scale-[0.98] active:scale-95
+                                        ${isCollapsed ? "justify-center" : ""}
+                                        ${
+                                          isActiveLink(item.link)
+                                            ? "bg-gradient-to-r from-[#D2145A]/10 to-[#FF4081]/10 text-[#D2145A] border border-[#D2145A]/20"
+                                            : "text-gray-700 dark:text-gray-300 hover:bg-gray-100/80 dark:hover:bg-gray-800/80 hover:text-[#D2145A] dark:hover:text-[#FF4081]"
+                                        }
+                                    `}
                 >
                   <div
                     className={`flex items-center gap-3 ${isCollapsed ? "" : "w-full"}`}
@@ -256,10 +221,10 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                   {/* Hover effect indicator */}
                   <div
                     className={`
-                      absolute left-0 top-1/2 transform -translate-y-1/2 w-1 h-0 
-                      bg-gradient-to-b from-[#D2145A] to-[#FF4081] rounded-r-full
-                      transition-all duration-300 opacity-0 group-hover:opacity-100 group-hover:h-8
-                    `}
+                                            absolute left-0 top-1/2 transform -translate-y-1/2 w-1 h-0 
+                                            bg-gradient-to-b from-[#D2145A] to-[#FF4081] rounded-r-full
+                                            transition-all duration-300 opacity-0 group-hover:opacity-100 group-hover:h-8
+                                        `}
                   />
                 </Link>
 
@@ -305,14 +270,6 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                 className={`flex ${isCollapsed ? "flex-col space-y-2" : "space-x-2"}`}
               >
                 <ToggleMode />
-                <button className="p-2 rounded-xl text-gray-700 dark:text-gray-300 hover:text-[#D2145A] dark:hover:text-[#FF4081] hover:bg-gray-100/50 dark:hover:bg-gray-800/50 transition-all duration-300 relative">
-                  <FaBell size={16} />
-                  {notificationCount > 0 && (
-                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#D2145A] text-white text-xs rounded-full flex items-center justify-center">
-                      {notificationCount > 9 ? "9+" : notificationCount}
-                    </span>
-                  )}
-                </button>
                 <button className="p-2 rounded-xl text-gray-700 dark:text-gray-300 hover:text-red-500 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 transition-all duration-300">
                   <FaSignOutAlt size={16} />
                 </button>
@@ -345,13 +302,13 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
       {/* Mobile Sidebar */}
       <div
         className={`
-          fixed top-0 left-0 h-full w-80 max-w-[85vw] lg:hidden
-          bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl
-          border-r border-gray-200/50 dark:border-gray-700/50
-          transform transition-transform duration-500 ease-in-out
-          z-50 shadow-2xl
-          ${isMobileOpen ? "translate-x-0" : "-translate-x-full"}
-        `}
+                fixed top-0 left-0 h-full w-80 max-w-[85vw] lg:hidden
+                bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl
+                border-r border-gray-200/50 dark:border-gray-700/50
+                transform transition-transform duration-500 ease-in-out
+                z-50 shadow-2xl
+                ${isMobileOpen ? "translate-x-0" : "-translate-x-full"}
+                `}
       >
         {/* Mobile Header */}
         <div className="p-6 border-b border-gray-200/50 dark:border-gray-700/50">
@@ -414,14 +371,14 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
               href={item.link}
               onClick={() => setIsMobileOpen(false)}
               className={`
-                group flex items-center w-full p-4 rounded-2xl font-semibold relative
-                transition-all duration-300 hover:scale-[0.98] active:scale-95
-                ${
-                  isActiveLink(item.link)
-                    ? "bg-gradient-to-r from-[#D2145A]/10 to-[#FF4081]/10 text-[#D2145A] border border-[#D2145A]/20"
-                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-100/80 dark:hover:bg-gray-800/80 hover:text-[#D2145A] dark:hover:text-[#FF4081]"
-                }
-              `}
+                                    group flex items-center w-full p-4 rounded-2xl font-semibold relative
+                                    transition-all duration-300 hover:scale-[0.98] active:scale-95
+                                    ${
+                                      isActiveLink(item.link)
+                                        ? "bg-gradient-to-r from-[#D2145A]/10 to-[#FF4081]/10 text-[#D2145A] border border-[#D2145A]/20"
+                                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100/80 dark:hover:bg-gray-800/80 hover:text-[#D2145A] dark:hover:text-[#FF4081]"
+                                    }
+                            `}
             >
               <div className="flex items-center gap-3 w-full">
                 {item.icon}
@@ -440,10 +397,10 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
 
               <div
                 className={`
-                  absolute left-0 top-1/2 transform -translate-y-1/2 w-1 h-0 
-                  bg-gradient-to-b from-[#D2145A] to-[#FF4081] rounded-r-full
-                  transition-all duration-300 opacity-0 group-hover:opacity-100 group-hover:h-8
-                `}
+                            absolute left-0 top-1/2 transform -translate-y-1/2 w-1 h-0 
+                            bg-gradient-to-b from-[#D2145A] to-[#FF4081] rounded-r-full
+                            transition-all duration-300 opacity-0 group-hover:opacity-100 group-hover:h-8
+                            `}
               />
             </Link>
           ))}
@@ -464,14 +421,6 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <ToggleMode />
-                <button className="p-2 rounded-xl text-gray-700 dark:text-gray-300 hover:text-[#D2145A] dark:hover:text-[#FF4081] hover:bg-gray-100/50 dark:hover:bg-gray-800/50 transition-all duration-300 relative">
-                  <FaBell size={16} />
-                  {notificationCount > 0 && (
-                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#D2145A] text-white text-xs rounded-full flex items-center justify-center">
-                      {notificationCount > 9 ? "9+" : notificationCount}
-                    </span>
-                  )}
-                </button>
               </div>
 
               <div className="flex items-center space-x-4">

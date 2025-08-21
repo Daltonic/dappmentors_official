@@ -179,3 +179,18 @@ export interface Product {
   featured: boolean;
   thumbnail: string;
 }
+
+export type Particle = {
+  top: string;
+  left: string;
+  color: string;
+  baseSize: number;
+  duration: number;
+  xAmp: number;
+  yAmp: number;
+  scaleMax: number;
+  scaleMin: number;
+  opacityBase: number;
+  opacityDelta: number;
+  delay: number;
+};
