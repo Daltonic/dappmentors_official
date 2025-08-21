@@ -194,3 +194,24 @@ export type Particle = {
   opacityDelta: number;
   delay: number;
 };
+
+export interface BlogPost {
+  id: string;
+  title: string;
+  excerpt: string;
+  category: string;
+  readTime: string;
+  publishDate: string;
+  topics: string[];
+  imageSrc: string;
+  alt: string;
+  icon: string;
+  gradient: string;
+  featured: boolean;
+  relatedProduct: string;
+  status: "published" | "draft" | "archived";
+  views: number;
+  comments: number;
+  author: string;
+  updatedAt: string;
+}

@@ -374,6 +374,34 @@ const Page: React.FC = () => {
     }
   };
 
+  const getStatusColor = (status: Product["status"]) => {
+    switch (status) {
+      case "published":
+        return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300";
+      case "draft":
+        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300";
+      case "archived":
+        return "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300";
+      default:
+        return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300";
+    }
+  };
+
+  const getTypeColor = (type: Product["type"]) => {
+    switch (type) {
+      case "Course":
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300";
+      case "Bootcamp":
+        return "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300";
+      case "eBook":
+        return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300";
+      case "Codebase":
+        return "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300";
+      default:
+        return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300";
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-50 dark:from-gray-900 dark:via-[#0A0A0A] dark:to-purple-900/20 p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
@@ -407,6 +435,8 @@ const Page: React.FC = () => {
             sortConfig={sortConfig}
             onSort={handleSort}
             allProductsLength={mockProducts.length}
+            getStatusColor={getStatusColor}
+            getTypeColor={getTypeColor}
           />
         )}
       </div>

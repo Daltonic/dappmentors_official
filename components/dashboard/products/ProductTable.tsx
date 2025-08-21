@@ -2,33 +2,6 @@ import { Product } from "@/utils/interfaces";
 import { motion } from "framer-motion";
 import Image from "next/image";
 // Helper function components (these can be in a separate utils file if needed)
-const getStatusColor = (status: Product["status"]) => {
-  switch (status) {
-    case "published":
-      return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300";
-    case "draft":
-      return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300";
-    case "archived":
-      return "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300";
-    default:
-      return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300";
-  }
-};
-
-const getTypeColor = (type: Product["type"]) => {
-  switch (type) {
-    case "Course":
-      return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300";
-    case "Bootcamp":
-      return "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300";
-    case "eBook":
-      return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300";
-    case "Codebase":
-      return "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300";
-    default:
-      return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300";
-  }
-};
 
 const SortIcon: React.FC<{
   column: keyof Product;
@@ -92,6 +65,8 @@ const ProductTable: React.FC<{
   sortConfig: { key: keyof Product; direction: "asc" | "desc" } | null;
   onSort: (key: keyof Product) => void;
   allProductsLength: number;
+  getStatusColor: (status: Product["status"]) => string;
+  getTypeColor: (type: Product["type"]) => string;
 }> = ({
   products,
   selectedProducts,
@@ -100,6 +75,8 @@ const ProductTable: React.FC<{
   sortConfig,
   onSort,
   allProductsLength,
+  getStatusColor,
+  getTypeColor,
 }) => (
   <div className="bg-white/10 dark:bg-gray-900/80 backdrop-blur-sm rounded-3xl border border-gray-200/50 dark:border-gray-700/50 shadow-lg overflow-hidden">
     <div className="overflow-x-auto">
