@@ -219,3 +219,40 @@ export interface BlogPost {
   author: string;
   updatedAt: string;
 }
+
+export interface UserProfile {
+  name: string;
+  email: string;
+  role: string;
+  avatar: string;
+  bio: string;
+  phone: string;
+  location: string;
+  joinDate: string;
+}
+
+export interface SystemSettings {
+  siteName: string;
+  siteDescription: string;
+  maintenanceMode: boolean;
+  userRegistration: boolean;
+  emailNotifications: boolean;
+  dataRetentionDays: number;
+  maxFileSize: number;
+  darkMode: boolean;
+}
+
+export interface NotificationSettings {
+  emailNewUsers: boolean;
+  emailNewContent: boolean;
+  emailSystemUpdates: boolean;
+  emailWeeklyReports: boolean;
+  browserNotifications: boolean;
+  mobileNotifications: boolean;
+}
+
+export interface PasswordData {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}

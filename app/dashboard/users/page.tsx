@@ -4,7 +4,6 @@ import React, { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
   FaUserSlash,
-  FaPlus,
   FaUserCheck,
   FaUsers,
   FaUserPlus,
@@ -114,17 +113,6 @@ const Header: React.FC = () => (
         Manage your platform users and roles
       </p>
     </div>
-    <motion.button
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
-      className="relative bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white px-6 py-3 rounded-2xl font-semibold transition-all duration-500 hover:shadow-2xl overflow-hidden group"
-    >
-      <span className="relative z-10 flex items-center gap-2">
-        Add User
-        <FaPlus className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" />
-      </span>
-      <div className="absolute inset-0 bg-white/20 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
-    </motion.button>
   </div>
 );
 
@@ -247,7 +235,7 @@ const Page: React.FC = () => {
     key: keyof User;
     direction: "asc" | "desc";
   } | null>(null);
-  const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
+  const [viewMode, setViewMode] = useState<"grid" | "table">("table");
 
   // Unique roles from mock data
   const uniqueRoles = useMemo(() => {

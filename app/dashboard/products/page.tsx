@@ -305,7 +305,7 @@ const Page: React.FC = () => {
     key: keyof Product;
     direction: "asc" | "desc";
   } | null>(null);
-  const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
+  const [viewMode, setViewMode] = useState<"grid" | "table">("table");
 
   // Filter products
   const filteredProducts = useMemo(() => {

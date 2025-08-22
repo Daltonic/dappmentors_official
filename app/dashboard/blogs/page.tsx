@@ -294,7 +294,7 @@ const Page: React.FC = () => {
     key: keyof BlogPost;
     direction: "asc" | "desc";
   } | null>(null);
-  const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
+  const [viewMode, setViewMode] = useState<"grid" | "table">("table");
 
   // Unique categories for tabs
   const uniqueCategories = useMemo(() => {

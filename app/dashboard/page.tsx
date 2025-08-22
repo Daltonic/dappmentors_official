@@ -2,22 +2,21 @@
 import { DashboardStats, QuickAction, User } from "@/utils/interfaces";
 import StatsCards from "@/components/dashboard/StatsCard";
 import QuickActions from "@/components/dashboard/QuickActions";
-import UserManagement from "@/components/dashboard/UserManagement";
 import ActivityFeed from "@/components/dashboard/ActivityFeed";
+import UserTable from "@/components/dashboard/users/UserTable";
 
 import {
   FaUsers,
   FaBook,
   FaDollarSign,
   FaChartLine,
-  FaChalkboardTeacher,
-  FaUserShield,
-  FaUserGraduate,
   FaPlus,
   FaEdit,
   FaChartBar,
   FaCog,
 } from "react-icons/fa";
+import { useMemo, useState } from "react";
+import Controls from "@/components/dashboard/users/Controls";
 
 // Sample Data
 const sampleStats: DashboardStats[] = [
@@ -75,52 +74,91 @@ const sampleStats: DashboardStats[] = [
   },
 ];
 
-const sampleUsers: User[] = [
+// Mock data for users
+const mockUsers: User[] = [
   {
     id: "1",
-    name: "Alice Johnson",
-    email: "alice@example.com",
-    role: "instructor",
+    name: "John Doe",
+    email: "john@example.com",
+    role: "admin",
     status: "active",
     joinDate: "2024-01-15",
-    lastActivity: "2 hours ago",
-    avatar: <FaChalkboardTeacher className="text-white" />,
-    coursesEnrolled: 12,
-    coursesCompleted: 8,
+    lastLogin: "2024-08-20",
+    posts: 15,
+    comments: 45,
+    avatar:
+      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face",
+    updatedAt: "2024-08-20",
   },
   {
     id: "2",
-    name: "Bob Smith",
-    email: "bob@example.com",
-    role: "student",
+    name: "Jane Smith",
+    email: "jane@example.com",
+    role: "instructor",
     status: "active",
     joinDate: "2024-02-20",
-    lastActivity: "1 day ago",
-    avatar: <FaUserGraduate className="text-white" />,
-    coursesEnrolled: 5,
-    coursesCompleted: 3,
+    lastLogin: "2024-08-19",
+    posts: 8,
+    comments: 32,
+    avatar:
+      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop",
+    updatedAt: "2024-08-19",
   },
   {
     id: "3",
-    name: "Carol Williams",
-    email: "carol@example.com",
-    role: "admin",
+    name: "Alice Johnson",
+    email: "alice@example.com",
+    role: "student",
     status: "active",
-    joinDate: "2023-12-01",
-    lastActivity: "30 minutes ago",
-    avatar: <FaUserShield className="text-white" />,
+    joinDate: "2024-03-10",
+    lastLogin: "2024-08-18",
+    posts: 25,
+    comments: 78,
+    avatar:
+      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face",
+    updatedAt: "2024-08-18",
   },
   {
     id: "4",
-    name: "David Brown",
-    email: "david@example.com",
+    name: "Bob Brown",
+    email: "bob@example.com",
     role: "student",
     status: "inactive",
-    joinDate: "2024-03-10",
-    lastActivity: "1 week ago",
-    avatar: <FaUserGraduate className="text-white" />,
-    coursesEnrolled: 3,
-    coursesCompleted: 1,
+    joinDate: "2024-04-05",
+    lastLogin: "2024-07-15",
+    posts: 5,
+    comments: 12,
+    avatar:
+      "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop",
+    updatedAt: "2024-07-15",
+  },
+  {
+    id: "5",
+    name: "Charlie Davis",
+    email: "charlie@example.com",
+    role: "student",
+    status: "banned",
+    joinDate: "2024-05-12",
+    lastLogin: "2024-06-01",
+    posts: 3,
+    comments: 8,
+    avatar:
+      "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=100&h=100&fit=crop&crop=face",
+    updatedAt: "2024-06-01",
+  },
+  {
+    id: "6",
+    name: "Eve Franklin",
+    email: "eve@example.com",
+    role: "instructor",
+    status: "active",
+    joinDate: "2024-01-30",
+    lastLogin: "2024-08-21",
+    posts: 12,
+    comments: 56,
+    avatar:
+      "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop&crop=face",
+    updatedAt: "2024-08-21",
   },
 ];
 
@@ -157,6 +195,117 @@ const quickActions: QuickAction[] = [
 
 // Main Dashboard Component
 const Page: React.FC = () => {
+  const [selectedRole, setSelectedRole] = useState<"all" | string>("all");
+  const [statusFilter, setStatusFilter] = useState<"all" | User["status"]>(
+    "all",
+  );
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
+  const [sortConfig, setSortConfig] = useState<{
+    key: keyof User;
+    direction: "asc" | "desc";
+  } | null>(null);
+  const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
+
+  // Unique roles from mock data
+  const uniqueRoles = useMemo(() => {
+    const roles = new Set(mockUsers.map((user) => user.role));
+    return ["all", ...Array.from(roles)];
+  }, []);
+
+  // Filter users
+  const filteredUsers = useMemo(() => {
+    return mockUsers.filter((user) => {
+      const matchesRole = selectedRole === "all" || user.role === selectedRole;
+      const matchesStatus =
+        statusFilter === "all" || user.status === statusFilter;
+      const matchesSearch =
+        user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.role.toLowerCase().includes(searchTerm.toLowerCase());
+      return matchesRole && matchesStatus && matchesSearch;
+    });
+  }, [selectedRole, statusFilter, searchTerm]);
+
+  // Sort users
+  const sortedUsers = useMemo(() => {
+    if (!sortConfig) return filteredUsers;
+
+    return [...filteredUsers].sort((a, b) => {
+      const aValue = a[sortConfig.key];
+      const bValue = b[sortConfig.key];
+
+      if (typeof aValue === "string" && typeof bValue === "string") {
+        const comparison = aValue.localeCompare(bValue);
+        return sortConfig.direction === "asc" ? comparison : -comparison;
+      }
+
+      if (typeof aValue === "number" && typeof bValue === "number") {
+        const comparison = aValue - bValue;
+        return sortConfig.direction === "asc" ? comparison : -comparison;
+      }
+
+      return 0;
+    });
+  }, [filteredUsers, sortConfig]);
+
+  const handleSort = (key: keyof User) => {
+    setSortConfig((prevConfig) => ({
+      key,
+      direction:
+        prevConfig?.key === key && prevConfig.direction === "asc"
+          ? "desc"
+          : "asc",
+    }));
+  };
+
+  const toggleUserSelection = (userId: string) => {
+    setSelectedUsers((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(userId)) {
+        newSet.delete(userId);
+      } else {
+        newSet.add(userId);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleAllUsers = () => {
+    if (selectedUsers.size === sortedUsers.length) {
+      setSelectedUsers(new Set());
+    } else {
+      setSelectedUsers(new Set(sortedUsers.map((user) => user.id)));
+    }
+  };
+
+  const getRoleColor = (role: string) => {
+    const colors = {
+      admin: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
+      instructor:
+        "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
+      student:
+        "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
+    };
+    return (
+      colors[role as keyof typeof colors] ||
+      "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300"
+    );
+  };
+
+  const getStatusColor = (status: User["status"]) => {
+    switch (status) {
+      case "active":
+        return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300";
+      case "inactive":
+        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300";
+      case "banned":
+        return "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300";
+      default:
+        return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300";
+    }
+  };
+
   return (
     <div
       className={`min-h-screen bg-gradient-to-br from-gray-50 to-purple-50 dark:from-black dark:to-purple-900/20 transition-colors duration-300`}
@@ -183,7 +332,30 @@ const Page: React.FC = () => {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Main Content Area */}
           <div className="lg:col-span-2">
-            <UserManagement users={sampleUsers} />
+            <Controls
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              selectedRole={selectedRole}
+              setSelectedRole={setSelectedRole}
+              statusFilter={statusFilter}
+              setStatusFilter={setStatusFilter}
+              viewMode={viewMode}
+              setViewMode={setViewMode}
+              selectedUsers={selectedUsers}
+              uniqueRoles={uniqueRoles}
+            />
+
+            <UserTable
+              users={sortedUsers}
+              selectedUsers={selectedUsers}
+              onToggle={toggleUserSelection}
+              toggleAll={toggleAllUsers}
+              sortConfig={sortConfig}
+              onSort={handleSort}
+              allUsersLength={mockUsers.length}
+              getStatusColor={getStatusColor}
+              getRoleColor={getRoleColor}
+            />
           </div>
 
           {/* Sidebar */}
