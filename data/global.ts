@@ -1,13 +1,6 @@
 import { PostProp, ProductProp, ProductStruct } from "@/utils/interfaces";
 // @/config/dashboardConfig.ts
-import {
-  FaChartPie,
-  FaBox,
-  FaPen,
-  FaUsers,
-  FaChartLine,
-  FaCog,
-} from "react-icons/fa";
+import { FaChartPie, FaBox, FaPen, FaUsers, FaCog } from "react-icons/fa";
 
 export const navlinks = [
   { label: "Home", link: "/" },
@@ -17,14 +10,6 @@ export const navlinks = [
   { label: "Contact", link: "/contact" },
   { label: "Blogs", link: "/blogs" },
 ];
-
-export const buttonLinks: Record<string, string> = {
-  "/dashboard/projects": "/dashboard/createProject",
-  "/dashboard/events": "/dashboard/createNewEvent",
-  "/dashboard/blogs": "/dashboard/createBlog",
-  "/dashboard/users": "/dashboard/createNewUsers",
-  "/dashboard/testimonials": "/dashboard/createTestimonials",
-};
 
 export const products: ProductProp[] = [
   {
@@ -413,13 +398,6 @@ export const dashboardPages = [
     title: "User Management",
     icon: FaUsers,
     badge: "24",
-  },
-  {
-    path: "/dashboard/analytics",
-    label: "Analytics",
-    title: "Analytics Dashboard",
-    icon: FaChartLine,
-    badge: null,
   },
   {
     path: "/dashboard/settings",

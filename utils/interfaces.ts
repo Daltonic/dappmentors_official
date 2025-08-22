@@ -144,12 +144,16 @@ export interface User {
   name: string;
   email: string;
   role: "admin" | "instructor" | "student";
-  status: "active" | "inactive" | "suspended";
+  status: "active" | "inactive" | "banned";
   joinDate: string;
-  lastActivity: string;
-  avatar?: React.ReactNode; // Changed from string to ReactNode for react-icons
+  lastActivity?: string;
+  lastLogin?: string;
+  updatedAt?: string;
+  avatar?: React.ReactNode | string; // Changed from string to ReactNode for react-icons
   coursesEnrolled?: number;
   coursesCompleted?: number;
+  posts?: number;
+  comments?: number;
 }
 
 export interface QuickAction {
