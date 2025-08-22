@@ -167,7 +167,7 @@ const EmptyState: React.FC<{ searchTerm: string }> = ({ searchTerm }) => (
         : "Get started by creating your first post"}
     </p>
     <Link
-      href="/blogs/new"
+      href="/dashboard/blogs/new"
       className="bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white px-6 py-3 rounded-xl font-semibold hover:scale-105 transition-transform duration-300"
     >
       Create Post
@@ -187,7 +187,7 @@ const Header: React.FC = () => (
       </p>
     </div>
     <Link
-      href="/blogs/new"
+      href="/dashboard/blogs/new"
       className="relative bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white px-6 py-3
             rounded-2xl font-semibold transition-all duration-500 hover:shadow-2xl overflow-hidden group"
     >
