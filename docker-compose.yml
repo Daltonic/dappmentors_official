@@ -2,37 +2,25 @@ version: '3.7'
 
 networks:
   public_network:
-  private_network:
+  global_db_network:
+    external: true # Declares global_db_network as an existing network
 
-# volumes:
-#   mongodb_data:
+volumes:
+  dapp_mentors_data:
 
 services:
-  frontend:
+  fullstack:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: dapp_mentors_official
+    container_name: frontend_service
     restart: unless-stopped
     ports:
       - '3005:3000'
+    volumes:
+      - dapp_mentors_data:/data
     networks:
       - public_network
+      - global_db_network # Direct MongoDB access
     env_file:
       - .env
-    # depends_on:
-    #   - mongodb_service
-
-  # mongodb_service:
-  #   image: mongo:latest
-  #   container_name: mongodb_service
-  #   restart: unless-stopped
-  #   networks:
-  #     - private_network
-  #   ports:
-  #     - '27017:27017' # Exposing MongoDB for development
-  #   volumes:
-  #     - mongodb_data:/data/db
-  #   environment:
-  #     - MONGO_INITDB_ROOT_USERNAME=${NEXT_PRIVATE_MONGO_USERNAME}
-  #     - MONGO_INITDB_ROOT_PASSWORD=${NEXT_PRIVATE_MONGO_PASSWORD}
