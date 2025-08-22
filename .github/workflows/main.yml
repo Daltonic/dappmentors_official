@@ -58,9 +58,9 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd /dockerized/containers/dapp_mentors_official
-            # Build only the frontend service, keep others running
-            docker compose build frontend
-            docker compose up -d --no-deps frontend
+            # Build only the fullstack service, keep others running
+            docker compose build fullstack
+            docker compose up -d --no-deps fullstack
 
   clean_up_dangling_images:
     needs: deploy_with_compose

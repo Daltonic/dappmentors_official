@@ -13,7 +13,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: frontend_service
+    container_name: fullstack_service
     restart: unless-stopped
     ports:
       - '3005:3000'
