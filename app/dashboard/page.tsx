@@ -4,6 +4,7 @@ import StatsCards from "@/components/dashboard/StatsCard";
 import QuickActions from "@/components/dashboard/QuickActions";
 import ActivityFeed from "@/components/dashboard/ActivityFeed";
 import UserTable from "@/components/dashboard/users/UserTable";
+import Controls from "@/components/dashboard/users/Controls";
 
 import {
   FaUsers,
@@ -16,7 +17,6 @@ import {
   FaCog,
 } from "react-icons/fa";
 import { useMemo, useState } from "react";
-import Controls from "@/components/dashboard/users/Controls";
 
 // Sample Data
 const sampleStats: DashboardStats[] = [
@@ -307,9 +307,7 @@ const Page: React.FC = () => {
   };
 
   return (
-    <div
-      className={`min-h-screen bg-gradient-to-br from-gray-50 to-purple-50 dark:from-black dark:to-purple-900/20 transition-colors duration-300`}
-    >
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-purple-50 dark:from-black dark:to-purple-900/20 transition-colors duration-300">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-10 dark:opacity-20">
         <div
@@ -320,47 +318,58 @@ const Page: React.FC = () => {
           }}
         />
       </div>
+
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-6 py-8 relative z-10">
+      <main className="w-full max-w-7xl mx-auto px-4 md:px-6 py-4 md:py-8 relative z-10">
         {/* Stats Cards */}
         <StatsCards stats={sampleStats} />
 
         {/* Quick Actions */}
         <QuickActions actions={quickActions} />
 
-        {/* Two Column Layout */}
-        <div className="grid lg:grid-cols-3 gap-8">
+        {/* Responsive Layout - Stack on mobile, side-by-side on desktop */}
+        <div className="space-y-8 xl:space-y-0 xl:grid xl:grid-cols-3 xl:gap-8">
           {/* Main Content Area */}
-          <div className="lg:col-span-2">
-            <Controls
-              searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}
-              selectedRole={selectedRole}
-              setSelectedRole={setSelectedRole}
-              statusFilter={statusFilter}
-              setStatusFilter={setStatusFilter}
-              viewMode={viewMode}
-              setViewMode={setViewMode}
-              selectedUsers={selectedUsers}
-              uniqueRoles={uniqueRoles}
-            />
+          <div className="xl:col-span-2 min-w-0">
+            {/* Controls with proper mobile responsiveness */}
+            <div className="w-full overflow-hidden">
+              <Controls
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
+                selectedRole={selectedRole}
+                setSelectedRole={setSelectedRole}
+                statusFilter={statusFilter}
+                setStatusFilter={setStatusFilter}
+                viewMode={viewMode}
+                setViewMode={setViewMode}
+                selectedUsers={selectedUsers}
+                uniqueRoles={uniqueRoles}
+              />
+            </div>
 
-            <UserTable
-              users={sortedUsers}
-              selectedUsers={selectedUsers}
-              onToggle={toggleUserSelection}
-              toggleAll={toggleAllUsers}
-              sortConfig={sortConfig}
-              onSort={handleSort}
-              allUsersLength={mockUsers.length}
-              getStatusColor={getStatusColor}
-              getRoleColor={getRoleColor}
-            />
+            {/* User Table with horizontal scroll on mobile */}
+            <div className="w-full overflow-hidden">
+              <div className="overflow-x-auto">
+                <UserTable
+                  users={sortedUsers}
+                  selectedUsers={selectedUsers}
+                  onToggle={toggleUserSelection}
+                  toggleAll={toggleAllUsers}
+                  sortConfig={sortConfig}
+                  onSort={handleSort}
+                  allUsersLength={mockUsers.length}
+                  getStatusColor={getStatusColor}
+                  getRoleColor={getRoleColor}
+                />
+              </div>
+            </div>
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-8">
-            <ActivityFeed />
+          {/* Sidebar - Full width on mobile, sidebar on desktop */}
+          <div className="xl:col-span-1 w-full min-w-0">
+            <div className="w-full overflow-hidden">
+              <ActivityFeed />
+            </div>
           </div>
         </div>
       </main>
