@@ -13,7 +13,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: fullstack_service
+    container_name: dapp_mentors_official
     restart: unless-stopped
     ports:
       - '3005:3000'
