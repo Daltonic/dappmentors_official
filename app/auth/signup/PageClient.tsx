@@ -130,21 +130,39 @@ const PageClient: React.FC = () => {
     setErrors({});
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2500));
-
-      // Handle successful signup here
-      console.log("Signup successful:", {
-        ...formData,
-        acceptTerms,
+      const response = await fetch("/api/users", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          password: formData.password,
+          acceptTerms,
+        }),
       });
 
-      // Redirect or handle success
-      // router.push('/verify-email');
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (data.details) {
+          setErrors(data.details);
+        } else {
+          setErrors({ general: data.error || "Registration failed" });
+        }
+        return;
+      }
+
+      // Success - redirect to verification page
+      router.push(
+        "/auth/verify-email?email=" + encodeURIComponent(formData.email),
+      );
     } catch (error) {
       console.error("Signup error:", error);
       setErrors({
-        general: "Registration failed. Please try again later.",
+        general: "Network error. Please check your connection and try again.",
       });
     } finally {
       setIsLoading(false);

@@ -129,7 +129,7 @@ const UserCard: React.FC<{
           <div className="flex items-center justify-between">
             <span className="text-gray-500 dark:text-gray-400">Joined:</span>
             <span className="text-gray-700 dark:text-gray-300">
-              {user.joinDate}
+              {user.joinDate.toLocaleDateString()}
             </span>
           </div>
           <div className="flex items-center justify-between">
@@ -137,7 +137,7 @@ const UserCard: React.FC<{
               Last Login:
             </span>
             <span className="text-gray-700 dark:text-gray-300">
-              {user.lastLogin}
+              {user.lastLogin?.toLocaleDateString() || "N/A"}
             </span>
           </div>
           <div className="flex items-center justify-between">

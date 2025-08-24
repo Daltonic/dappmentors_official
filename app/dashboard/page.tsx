@@ -17,6 +17,7 @@ import {
   FaCog,
 } from "react-icons/fa";
 import { useMemo, useState } from "react";
+import { mockUsers } from "@/data/global";
 
 // Sample Data
 const sampleStats: DashboardStats[] = [
@@ -71,94 +72,6 @@ const sampleStats: DashboardStats[] = [
       { name: "Mar", value: 92 },
       { name: "Apr", value: 94.8 },
     ],
-  },
-];
-
-// Mock data for users
-const mockUsers: User[] = [
-  {
-    id: "1",
-    name: "John Doe",
-    email: "john@example.com",
-    role: "admin",
-    status: "active",
-    joinDate: "2024-01-15",
-    lastLogin: "2024-08-20",
-    posts: 15,
-    comments: 45,
-    avatar:
-      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face",
-    updatedAt: "2024-08-20",
-  },
-  {
-    id: "2",
-    name: "Jane Smith",
-    email: "jane@example.com",
-    role: "instructor",
-    status: "active",
-    joinDate: "2024-02-20",
-    lastLogin: "2024-08-19",
-    posts: 8,
-    comments: 32,
-    avatar:
-      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop",
-    updatedAt: "2024-08-19",
-  },
-  {
-    id: "3",
-    name: "Alice Johnson",
-    email: "alice@example.com",
-    role: "student",
-    status: "active",
-    joinDate: "2024-03-10",
-    lastLogin: "2024-08-18",
-    posts: 25,
-    comments: 78,
-    avatar:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face",
-    updatedAt: "2024-08-18",
-  },
-  {
-    id: "4",
-    name: "Bob Brown",
-    email: "bob@example.com",
-    role: "student",
-    status: "inactive",
-    joinDate: "2024-04-05",
-    lastLogin: "2024-07-15",
-    posts: 5,
-    comments: 12,
-    avatar:
-      "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop",
-    updatedAt: "2024-07-15",
-  },
-  {
-    id: "5",
-    name: "Charlie Davis",
-    email: "charlie@example.com",
-    role: "student",
-    status: "banned",
-    joinDate: "2024-05-12",
-    lastLogin: "2024-06-01",
-    posts: 3,
-    comments: 8,
-    avatar:
-      "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=100&h=100&fit=crop&crop=face",
-    updatedAt: "2024-06-01",
-  },
-  {
-    id: "6",
-    name: "Eve Franklin",
-    email: "eve@example.com",
-    role: "instructor",
-    status: "active",
-    joinDate: "2024-01-30",
-    lastLogin: "2024-08-21",
-    posts: 12,
-    comments: 56,
-    avatar:
-      "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop&crop=face",
-    updatedAt: "2024-08-21",
   },
 ];
 
@@ -275,7 +188,9 @@ const Page: React.FC = () => {
     if (selectedUsers.size === sortedUsers.length) {
       setSelectedUsers(new Set());
     } else {
-      setSelectedUsers(new Set(sortedUsers.map((user) => user.id)));
+      setSelectedUsers(
+        new Set(sortedUsers.map((user) => user.id).filter(Boolean) as string[]),
+      );
     }
   };
 

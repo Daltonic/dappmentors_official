@@ -1,3 +1,5 @@
+import { ObjectId } from "mongodb";
+
 export interface GlobalState {
   darkMode: boolean;
 }
@@ -140,20 +142,38 @@ export interface DashboardStats {
 }
 
 export interface User {
-  id: string;
-  name: string;
+  _id?: ObjectId;
+  id?: string; // Unique identifier (could be UUID or MongoDB ObjectId as string)
+  firstName: string;
+  lastName: string;
+  name: string; // Combined first + last name
   email: string;
+  password: string;
   role: "admin" | "instructor" | "student";
-  status: "active" | "inactive" | "banned";
-  joinDate: string;
-  lastActivity?: string;
-  lastLogin?: string;
-  updatedAt?: string;
-  avatar?: React.ReactNode | string; // Changed from string to ReactNode for react-icons
-  coursesEnrolled?: number;
-  coursesCompleted?: number;
-  posts?: number;
-  comments?: number;
+  status: "active" | "inactive" | "pending" | "banned";
+  avatar?: string;
+  bio?: string;
+  phone?: string;
+  location?: string;
+  joinDate: Date;
+  createdAt: Date;
+  updatedAt: Date;
+  lastActivity?: Date;
+  lastLogin?: Date;
+  emailVerified: boolean;
+  emailVerificationToken?: string;
+  passwordResetToken?: string;
+  passwordResetExpires?: Date;
+  // Social login fields (for future use)
+  googleId?: string;
+  twitterId?: string;
+  // Course-related fields
+  coursesEnrolled: number;
+  coursesCompleted: number;
+  posts: number;
+  comments: number;
+  // Authentication method
+  authMethod: "traditional" | "google" | "twitter";
 }
 
 export interface QuickAction {

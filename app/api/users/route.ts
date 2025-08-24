@@ -1,24 +1,61 @@
-import { NextRequest, NextResponse } from "next/server";
+import { generateVerificationToken } from "@/heplers/users";
 import { connectToDatabase } from "@/lib/mongodb";
-import { Collection, ObjectId } from "mongodb";
-
-// Define types for your data (example: User model)
-interface User {
-  _id?: ObjectId;
-  name: string;
-  email: string;
-  createdAt?: Date;
-}
+import { User } from "@/utils/interfaces";
+import { signupSchema } from "@/validations/users";
+import bcrypt from "bcryptjs";
+import { Collection, Filter } from "mongodb";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     const db = await connectToDatabase();
     const collection: Collection<User> = db.collection("users");
-    console.log(request);
 
-    const users = await collection.find({}).limit(10).toArray(); // Example query: fetch up to 10 users
+    // Get query parameters for pagination and filtering
+    const url = new URL(request.url);
+    const page = parseInt(url.searchParams.get("page") || "1");
+    const limit = parseInt(url.searchParams.get("limit") || "10");
+    const status = url.searchParams.get("status");
+    const role = url.searchParams.get("role");
 
-    return NextResponse.json({ users }, { status: 200 });
+    // Build filter object
+    const filter: Filter<User> = {};
+    if (status) filter.status = status as User["status"];
+    if (role) filter.role = role as User["role"];
+
+    // Calculate pagination
+    const skip = (page - 1) * limit;
+
+    // Fetch users (excluding sensitive data)
+    const users = await collection
+      .find(filter, {
+        projection: {
+          password: 0,
+          emailVerificationToken: 0,
+          passwordResetToken: 0,
+          passwordResetExpires: 0,
+        },
+      })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .toArray();
+
+    // Get total count for pagination
+    const total = await collection.countDocuments(filter);
+
+    return NextResponse.json(
+      {
+        users,
+        pagination: {
+          page,
+          limit,
+          total,
+          pages: Math.ceil(total / limit),
+        },
+      },
+      { status: 200 },
+    );
   } catch (error) {
     console.error("GET /api/users error:", error);
     return NextResponse.json(
@@ -33,25 +70,169 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const db = await connectToDatabase();
     const collection: Collection<User> = db.collection("users");
 
-    const body: User = await request.json(); // Parse incoming JSON
-    if (!body.name || !body.email) {
+    // Parse and validate request body
+    const body = await request.json();
+
+    // Validate input data
+    const validationResult = signupSchema.safeParse(body);
+    if (!validationResult.success) {
+      const errors = validationResult.error.issues.reduce(
+        (acc, err) => {
+          acc[err.path[0] as string] = err.message;
+          return acc;
+        },
+        {} as Record<string, string>,
+      );
+
       return NextResponse.json(
-        { error: "Name and email are required" },
+        {
+          error: "Validation failed",
+          details: errors,
+        },
         { status: 400 },
       );
     }
 
-    const result = await collection.insertOne({
-      ...body,
-      createdAt: new Date(),
-    });
+    const { firstName, lastName, email, password } = validationResult.data;
 
+    // Check if user already exists
+    const existingUser = await collection.findOne({ email });
+    if (existingUser) {
+      return NextResponse.json(
+        {
+          error: "User already exists",
+          details: {
+            email: "An account with this email address already exists",
+          },
+        },
+        { status: 409 },
+      );
+    }
+
+    // Hash the password
+    const saltRounds = 12;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    // Generate email verification token
+    const emailVerificationToken = generateVerificationToken();
+
+    // Create user object
+    const now = new Date();
+    const newUser: Omit<User, "_id"> = {
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      name: `${firstName.trim()} ${lastName.trim()}`,
+      email,
+      password: hashedPassword,
+      role: "student", // Default role
+      status: "pending", // Pending email verification
+      joinDate: now,
+      createdAt: now,
+      updatedAt: now,
+      emailVerified: false,
+      emailVerificationToken,
+      coursesEnrolled: 0,
+      coursesCompleted: 0,
+      posts: 0,
+      comments: 0,
+      authMethod: "traditional",
+    };
+
+    // Insert user into database
+    const result = await collection.insertOne(newUser);
+
+    // TODO: Send email verification email here
+    // await sendVerificationEmail(email, emailVerificationToken);
+
+    // Return success response (excluding sensitive data)
     return NextResponse.json(
-      { insertedId: result.insertedId },
+      {
+        message:
+          "Account created successfully! Please check your email to verify your account.",
+        user: {
+          id: result.insertedId,
+          name: newUser.name,
+          email: newUser.email,
+          role: newUser.role,
+          status: newUser.status,
+          joinDate: newUser.joinDate,
+          emailVerified: newUser.emailVerified,
+        },
+      },
       { status: 201 },
     );
   } catch (error) {
     console.error("POST /api/users error:", error);
+
+    // Handle specific MongoDB errors
+    if (error instanceof Error) {
+      if (error.message.includes("E11000")) {
+        return NextResponse.json(
+          {
+            error: "User already exists",
+            details: {
+              email: "An account with this email address already exists",
+            },
+          },
+          { status: 409 },
+        );
+      }
+    }
+
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 },
+    );
+  }
+}
+
+// Additional helper function for email verification (separate endpoint)
+export async function PATCH(request: NextRequest): Promise<NextResponse> {
+  try {
+    const db = await connectToDatabase();
+    const collection: Collection<User> = db.collection("users");
+
+    const body = await request.json();
+    const { action, token } = body;
+
+    if (action === "verify-email" && token) {
+      // Find user by verification token
+      const user = await collection.findOne({ emailVerificationToken: token });
+
+      if (!user) {
+        return NextResponse.json(
+          { error: "Invalid or expired verification token" },
+          { status: 400 },
+        );
+      }
+
+      // Update user to verified status
+      await collection.updateOne(
+        { _id: user._id },
+        {
+          $set: {
+            emailVerified: true,
+            status: "active",
+            updatedAt: new Date(),
+          },
+          $unset: {
+            emailVerificationToken: "",
+          },
+        },
+      );
+
+      return NextResponse.json(
+        { message: "Email verified successfully! Your account is now active." },
+        { status: 200 },
+      );
+    }
+
+    return NextResponse.json(
+      { error: "Invalid action or missing parameters" },
+      { status: 400 },
+    );
+  } catch (error) {
+    console.error("PATCH /api/users error:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 },

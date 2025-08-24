@@ -187,7 +187,7 @@ const UserTable: React.FC<{
           <tbody>
             {users.map((user, index) => (
               <motion.tr
-                key={user.id}
+                key={user.id!}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
@@ -196,8 +196,8 @@ const UserTable: React.FC<{
                 <td className="px-4 py-4">
                   <input
                     type="checkbox"
-                    checked={selectedUsers.has(user.id)}
-                    onChange={() => onToggle(user.id)}
+                    checked={selectedUsers.has(user.id!)}
+                    onChange={() => onToggle(user.id!)}
                     className="w-4 h-4 text-[#D2145A] bg-gray-100 border-gray-300 rounded focus:ring-[#D2145A] focus:ring-2"
                   />
                 </td>
@@ -250,10 +250,10 @@ const UserTable: React.FC<{
                   </span>
                 </td>
                 <td className="px-4 py-4 text-gray-900 dark:text-white">
-                  {user.joinDate}
+                  {user.joinDate.toLocaleDateString()}
                 </td>
                 <td className="px-4 py-4 text-gray-900 dark:text-white">
-                  {user.lastLogin}
+                  {user.lastLogin?.toLocaleDateString() || "N/A"}
                 </td>
                 <td className="px-4 py-4 text-gray-900 dark:text-white">
                   {user.posts}
@@ -266,20 +266,22 @@ const UserTable: React.FC<{
                     <div className="relative">
                       <button
                         ref={(el) => {
-                          if (el) buttonRefs.current.set(user.id, el);
+                          if (el) buttonRefs.current.set(user.id!, el);
                         }}
                         className="p-2 text-[#D2145A] hover:bg-[#FF4081]/10 dark:text-[#FF4081] dark:hover:bg-[#FF4081]/20 rounded-lg transition-all duration-300 hover:scale-110"
                         title="Change role"
                         onClick={() =>
-                          setOpenMenuId(openMenuId === user.id ? null : user.id)
+                          setOpenMenuId(
+                            openMenuId === user.id! ? null : user.id!,
+                          )
                         }
                       >
                         <FaUserCog className="w-4 h-4" />
                       </button>
-                      {openMenuId === user.id && (
+                      {openMenuId === user.id! && (
                         <motion.div
                           ref={(el) => {
-                            if (el) menuRefs.current.set(user.id, el);
+                            if (el) menuRefs.current.set(user.id!, el);
                           }}
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
@@ -291,7 +293,7 @@ const UserTable: React.FC<{
                               <button
                                 key={action.role}
                                 onClick={() =>
-                                  handleRoleChange(user.id, action.role)
+                                  handleRoleChange(user.id!, action.role)
                                 }
                                 className="w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-left"
                               >
