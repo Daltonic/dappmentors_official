@@ -42,3 +42,7 @@ export const signupSchema = z.object({
       "You must accept the Terms of Service and Privacy Policy",
     ),
 });
+
+export const resendSchema = z.object({
+  email: z.string().email("Please enter a valid email address").toLowerCase(),
+});
