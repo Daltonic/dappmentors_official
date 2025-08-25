@@ -1,6 +1,7 @@
+// app/auth/login/page.tsx (Updated Client Component)
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import AuthLayout from "@/components/layouts/AuthLayout";
@@ -13,7 +14,9 @@ import {
 } from "react-icons/io5";
 import { FcGoogle } from "react-icons/fc";
 import { FaXTwitter } from "react-icons/fa6";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useUser } from "@/context/UserContext";
+import { SessionData } from "@/lib/jwt";
 
 // TypeScript interfaces
 interface LoginFormData {
@@ -27,8 +30,29 @@ interface FormErrors {
   general?: string;
 }
 
+interface LoginResponse {
+  message?: string;
+  user?: SessionData;
+  accessToken?: string;
+  error?: string;
+  details?: Record<string, string>;
+  redirectTo?: string;
+}
+
 const PageClient: React.FC = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirectTo");
+
+  // Get user context
+  const {
+    login,
+    isAuthenticated,
+    isLoading: authLoading,
+    error: authError,
+    clearError,
+  } = useUser();
+
   // Form state
   const [formData, setFormData] = useState<LoginFormData>({
     email: "",
@@ -39,6 +63,37 @@ const PageClient: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [rememberMe, setRememberMe] = useState<boolean>(false);
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      const destination = redirectTo || "/dashboard";
+      router.push(destination);
+    }
+  }, [isAuthenticated, authLoading, redirectTo, router]);
+
+  // Clear any existing auth errors when component mounts
+  useEffect(() => {
+    if (authError) {
+      clearError();
+    }
+  }, [authError, clearError]);
+
+  // Show loading state while checking authentication
+  if (authLoading) {
+    return (
+      <AuthLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="flex flex-col items-center gap-4">
+            <div className="w-8 h-8 border-2 border-[#D2145A]/30 border-t-[#D2145A] rounded-full animate-spin" />
+            <p className="text-gray-600 dark:text-gray-400">
+              Checking authentication...
+            </p>
+          </div>
+        </div>
+      </AuthLayout>
+    );
+  }
 
   // Form validation
   const validateForm = (): boolean => {
@@ -77,6 +132,14 @@ const PageClient: React.FC = () => {
         [name]: undefined,
       }));
     }
+
+    // Clear general error when user types
+    if (errors.general) {
+      setErrors((prev) => ({
+        ...prev,
+        general: undefined,
+      }));
+    }
   };
 
   // Handle form submission
@@ -91,18 +154,60 @@ const PageClient: React.FC = () => {
     setErrors({});
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include", // Include cookies
+        body: JSON.stringify({
+          email: formData.email.toLowerCase().trim(),
+          password: formData.password,
+          rememberMe,
+        }),
+      });
 
-      // Handle successful login here
-      console.log("Login successful:", formData);
+      const data: LoginResponse = await response.json();
 
-      // Redirect or handle success
-      // router.push('/dashboard');
+      if (!response.ok) {
+        // Handle specific error cases
+        if (response.status === 403 && data.redirectTo) {
+          // Email not verified - redirect to verification page
+          router.push(data.redirectTo);
+          return;
+        }
+
+        // Handle validation errors or other errors
+        if (data.details) {
+          setErrors(data.details);
+        } else {
+          setErrors({ general: data.error || "Login failed" });
+        }
+        return;
+      }
+
+      // Success - update user context
+      if (data.user && data.accessToken) {
+        login(data.user, data.accessToken);
+
+        // Show success message briefly before redirect
+        console.log("Login successful:", data);
+
+        // Redirect to intended destination or default dashboard
+        const destination = redirectTo || "/dashboard";
+
+        // const destination = redirectTo ||
+        //   (data.user?.role === "admin" ? "/admin/dashboard" :
+        //     data.user?.role === "instructor" ? "/instructor/dashboard" : "/dashboard");
+
+        router.push(destination);
+      } else {
+        setErrors({ general: "Login successful but user data is missing" });
+      }
     } catch (error) {
       console.error("Login error:", error);
       setErrors({
-        general: "Login failed. Please check your credentials and try again.",
+        general: "Network error. Please check your connection and try again.",
       });
     } finally {
       setIsLoading(false);
@@ -117,6 +222,7 @@ const PageClient: React.FC = () => {
           type="button"
           onClick={() => router.back()}
           className="inline-flex items-center gap-3 bg-gradient-to-r from-[#D2145A]/10 to-[#FF4081]/10 backdrop-blur-sm rounded-full px-6 py-2 mb-6"
+          disabled={isLoading}
         >
           <span className="flex items-center gap-2 text-[#D2145A] font-semibold text-sm uppercase tracking-wider">
             <IoArrowBack className="w-4 h-4" />
@@ -135,6 +241,11 @@ const PageClient: React.FC = () => {
 
         <p className="text-lg text-gray-600 dark:text-gray-300">
           Continue your Web3 development journey
+          {redirectTo && (
+            <span className="block text-sm text-[#D2145A] mt-2">
+              Sign in to access the requested page
+            </span>
+          )}
         </p>
       </div>
 
@@ -179,6 +290,7 @@ const PageClient: React.FC = () => {
                 }`}
                 placeholder="Enter your email"
                 disabled={isLoading}
+                autoComplete="email"
               />
               <div className="absolute inset-y-0 right-0 flex items-center pr-3">
                 <IoMailOutline className="w-5 h-5 text-gray-400" />
@@ -217,6 +329,7 @@ const PageClient: React.FC = () => {
                 }`}
                 placeholder="Enter your password"
                 disabled={isLoading}
+                autoComplete="current-password"
               />
               <button
                 type="button"
@@ -253,7 +366,7 @@ const PageClient: React.FC = () => {
                 disabled={isLoading}
               />
               <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">
-                Remember me
+                Remember me for 30 days
               </span>
             </label>
             <Link

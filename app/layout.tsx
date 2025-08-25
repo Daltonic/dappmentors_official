@@ -3,6 +3,7 @@
 import { Provider } from "react-redux";
 import "./globals.css";
 import { store } from "@/store";
+import { UserProvider } from "@/context/UserContext";
 
 export default function RootLayout({
   children,
@@ -10,7 +11,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="antialiased dark:bg-medium transition-all duration-300">
-        <Provider store={store}>{children}</Provider>
+        <UserProvider>
+          <Provider store={store}>{children}</Provider>
+        </UserProvider>
       </body>
     </html>
   );

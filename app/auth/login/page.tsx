@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import PageClient from "./PageClient";
+import { Suspense } from "react";
 
 // Metadata for SEO
 export const metadata: Metadata = {
@@ -63,7 +64,11 @@ export const metadata: Metadata = {
 
 // Server component that exports metadata
 const Page = () => {
-  return <PageClient />;
+  return (
+    <Suspense>
+      <PageClient />
+    </Suspense>
+  );
 };
 
 export default Page;

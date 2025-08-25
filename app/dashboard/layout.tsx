@@ -8,6 +8,7 @@ import Link from "next/link";
 import { FaPlus, FaCircle } from "react-icons/fa";
 import { dashboardPages } from "@/data/global";
 import { Particle } from "@/utils/interfaces";
+import ProtectedLayout from "@/components/layouts/ProtectedLayout";
 
 type PageInfo = {
   title: string;
@@ -149,201 +150,203 @@ export default function DashboardLayout({
   const breadcrumbItems = getBreadcrumbItems(pathname);
 
   return (
-    <div className="min-h-screen flex relative overflow-hidden">
-      {/* Dashboard Sidebar */}
-      <DashboardSidebar
-        userName={userName}
-        userAvatar="👨‍💻"
-        isCollapsed={isSidebarCollapsed}
-        onToggleCollapse={handleSidebarToggle}
-        onPageChange={handlePageChange}
-      />
+    <ProtectedLayout>
+      <div className="min-h-screen flex relative overflow-hidden">
+        {/* Dashboard Sidebar */}
+        <DashboardSidebar
+          userName={userName}
+          userAvatar="👨‍💻"
+          isCollapsed={isSidebarCollapsed}
+          onToggleCollapse={handleSidebarToggle}
+          onPageChange={handlePageChange}
+        />
 
-      {/* Main Content Area */}
-      <div
-        className={`
+        {/* Main Content Area */}
+        <div
+          className={`
           flex-1 min-h-screen relative transition-all duration-500 ease-in-out
           bg-gradient-to-br from-gray-50 via-white to-gray-100
           dark:from-gray-900 dark:via-black dark:to-gray-900
           text-black dark:text-white w-full
           ${isSidebarCollapsed ? "lg:ml-20" : "lg:ml-80"}
         `}
-      >
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-5 dark:opacity-10 pointer-events-none">
-          <div
-            className="absolute inset-0"
-            style={{
-              backgroundImage: `radial-gradient(circle at 1px 1px, rgba(255,255,255,0.3) 1px, transparent 0)`,
-              backgroundSize: "32px 32px",
-            }}
-          />
-        </div>
-
-        {/* Floating Particles */}
-        <div className="absolute inset-0 pointer-events-none">
-          {particles.map((p, i) => (
-            <motion.div
-              key={i}
+        >
+          {/* Background Pattern */}
+          <div className="absolute inset-0 opacity-5 dark:opacity-10 pointer-events-none">
+            <div
+              className="absolute inset-0"
               style={{
-                position: "absolute",
-                top: p.top,
-                left: p.left,
-                width: p.baseSize,
-                height: p.baseSize,
-                backgroundColor: p.color,
-                borderRadius: "50%",
-              }}
-              animate={{
-                x: [0, p.xAmp, 0, -p.xAmp, 0],
-                y: [0, p.yAmp, 0, -p.yAmp, 0],
-                scale: [1, p.scaleMax, 1, p.scaleMin, 1],
-                opacity: [
-                  p.opacityBase,
-                  p.opacityBase + p.opacityDelta,
-                  p.opacityBase,
-                  p.opacityBase - p.opacityDelta,
-                  p.opacityBase,
-                ],
-              }}
-              transition={{
-                duration: p.duration,
-                ease: "easeInOut",
-                repeat: Infinity,
-                repeatType: "loop",
-                delay: p.delay,
+                backgroundImage: `radial-gradient(circle at 1px 1px, rgba(255,255,255,0.3) 1px, transparent 0)`,
+                backgroundSize: "32px 32px",
               }}
             />
-          ))}
-        </div>
-
-        {/* Top Bar for Mobile - Shows when sidebar is closed */}
-        <div className="lg:hidden relative z-20">
-          <div className="h-20 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-700/50 flex items-center justify-between px-4">
-            <div className="flex-1">
-              <h2 className="text-lg font-bold text-gray-900 dark:text-white truncate">
-                {currentPageInfo.title}
-              </h2>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                {currentPageInfo.date}
-              </p>
-            </div>
           </div>
-        </div>
 
-        {/* Desktop Header Bar - Dynamic content */}
-        <div className="hidden lg:block relative z-20">
-          <div className="h-16 bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm border-b border-gray-200/30 dark:border-gray-700/30 flex items-center justify-between px-8">
-            <div>
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                {currentPageInfo.title}
-              </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                {currentPageInfo.date}
-              </p>
-            </div>
-
-            {/* Quick Stats - Only show on dashboard overview */}
-            {pathname === "/dashboard" && (
-              <div className="flex items-center gap-6">
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-[#D2145A]">24</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Active Users
-                  </p>
-                </div>
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-[#FF4081]">12</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    New Orders
-                  </p>
-                </div>
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-purple-500">98%</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Uptime
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Dynamic Breadcrumb Navigation */}
-        <div className="relative z-20 px-4 lg:px-8 py-4 w-full">
-          <nav className="flex items-center space-x-2 text-sm">
-            {breadcrumbItems.map((item, index) => (
-              <React.Fragment key={item.href}>
-                {index > 0 && (
-                  <span className="text-gray-400 dark:text-gray-600">/</span>
-                )}
-                {item.isActive ? (
-                  <span className="text-gray-900 dark:text-white font-medium">
-                    {item.label}
-                  </span>
-                ) : (
-                  <Link
-                    href={item.href}
-                    className="text-gray-500 dark:text-gray-400 hover:text-[#D2145A] dark:hover:text-[#FF4081] transition-colors duration-200"
-                  >
-                    {item.label}
-                  </Link>
-                )}
-              </React.Fragment>
+          {/* Floating Particles */}
+          <div className="absolute inset-0 pointer-events-none">
+            {particles.map((p, i) => (
+              <motion.div
+                key={i}
+                style={{
+                  position: "absolute",
+                  top: p.top,
+                  left: p.left,
+                  width: p.baseSize,
+                  height: p.baseSize,
+                  backgroundColor: p.color,
+                  borderRadius: "50%",
+                }}
+                animate={{
+                  x: [0, p.xAmp, 0, -p.xAmp, 0],
+                  y: [0, p.yAmp, 0, -p.yAmp, 0],
+                  scale: [1, p.scaleMax, 1, p.scaleMin, 1],
+                  opacity: [
+                    p.opacityBase,
+                    p.opacityBase + p.opacityDelta,
+                    p.opacityBase,
+                    p.opacityBase - p.opacityDelta,
+                    p.opacityBase,
+                  ],
+                }}
+                transition={{
+                  duration: p.duration,
+                  ease: "easeInOut",
+                  repeat: Infinity,
+                  repeatType: "loop",
+                  delay: p.delay,
+                }}
+              />
             ))}
-          </nav>
-        </div>
+          </div>
 
-        {/* Main Content Area */}
-        <main className="relative z-10 px-4 lg:px-8 pb-8 w-full">
-          <div className="w-full max-w-none lg:max-w-7xl mx-auto">
-            {/* Content Container with subtle background */}
-            <div className="bg-white/40 dark:bg-gray-900/40 backdrop-blur-sm rounded-2xl lg:rounded-3xl border border-gray-200/50 dark:border-gray-700/50 p-1">
-              <div className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm rounded-xl lg:rounded-[22px] border border-gray-200/30 dark:border-gray-700/30 p-4 lg:p-6 xl:p-8">
-                {children}
+          {/* Top Bar for Mobile - Shows when sidebar is closed */}
+          <div className="lg:hidden relative z-20">
+            <div className="h-20 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-700/50 flex items-center justify-between px-4">
+              <div className="flex-1">
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white truncate">
+                  {currentPageInfo.title}
+                </h2>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {currentPageInfo.date}
+                </p>
               </div>
             </div>
           </div>
-        </main>
 
-        {/* Floating Action Button for Mobile - Context-aware */}
-        <div className="lg:hidden fixed bottom-6 right-6 z-30">
-          <button
-            className="w-14 h-14 bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white rounded-full shadow-2xl hover:scale-110 transition-all duration-300 flex items-center justify-center"
-            title={`Add new ${breadcrumbItems[breadcrumbItems.length - 1]?.label.toLowerCase() || "item"}`}
-          >
-            <FaPlus className="w-6 h-6" />
-          </button>
-        </div>
+          {/* Desktop Header Bar - Dynamic content */}
+          <div className="hidden lg:block relative z-20">
+            <div className="h-16 bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm border-b border-gray-200/30 dark:border-gray-700/30 flex items-center justify-between px-8">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                  {currentPageInfo.title}
+                </h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  {currentPageInfo.date}
+                </p>
+              </div>
 
-        {/* Footer */}
-        <footer className="relative z-20 px-4 lg:px-8 py-6 w-full">
-          <div className="w-full max-w-none lg:max-w-7xl mx-auto">
-            <div className="flex flex-col lg:flex-row justify-between items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-              <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-center sm:text-left">
-                <span>
-                  ©{new Date().getFullYear()} Dashboard. All rights reserved.
-                </span>
-                <div className="flex items-center gap-2">
-                  <FaCircle className="w-2 h-2 text-green-500 animate-pulse" />
-                  <span>All systems operational</span>
+              {/* Quick Stats - Only show on dashboard overview */}
+              {pathname === "/dashboard" && (
+                <div className="flex items-center gap-6">
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-[#D2145A]">24</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      Active Users
+                    </p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-[#FF4081]">12</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      New Orders
+                    </p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-purple-500">98%</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      Uptime
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Dynamic Breadcrumb Navigation */}
+          <div className="relative z-20 px-4 lg:px-8 py-4 w-full">
+            <nav className="flex items-center space-x-2 text-sm">
+              {breadcrumbItems.map((item, index) => (
+                <React.Fragment key={item.href}>
+                  {index > 0 && (
+                    <span className="text-gray-400 dark:text-gray-600">/</span>
+                  )}
+                  {item.isActive ? (
+                    <span className="text-gray-900 dark:text-white font-medium">
+                      {item.label}
+                    </span>
+                  ) : (
+                    <Link
+                      href={item.href}
+                      className="text-gray-500 dark:text-gray-400 hover:text-[#D2145A] dark:hover:text-[#FF4081] transition-colors duration-200"
+                    >
+                      {item.label}
+                    </Link>
+                  )}
+                </React.Fragment>
+              ))}
+            </nav>
+          </div>
+
+          {/* Main Content Area */}
+          <main className="relative z-10 px-4 lg:px-8 pb-8 w-full">
+            <div className="w-full max-w-none lg:max-w-7xl mx-auto">
+              {/* Content Container with subtle background */}
+              <div className="bg-white/40 dark:bg-gray-900/40 backdrop-blur-sm rounded-2xl lg:rounded-3xl border border-gray-200/50 dark:border-gray-700/50 p-1">
+                <div className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm rounded-xl lg:rounded-[22px] border border-gray-200/30 dark:border-gray-700/30 p-4 lg:p-6 xl:p-8">
+                  {children}
                 </div>
               </div>
-              <div className="flex items-center gap-4 lg:gap-6">
-                <Link
-                  href="/privacy"
-                  className="hover:text-[#D2145A] transition-colors duration-200"
-                >
-                  Privacy Policy
-                </Link>
+            </div>
+          </main>
+
+          {/* Floating Action Button for Mobile - Context-aware */}
+          <div className="lg:hidden fixed bottom-6 right-6 z-30">
+            <button
+              className="w-14 h-14 bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white rounded-full shadow-2xl hover:scale-110 transition-all duration-300 flex items-center justify-center"
+              title={`Add new ${breadcrumbItems[breadcrumbItems.length - 1]?.label.toLowerCase() || "item"}`}
+            >
+              <FaPlus className="w-6 h-6" />
+            </button>
+          </div>
+
+          {/* Footer */}
+          <footer className="relative z-20 px-4 lg:px-8 py-6 w-full">
+            <div className="w-full max-w-none lg:max-w-7xl mx-auto">
+              <div className="flex flex-col lg:flex-row justify-between items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+                <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-center sm:text-left">
+                  <span>
+                    ©{new Date().getFullYear()} Dashboard. All rights reserved.
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <FaCircle className="w-2 h-2 text-green-500 animate-pulse" />
+                    <span>All systems operational</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4 lg:gap-6">
+                  <Link
+                    href="/privacy"
+                    className="hover:text-[#D2145A] transition-colors duration-200"
+                  >
+                    Privacy Policy
+                  </Link>
+                </div>
               </div>
             </div>
-          </div>
-        </footer>
-      </div>
+          </footer>
+        </div>
 
-      {/* Overlay for mobile when sidebar is open */}
-      <div className="lg:hidden fixed inset-0 bg-black/20 backdrop-blur-sm z-25 opacity-0 pointer-events-none transition-opacity duration-300" />
-    </div>
+        {/* Overlay for mobile when sidebar is open */}
+        <div className="lg:hidden fixed inset-0 bg-black/20 backdrop-blur-sm z-25 opacity-0 pointer-events-none transition-opacity duration-300" />
+      </div>
+    </ProtectedLayout>
   );
 }
