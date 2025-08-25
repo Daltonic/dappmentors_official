@@ -25,7 +25,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     // Verify refresh token
-    const payload = verifyRefreshToken(refreshToken);
+    const payload = await verifyRefreshToken(refreshToken);
     if (!payload) {
       return NextResponse.json(
         { error: "Invalid or expired refresh token" },
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const isProduction = process.env.NODE_ENV === "production";
 
     // Set new access token cookie
-    response.cookies.set("access-token", newAccessToken, {
+    response.cookies.set("access-token", await newAccessToken, {
       httpOnly: true,
       secure: isProduction,
       sameSite: "strict",
@@ -92,7 +92,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     });
 
     // Set new refresh token cookie
-    response.cookies.set("refresh-token", newRefreshToken, {
+    response.cookies.set("refresh-token", await newRefreshToken, {
       httpOnly: true,
       secure: isProduction,
       sameSite: "strict",

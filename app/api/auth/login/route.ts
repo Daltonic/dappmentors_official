@@ -154,7 +154,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const maxAge = rememberMe ? 30 * 24 * 60 * 60 : 24 * 60 * 60; // 30 days or 24 hours
 
     // Set access token cookie (short-lived)
-    response.cookies.set("access-token", accessToken, {
+    response.cookies.set("access-token", await accessToken, {
       httpOnly: true,
       secure: isProduction,
       sameSite: "strict",
@@ -163,7 +163,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     });
 
     // Set refresh token cookie (longer-lived)
-    response.cookies.set("refresh-token", refreshToken, {
+    response.cookies.set("refresh-token", await refreshToken, {
       httpOnly: true,
       secure: isProduction,
       sameSite: "strict",

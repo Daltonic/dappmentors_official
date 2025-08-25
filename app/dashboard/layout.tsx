@@ -21,7 +21,6 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const userName = "John Doe";
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [particles, setParticles] = useState<Particle[]>([]);
   const [currentPageInfo, setCurrentPageInfo] = useState<PageInfo>({
@@ -154,8 +153,6 @@ export default function DashboardLayout({
       <div className="min-h-screen flex relative overflow-hidden">
         {/* Dashboard Sidebar */}
         <DashboardSidebar
-          userName={userName}
-          userAvatar="👨‍💻"
           isCollapsed={isSidebarCollapsed}
           onToggleCollapse={handleSidebarToggle}
           onPageChange={handlePageChange}

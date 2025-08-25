@@ -7,10 +7,9 @@ import { AiOutlineMenu } from "react-icons/ai";
 import { FaSignOutAlt, FaCircle } from "react-icons/fa";
 import ToggleMode from "../shared/ToggleMode";
 import { dashboardPages } from "@/data/global";
+import { useUser } from "@/contexts/UserContext";
 
 type DashboardSidebarProps = {
-  userName: string;
-  userAvatar: string;
   isCollapsed: boolean;
   onToggleCollapse: (collapsed: boolean) => void;
   onPageChange: (pageInfo: {
@@ -21,14 +20,19 @@ type DashboardSidebarProps = {
 };
 
 const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
-  userName,
-  userAvatar = "👨‍💻",
   isCollapsed = false,
   onToggleCollapse,
 }) => {
+  const { user, logout } = useUser(); // Use the user and logout from context
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [hoveredItem, setHoveredItem] = useState<number | null>(null);
   const pathname = usePathname();
+
+  const fullName = user ? `${user.firstName} ${user.lastName}` : "User";
+  const avatar = user?.avatar || "👨‍💻";
+  const role = user?.role
+    ? user.role.charAt(0).toUpperCase() + user.role.slice(1)
+    : "Administrator";
 
   // Prevent body scroll when mobile sidebar is open
   useEffect(() => {
@@ -71,6 +75,10 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
       pathname === link || (link !== "/dashboard" && pathname.startsWith(link))
     );
   };
+
+  if (!user) {
+    return null; // Or a loading spinner, assuming authenticated in dashboard
+  }
 
   return (
     <>
@@ -124,7 +132,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                     Dashboard
                   </h1>
                   <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
-                    {greeting}, {userName}! 👋
+                    {greeting}, {fullName}! 👋
                   </p>
                 </div>
               )}
@@ -148,14 +156,14 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
             <div className="mt-4 p-4 bg-gradient-to-r from-[#D2145A]/5 to-[#FF4081]/5 rounded-2xl border border-[#D2145A]/10">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 bg-gradient-to-r from-[#D2145A] to-[#FF4081] rounded-xl flex items-center justify-center text-2xl">
-                  {userAvatar}
+                  {avatar}
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-900 dark:text-white">
-                    {userName}
+                    {fullName}
                   </h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Administrator
+                    {role}
                   </p>
                 </div>
               </div>
@@ -166,7 +174,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
           {isCollapsed && (
             <div className="mt-4 flex justify-center">
               <div className="w-12 h-12 bg-gradient-to-r from-[#D2145A] to-[#FF4081] rounded-xl flex items-center justify-center text-2xl">
-                {userAvatar}
+                {avatar}
               </div>
             </div>
           )}
@@ -274,7 +282,10 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                 className={`flex ${isCollapsed ? "flex-col space-y-2" : "space-x-2"}`}
               >
                 <ToggleMode />
-                <button className="p-2 rounded-xl text-gray-700 dark:text-gray-300 hover:text-red-500 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 transition-all duration-300">
+                <button
+                  onClick={() => logout()}
+                  className="p-2 rounded-xl text-gray-700 dark:text-gray-300 hover:text-red-500 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 transition-all duration-300"
+                >
                   <FaSignOutAlt size={16} />
                 </button>
               </div>
@@ -284,14 +295,12 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                 <div className="flex items-center space-x-4">
                   <div className="flex items-center space-x-2">
                     <FaCircle className="w-2 h-2 text-green-500 animate-pulse" />{" "}
-                    {/* Replaced div with FaCircle */}
                     <span className="text-xs text-gray-500 dark:text-gray-400">
                       Online
                     </span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <FaCircle className="w-2 h-2 text-[#D2145A]" />{" "}
-                    {/* Replaced div with FaCircle */}
                     <span className="text-xs text-gray-500 dark:text-gray-400">
                       v2.1
                     </span>
@@ -336,7 +345,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                   Dashboard
                 </h1>
                 <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
-                  {greeting}, {userName}! 👋
+                  {greeting}, {fullName}! 👋
                 </p>
               </div>
             </div>
@@ -353,14 +362,14 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
           <div className="mt-4 p-4 bg-gradient-to-r from-[#D2145A]/5 to-[#FF4081]/5 rounded-2xl border border-[#D2145A]/10">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-gradient-to-r from-[#D2145A] to-[#FF4081] rounded-xl flex items-center justify-center text-2xl">
-                {userAvatar}
+                {avatar}
               </div>
               <div>
                 <h3 className="font-semibold text-gray-900 dark:text-white">
-                  {userName}
+                  {fullName}
                 </h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Administrator
+                  {role}
                 </p>
               </div>
             </div>
@@ -429,19 +438,23 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <ToggleMode />
+                <button
+                  onClick={() => logout()}
+                  className="p-2 rounded-xl text-gray-700 dark:text-gray-300 hover:text-red-500 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 transition-all duration-300"
+                >
+                  <FaSignOutAlt size={16} />
+                </button>
               </div>
 
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-2">
                   <FaCircle className="w-2 h-2 text-green-500 animate-pulse" />{" "}
-                  {/* Replaced div with FaCircle */}
                   <span className="text-xs text-gray-500 dark:text-gray-400">
                     Online
                   </span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <FaCircle className="w-2 h-2 text-[#D2145A]" />{" "}
-                  {/* Replaced div with FaCircle */}
                   <span className="text-xs text-gray-500 dark:text-gray-400">
                     v2.1
                   </span>

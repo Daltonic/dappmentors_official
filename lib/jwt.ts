@@ -1,5 +1,5 @@
 // lib/jwt.ts
-import jwt from "jsonwebtoken";
+import { SignJWT, jwtVerify } from "jose";
 import { User } from "@/utils/interfaces";
 
 export interface JWTPayload {
@@ -44,31 +44,52 @@ if (!JWT_REFRESH_SECRET) {
 }
 
 // Generate access token (short-lived)
-export function generateAccessToken(payload: JWTPayload): string {
-  return jwt.sign(payload, JWT_SECRET!, {
-    expiresIn: "15m", // 15 minutes
-    issuer: "dapp-mentors",
-    audience: "dapp-mentors-users",
-  });
+export async function generateAccessToken(
+  payload: JWTPayload,
+): Promise<string> {
+  try {
+    const secret = new TextEncoder().encode(JWT_SECRET);
+    return await new SignJWT({ ...payload })
+      .setProtectedHeader({ alg: "HS256" })
+      .setIssuedAt()
+      .setIssuer("dapp-mentors")
+      .setAudience("dapp-mentors-users")
+      .setExpirationTime("15m")
+      .sign(secret);
+  } catch (error) {
+    throw new Error(`Failed to generate access token: ${error}`);
+  }
 }
 
 // Generate refresh token (long-lived)
-export function generateRefreshToken(payload: JWTPayload): string {
-  return jwt.sign(payload, JWT_REFRESH_SECRET!, {
-    expiresIn: "7d", // 7 days
-    issuer: "dapp-mentors",
-    audience: "dapp-mentors-users",
-  });
+export async function generateRefreshToken(
+  payload: JWTPayload,
+): Promise<string> {
+  try {
+    const secret = new TextEncoder().encode(JWT_REFRESH_SECRET);
+    return await new SignJWT({ ...payload })
+      .setProtectedHeader({ alg: "HS256" })
+      .setIssuedAt()
+      .setIssuer("dapp-mentors")
+      .setAudience("dapp-mentors-users")
+      .setExpirationTime("7d")
+      .sign(secret);
+  } catch (error) {
+    throw new Error(`Failed to generate refresh token: ${error}`);
+  }
 }
 
 // Verify access token
-export function verifyAccessToken(token: string): JWTPayload | null {
+export async function verifyAccessToken(
+  token: string,
+): Promise<JWTPayload | null> {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET!, {
+    const secret = new TextEncoder().encode(JWT_SECRET);
+    const { payload } = await jwtVerify(token, secret, {
       issuer: "dapp-mentors",
       audience: "dapp-mentors-users",
-    }) as JWTPayload;
-    return decoded;
+    });
+    return payload as unknown as JWTPayload;
   } catch (error) {
     console.error("Access token verification failed:", error);
     return null;
@@ -76,13 +97,16 @@ export function verifyAccessToken(token: string): JWTPayload | null {
 }
 
 // Verify refresh token
-export function verifyRefreshToken(token: string): JWTPayload | null {
+export async function verifyRefreshToken(
+  token: string,
+): Promise<JWTPayload | null> {
   try {
-    const decoded = jwt.verify(token, JWT_REFRESH_SECRET!, {
+    const secret = new TextEncoder().encode(JWT_REFRESH_SECRET);
+    const { payload } = await jwtVerify(token, secret, {
       issuer: "dapp-mentors",
       audience: "dapp-mentors-users",
-    }) as JWTPayload;
-    return decoded;
+    });
+    return payload as unknown as JWTPayload;
   } catch (error) {
     console.error("Refresh token verification failed:", error);
     return null;

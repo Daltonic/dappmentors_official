@@ -15,7 +15,7 @@ import {
 import { FcGoogle } from "react-icons/fc";
 import { FaXTwitter } from "react-icons/fa6";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useUser } from "@/context/UserContext";
+import { useUser } from "@/contexts/UserContext";
 import { SessionData } from "@/lib/jwt";
 
 // TypeScript interfaces

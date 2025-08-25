@@ -51,7 +51,7 @@ export async function middleware(request: NextRequest) {
 
   // If we have an access token, verify it
   if (accessToken) {
-    const tokenPayload = verifyAccessToken(accessToken);
+    const tokenPayload = await verifyAccessToken(accessToken);
 
     if (tokenPayload) {
       // Token is valid

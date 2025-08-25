@@ -3,7 +3,7 @@
 import { Provider } from "react-redux";
 import "./globals.css";
 import { store } from "@/store";
-import { UserProvider } from "@/context/UserContext";
+import { UserProvider } from "@/contexts/UserContext";
 
 export default function RootLayout({
   children,
