@@ -11,12 +11,14 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useUser } from "@/contexts/UserContext";
 
 const Header: React.FC = () => {
   const [isSideBarOpen, setIsSideBarOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
+  const { isAuthenticated } = useUser();
 
   // Handle scroll effect for header background
   useEffect(() => {
@@ -28,8 +30,12 @@ const Header: React.FC = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const handleClick = () => {
+  const handleLogin = () => {
     router.push("/auth/login");
+  };
+
+  const handleDashboard = () => {
+    router.push("/dashboard");
   };
 
   const closeSidebar = () => {
@@ -109,18 +115,33 @@ const Header: React.FC = () => {
             {/* Enhanced Right Section */}
             <div className="hidden lg:flex items-center space-x-4">
               <ToggleMode />
-              <Button
-                label="Login"
-                onClick={handleClick}
-                className="
-                  bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white 
-                  hover:from-white hover:to-white hover:text-[#D2145A] 
-                  border-2 border-transparent hover:border-[#D2145A]
-                  px-6 py-3 rounded-xl font-semibold text-sm
-                  transition-all duration-300 hover:scale-105 hover:shadow-lg
-                  backdrop-blur-sm
-                "
-              />
+              {isAuthenticated ? (
+                <Button
+                  label="Dashboard"
+                  onClick={handleDashboard}
+                  className="
+                    bg-transparent text-[#D2145A] dark:text-[#FF4081]
+                    border-2 border-[#D2145A] dark:border-[#FF4081]
+                    hover:bg-[#D2145A] hover:text-white dark:hover:bg-[#FF4081] dark:hover:text-white
+                    px-6 py-3 rounded-xl font-semibold text-sm
+                    transition-all duration-300 hover:shadow-lg
+                    backdrop-blur-sm
+                  "
+                />
+              ) : (
+                <Button
+                  label="Login"
+                  onClick={handleLogin}
+                  className="
+                    bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white 
+                    hover:from-white hover:to-white hover:text-[#D2145A] 
+                    border-2 border-transparent hover:border-[#D2145A]
+                    px-6 py-3 rounded-xl font-semibold text-sm
+                    transition-all duration-300 hover:shadow-lg
+                    backdrop-blur-sm
+                  "
+                />
+              )}
             </div>
 
             {/* Enhanced Mobile Menu Button */}
