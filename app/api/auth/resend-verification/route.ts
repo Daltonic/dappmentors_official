@@ -1,17 +1,11 @@
 // app/api/auth/resend-verification/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
+import { sendVerificationEmail } from "@/lib/email";
 import { Collection } from "mongodb";
 import { User } from "@/utils/interfaces";
 import { resendSchema } from "@/validations/users";
-
-// Helper function to generate email verification token
-function generateVerificationToken(): string {
-  return (
-    Math.random().toString(36).substring(2, 15) +
-    Math.random().toString(36).substring(2, 15)
-  );
-}
+import { generateVerificationToken } from "@/heplers/users";
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
@@ -103,15 +97,39 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       },
     );
 
-    // TODO: Send verification email here
-    // await sendVerificationEmail(email, emailVerificationToken, user.name);
+    // Send verification email
+    try {
+      const emailSent = await sendVerificationEmail(
+        email,
+        emailVerificationToken,
+        user.name,
+      );
+
+      if (!emailSent) {
+        console.error("Failed to send verification email to:", email);
+        return NextResponse.json(
+          {
+            error: "Failed to send verification email. Please try again later.",
+          },
+          { status: 500 },
+        );
+      }
+    } catch (emailError) {
+      console.error("Email sending error:", emailError);
+      return NextResponse.json(
+        { error: "Failed to send verification email. Please try again later." },
+        { status: 500 },
+      );
+    }
 
     // Log for development (remove in production)
-    console.log(`Verification email would be sent to: ${email}`);
-    console.log(`Verification token: ${emailVerificationToken}`);
-    console.log(
-      `Verification URL: /auth/verify-email?token=${emailVerificationToken}`,
-    );
+    if (process.env.NODE_ENV === "development") {
+      console.log(`Verification email sent to: ${email}`);
+      console.log(`Verification token: ${emailVerificationToken}`);
+      console.log(
+        `Verification URL: ${process.env.NEXT_PUBLIC_APP_URL}/auth/verify-email?token=${emailVerificationToken}`,
+      );
+    }
 
     return NextResponse.json(
       {

@@ -1,4 +1,6 @@
+// app/api/users/route.ts
 import { generateVerificationToken } from "@/heplers/users";
+import { sendVerificationEmail } from "@/lib/email";
 import { connectToDatabase } from "@/lib/mongodb";
 import { User } from "@/utils/interfaces";
 import { signupSchema } from "@/validations/users";
@@ -141,8 +143,23 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // Insert user into database
     const result = await collection.insertOne(newUser);
 
-    // TODO: Send email verification email here
-    // await sendVerificationEmail(email, emailVerificationToken);
+    // Send email verification email
+    try {
+      const emailSent = await sendVerificationEmail(
+        email,
+        emailVerificationToken,
+        newUser.name,
+      );
+
+      if (!emailSent) {
+        console.error("Failed to send verification email to:", email);
+        // Note: We still return success since user was created successfully
+        // You might want to implement a retry mechanism or notification system
+      }
+    } catch (emailError) {
+      console.error("Email sending error:", emailError);
+      // Continue with success response even if email fails
+    }
 
     // Return success response (excluding sensitive data)
     return NextResponse.json(
@@ -206,6 +223,21 @@ export async function PATCH(request: NextRequest): Promise<NextResponse> {
         );
       }
 
+      // Optional: Check if token is expired (e.g., 24 hours)
+      const tokenCreatedAt = user.updatedAt || user.createdAt;
+      const now = new Date();
+      const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+      if (tokenCreatedAt < twentyFourHoursAgo) {
+        return NextResponse.json(
+          {
+            error:
+              "Verification token has expired. Please request a new verification email.",
+          },
+          { status: 400 },
+        );
+      }
+
       // Update user to verified status
       await collection.updateOne(
         { _id: user._id },
@@ -222,7 +254,16 @@ export async function PATCH(request: NextRequest): Promise<NextResponse> {
       );
 
       return NextResponse.json(
-        { message: "Email verified successfully! Your account is now active." },
+        {
+          message: "Email verified successfully! Your account is now active.",
+          user: {
+            id: user._id,
+            name: user.name,
+            email: user.email,
+            emailVerified: true,
+            status: "active",
+          },
+        },
         { status: 200 },
       );
     }
