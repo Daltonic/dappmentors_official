@@ -1,3 +1,4 @@
+// app/auth/forgot-password/PageClient.tsx
 "use client";
 
 import React, { useState } from "react";
@@ -67,6 +68,12 @@ const PageClient: React.FC = () => {
         [name]: undefined,
       }));
     }
+    if (errors.general) {
+      setErrors((prev) => ({
+        ...prev,
+        general: undefined,
+      }));
+    }
   };
 
   // Handle form submission
@@ -81,16 +88,33 @@ const PageClient: React.FC = () => {
     setErrors({});
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const response = await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: formData.email,
+        }),
+      });
 
-      // Handle successful password reset request
-      console.log("Password reset email sent to:", formData.email);
-      setIsSuccess(true);
+      const data = await response.json();
+
+      if (response.ok) {
+        setIsSuccess(true);
+      } else {
+        if (data.details) {
+          setErrors(data.details);
+        } else {
+          setErrors({
+            general: data.error || "Failed to send reset email.",
+          });
+        }
+      }
     } catch (error) {
       console.error("Password reset error:", error);
       setErrors({
-        general: "Failed to send reset email. Please try again later.",
+        general: "Network error. Please try again.",
       });
     } finally {
       setIsLoading(false);
@@ -146,13 +170,18 @@ const PageClient: React.FC = () => {
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="mx-auto w-16 h-16 bg-gradient-to-r from-green-400 to-green-600 rounded-full flex items-center justify-center mb-6"
+            transition={{
+              duration: 0.5,
+              delay: 0.2,
+              type: "spring",
+              stiffness: 200,
+            }}
+            className="mx-auto w-20 h-20 bg-gradient-to-r from-green-400 to-green-600 rounded-full flex items-center justify-center mb-6"
           >
-            <IoCheckmarkCircle className="w-8 h-8 text-white" />
+            <IoCheckmarkCircle className="w-10 h-10 text-white" />
           </motion.div>
 
-          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
+          <h2 className="text-3xl font-semibold text-gray-900 dark:text-white mb-4">
             Email Sent Successfully!
           </h2>
 
@@ -165,7 +194,7 @@ const PageClient: React.FC = () => {
             password.
           </p>
 
-          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/50 rounded-xl p-4 mb-6">
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/50 rounded-xl p-4 mb-8">
             <p className="text-blue-700 dark:text-blue-400 text-sm">
               <strong>Didn&apos;t receive the email?</strong> Check your spam
               folder or wait a few minutes for delivery.
@@ -173,20 +202,20 @@ const PageClient: React.FC = () => {
           </div>
 
           {/* Action Buttons */}
-          <div className="space-y-3">
-            <motion.button
-              type="button"
-              onClick={handleTryAgain}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="w-full bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white py-3 px-6 rounded-xl font-semibold text-lg hover:shadow-xl hover:shadow-[#D2145A]/25 transition-all duration-300"
-            >
-              Send to Different Email
-            </motion.button>
+          <div className="space-y-4">
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+              <button
+                type="button"
+                onClick={handleTryAgain}
+                className="w-full bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white py-4 px-6 rounded-xl font-semibold text-lg hover:shadow-xl hover:shadow-[#D2145A]/25 transition-all duration-300"
+              >
+                Send to Different Email
+              </button>
+            </motion.div>
 
             <Link
               href="/auth/login"
-              className="block w-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-white/20 text-gray-700 dark:text-gray-300 py-3 px-6 rounded-xl font-semibold text-lg hover:bg-white/70 dark:hover:bg-white/10 transition-all duration-300 text-center"
+              className="block w-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-white/20 text-gray-700 dark:text-gray-300 py-3 px-6 rounded-xl font-semibold text-center hover:bg-white/70 dark:hover:bg-white/10 transition-all duration-300"
             >
               Back to Sign In
             </Link>
@@ -197,7 +226,7 @@ const PageClient: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
+          transition={{ duration: 0.5 }}
           className="bg-white/80 dark:bg-white/10 backdrop-blur-lg rounded-3xl p-8 border border-white/20 dark:border-white/10 shadow-2xl"
         >
           {/* General Error Message */}
@@ -205,13 +234,13 @@ const PageClient: React.FC = () => {
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 text-red-700 dark:text-red-400 px-4 py-3 rounded-xl mb-6 text-sm"
+              className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 text-red-700 dark:text-red-400 px-4 py-3 rounded-xl mb-6 text-sm text-center"
             >
               {errors.general}
             </motion.div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
             {/* Email Field */}
             <div>
               <label
@@ -234,6 +263,7 @@ const PageClient: React.FC = () => {
                   }`}
                   placeholder="Enter your email address"
                   disabled={isLoading}
+                  required
                 />
                 <div className="absolute inset-y-0 right-0 flex items-center pr-3">
                   <IoMailOutline className="w-5 h-5 text-gray-400" />
@@ -258,7 +288,7 @@ const PageClient: React.FC = () => {
                   <p className="font-medium mb-1">What happens next?</p>
                   <p>
                     We&apos;ll send you a secure link to reset your password.
-                    The link will be valid for 24 hours.
+                    The link will be valid for 1 hour.
                   </p>
                 </div>
               </div>
@@ -284,21 +314,20 @@ const PageClient: React.FC = () => {
               ) : (
                 <span className="flex items-center justify-center gap-2">
                   Send Reset Link
-                  <IoArrowForward className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" />
+                  <IoArrowForward className="w-5 h-5" />
                 </span>
               )}
             </motion.button>
-
-            {/* Alternative Actions */}
-            <div className="text-center">
-              <Link
-                href="/auth/login"
-                className="text-sm text-gray-600 dark:text-gray-400 hover:text-[#D2145A] transition-colors font-medium"
-              >
-                Remember your password? Sign in instead
-              </Link>
-            </div>
           </form>
+
+          <div className="mt-6 pt-6 border-t border-gray-200 dark:border-white/10 text-center">
+            <Link
+              href="/auth/login"
+              className="text-sm text-gray-600 dark:text-gray-400 hover:text-[#D2145A] dark:hover:text-[#FF4081] transition-colors font-medium"
+            >
+              Remember your password? Sign in instead
+            </Link>
+          </div>
         </motion.div>
       )}
 
@@ -307,36 +336,35 @@ const PageClient: React.FC = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.4 }}
-        className="mt-8"
+        className="mt-8 bg-white/50 dark:bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-white/20 dark:border-white/10"
       >
-        <div className="bg-white/50 dark:bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-white/20 dark:border-white/10">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-            Need Help?
-          </h3>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center justify-center gap-2">
+          <IoHelpCircleOutline className="w-5 h-5 text-[#D2145A]" />
+          Need Help?
+        </h3>
 
-          <div className="space-y-3 text-sm text-gray-600 dark:text-gray-400">
-            <div className="flex items-start gap-2">
-              <IoHelpCircleOutline className="w-4 h-4 text-[#D2145A] mt-0.5 flex-shrink-0" />
-              <span>Make sure to check your spam or junk folder</span>
-            </div>
+        <div className="space-y-3 text-sm text-gray-600 dark:text-gray-400">
+          <div className="flex items-start gap-2">
+            <IoHelpCircleOutline className="w-4 h-4 text-[#D2145A] mt-0.5 flex-shrink-0" />
+            <span>Make sure to check your spam or junk folder</span>
+          </div>
 
-            <div className="flex items-start gap-2">
-              <IoHelpCircleOutline className="w-4 h-4 text-[#D2145A] mt-0.5 flex-shrink-0" />
-              <span>Reset links expire after 24 hours for security</span>
-            </div>
+          <div className="flex items-start gap-2">
+            <IoHelpCircleOutline className="w-4 h-4 text-[#D2145A] mt-0.5 flex-shrink-0" />
+            <span>Reset links expire after 1 hour for security</span>
+          </div>
 
-            <div className="flex items-start gap-2">
-              <IoHelpCircleOutline className="w-4 h-4 text-[#D2145A] mt-0.5 flex-shrink-0" />
-              <span>
-                Still having trouble?{" "}
-                <Link
-                  href="/contact"
-                  className="text-[#D2145A] hover:text-[#FF4081] transition-colors font-medium"
-                >
-                  Contact Support
-                </Link>
-              </span>
-            </div>
+          <div className="flex items-start gap-2">
+            <IoHelpCircleOutline className="w-4 h-4 text-[#D2145A] mt-0.5 flex-shrink-0" />
+            <span>
+              Still having trouble?{" "}
+              <Link
+                href="/contact"
+                className="text-[#D2145A] hover:text-[#FF4081] transition-colors font-medium"
+              >
+                Contact Support
+              </Link>
+            </span>
           </div>
         </div>
       </motion.div>
@@ -346,17 +374,15 @@ const PageClient: React.FC = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.6 }}
-        className="text-center mt-6"
+        className="text-center mt-6 text-gray-600 dark:text-gray-400"
       >
-        <p className="text-gray-600 dark:text-gray-400">
-          Don&apos;t have an account?{" "}
-          <Link
-            href="/auth/signup"
-            className="text-[#D2145A] hover:text-[#FF4081] transition-colors font-semibold"
-          >
-            Sign up here
-          </Link>
-        </p>
+        Don&apos;t have an account?{" "}
+        <Link
+          href="/auth/signup"
+          className="text-[#D2145A] hover:text-[#FF4081] transition-colors font-semibold"
+        >
+          Sign up here
+        </Link>
       </motion.div>
     </AuthLayout>
   );

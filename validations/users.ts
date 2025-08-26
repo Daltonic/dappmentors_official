@@ -125,8 +125,8 @@ export const resetPasswordSchema = z
       .min(8, "Password must be at least 8 characters long")
       .max(100, "Password must be less than 100 characters")
       .regex(
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
-        "Password must contain at least one lowercase letter, one uppercase letter, one number, and one special character",
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d@$!%*?&]+$/,
+        "Password must contain at least one lowercase letter, one uppercase letter, and one number",
       ),
     confirmPassword: z.string(),
   })
@@ -144,7 +144,7 @@ export const changePasswordSchema = z
       .min(8, "Password must be at least 8 characters long")
       .max(100, "Password must be less than 100 characters")
       .regex(
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/,
         "Password must contain at least one lowercase letter, one uppercase letter, one number, and one special character",
       ),
     confirmNewPassword: z.string(),

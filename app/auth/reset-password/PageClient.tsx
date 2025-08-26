@@ -1,3 +1,4 @@
+// app/auth/reset-password/PageClient.tsx
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -45,32 +46,53 @@ const PageClient: React.FC = () => {
   const [showConfirmPassword, setShowConfirmPassword] =
     useState<boolean>(false);
   const [token, setToken] = useState<string | null>(null);
-  const [isValidToken, setIsValidToken] = useState<boolean>(true);
+  const [isValidToken, setIsValidToken] = useState<boolean>(false);
+  const [isTokenChecking, setIsTokenChecking] = useState<boolean>(true);
 
   // Get token from URL params
   useEffect(() => {
     const tokenParam = searchParams.get("token");
     if (tokenParam) {
       setToken(tokenParam);
-      // In real implementation, validate token with backend
       validateToken(tokenParam);
     } else {
       setIsValidToken(false);
+      setIsTokenChecking(false);
     }
   }, [searchParams]);
 
-  // Validate token (simulate API call)
+  // Validate token with API
   const validateToken = async (tokenParam: string) => {
-    console.log("Validating token:", tokenParam);
+    setIsTokenChecking(true);
     try {
-      // Simulate token validation
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const response = await fetch(
+        `/api/auth/reset-password?token=${tokenParam}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      );
 
-      // For demo purposes, assume token is valid
-      // In real implementation, make API call to validate
-      setIsValidToken(true);
-    } catch {
+      const data = await response.json();
+
+      if (response.ok && data.valid) {
+        setIsValidToken(true);
+      } else {
+        setIsValidToken(false);
+        setErrors({
+          general: data.error || "Invalid or expired reset token.",
+        });
+      }
+    } catch (error) {
+      console.error("Token validation error:", error);
       setIsValidToken(false);
+      setErrors({
+        general: "Network error. Please try again.",
+      });
+    } finally {
+      setIsTokenChecking(false);
     }
   };
 
@@ -137,13 +159,19 @@ const PageClient: React.FC = () => {
         [name]: undefined,
       }));
     }
+    if (errors.general) {
+      setErrors((prev) => ({
+        ...prev,
+        general: undefined,
+      }));
+    }
   };
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!validateForm()) {
+    if (!validateForm() || !token) {
       return;
     }
 
@@ -151,22 +179,66 @@ const PageClient: React.FC = () => {
     setErrors({});
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const response = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          token,
+          password: formData.password,
+          confirmPassword: formData.confirmPassword,
+        }),
+      });
 
-      // Handle successful password reset
-      console.log("Password reset successful for token:", token);
-      setIsSuccess(true);
+      const data = await response.json();
+
+      if (response.ok) {
+        setIsSuccess(true);
+      } else {
+        if (data.details) {
+          setErrors(data.details);
+        } else {
+          setErrors({
+            general: data.error || "Failed to reset password.",
+          });
+        }
+      }
     } catch (error) {
       console.error("Password reset error:", error);
       setErrors({
-        general:
-          "Failed to reset password. Please try again or request a new reset link.",
+        general: "Network error. Please try again.",
       });
     } finally {
       setIsLoading(false);
     }
   };
+
+  // Loading state during token check
+  if (isTokenChecking) {
+    return (
+      <AuthLayout>
+        <div className="flex flex-col items-center justify-center min-h-[400px]">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5 }}
+            className="text-center"
+          >
+            <div className="mx-auto w-16 h-16 bg-gradient-to-r from-[#D2145A] to-[#FF4081] rounded-full flex items-center justify-center mb-6">
+              <FaSpinner className="w-8 h-8 animate-spin text-white" />
+            </div>
+            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
+              Validating Reset Link
+            </h2>
+            <p className="text-gray-600 dark:text-gray-300">
+              Please wait while we verify your password reset token...
+            </p>
+          </motion.div>
+        </div>
+      </AuthLayout>
+    );
+  }
 
   // Invalid token view
   if (!isValidToken) {
@@ -195,7 +267,7 @@ const PageClient: React.FC = () => {
 
             <div className="space-y-3">
               <Link
-                href="/forgot-password"
+                href="/auth/forgot-password"
                 className="block w-full bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white py-3 px-6 rounded-xl font-semibold text-lg hover:shadow-xl hover:shadow-[#D2145A]/25 transition-all duration-300 text-center"
               >
                 Request New Reset Link
@@ -258,13 +330,18 @@ const PageClient: React.FC = () => {
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="mx-auto w-16 h-16 bg-gradient-to-r from-green-400 to-green-600 rounded-full flex items-center justify-center mb-6"
+            transition={{
+              duration: 0.5,
+              delay: 0.2,
+              type: "spring",
+              stiffness: 200,
+            }}
+            className="mx-auto w-20 h-20 bg-gradient-to-r from-green-400 to-green-600 rounded-full flex items-center justify-center mb-6"
           >
-            <IoCheckmarkCircle className="w-8 h-8 text-white" />
+            <IoCheckmarkCircle className="w-10 h-10 text-white" />
           </motion.div>
 
-          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
+          <h2 className="text-3xl font-semibold text-gray-900 dark:text-white mb-4">
             Password Reset Complete!
           </h2>
 
@@ -273,7 +350,7 @@ const PageClient: React.FC = () => {
             your account with your new password.
           </p>
 
-          <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/50 rounded-xl p-4 mb-6">
+          <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/50 rounded-xl p-4 mb-8">
             <p className="text-green-700 dark:text-green-400 text-sm">
               <strong>Security Tip:</strong> For your account security, consider
               enabling two-factor authentication after signing in.
@@ -284,9 +361,12 @@ const PageClient: React.FC = () => {
           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
             <Link
               href="/auth/login"
-              className="inline-block w-full bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white py-3 px-6 rounded-xl font-semibold text-lg hover:shadow-xl hover:shadow-[#D2145A]/25 transition-all duration-300 text-center"
+              className="inline-block w-full bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white py-4 px-6 rounded-xl font-semibold text-lg hover:shadow-xl hover:shadow-[#D2145A]/25 transition-all duration-300 text-center"
             >
-              Continue to Sign In
+              <span className="flex items-center justify-center gap-2">
+                Continue to Sign In
+                <IoArrowForward className="w-5 h-5" />
+              </span>
             </Link>
           </motion.div>
         </motion.div>
@@ -295,7 +375,7 @@ const PageClient: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
+          transition={{ duration: 0.5 }}
           className="bg-white/80 dark:bg-white/10 backdrop-blur-lg rounded-3xl p-8 border border-white/20 dark:border-white/10 shadow-2xl"
         >
           {/* General Error Message */}
@@ -303,13 +383,13 @@ const PageClient: React.FC = () => {
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 text-red-700 dark:text-red-400 px-4 py-3 rounded-xl mb-6 text-sm"
+              className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 text-red-700 dark:text-red-400 px-4 py-3 rounded-xl mb-6 text-sm text-center"
             >
               {errors.general}
             </motion.div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
             {/* New Password Field */}
             <div>
               <label
@@ -332,6 +412,7 @@ const PageClient: React.FC = () => {
                   }`}
                   placeholder="Enter your new password"
                   disabled={isLoading}
+                  required
                 />
                 <button
                   type="button"
@@ -410,10 +491,11 @@ const PageClient: React.FC = () => {
                   className={`w-full px-4 py-3 pr-12 bg-white/50 dark:bg-white/5 border-2 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-0 transition-all duration-300 ${
                     errors.confirmPassword
                       ? "border-red-300 dark:border-red-600 focus:border-red-500"
-                      : "border-gray-200 dark:border-white/20 focus:border-[#D2145A] dark:focus:border-[#FF4081]"
+                      : "border-gray-200 dark:border-white/20 focus:border-[#D2145A] dark:focus:border[#FF4081]"
                   }`}
                   placeholder="Confirm your new password"
                   disabled={isLoading}
+                  required
                 />
                 <button
                   type="button"
@@ -506,21 +588,20 @@ const PageClient: React.FC = () => {
               ) : (
                 <span className="flex items-center justify-center gap-2">
                   Update Password
-                  <IoArrowForward className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" />
+                  <IoArrowForward className="w-5 h-5" />
                 </span>
               )}
             </motion.button>
-
-            {/* Alternative Actions */}
-            <div className="text-center">
-              <Link
-                href="/auth/login"
-                className="text-sm text-gray-600 dark:text-gray-400 hover:text-[#D2145A] transition-colors font-medium"
-              >
-                Remember your password? Sign in instead
-              </Link>
-            </div>
           </form>
+
+          <div className="mt-6 pt-6 border-t border-gray-200 dark:border-white/10 text-center">
+            <Link
+              href="/auth/login"
+              className="text-sm text-gray-600 dark:text-gray-400 hover:text-[#D2145A] dark:hover:text-[#FF4081] transition-colors font-medium"
+            >
+              Remember your password? Sign in instead
+            </Link>
+          </div>
         </motion.div>
       )}
 
@@ -529,17 +610,15 @@ const PageClient: React.FC = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.6 }}
-        className="text-center mt-6"
+        className="text-center mt-6 text-gray-600 dark:text-gray-400"
       >
-        <p className="text-gray-600 dark:text-gray-400">
-          Don&apos;t have an account?{" "}
-          <Link
-            href="/auth/signup"
-            className="text-[#D2145A] hover:text-[#FF4081] transition-colors font-semibold"
-          >
-            Sign up here
-          </Link>
-        </p>
+        Don&apos;t have an account?{" "}
+        <Link
+          href="/auth/signup"
+          className="text-[#D2145A] hover:text-[#FF4081] transition-colors font-semibold"
+        >
+          Sign up here
+        </Link>
       </motion.div>
     </AuthLayout>
   );
