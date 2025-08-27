@@ -8,6 +8,7 @@ import { FaSignOutAlt, FaCircle } from "react-icons/fa";
 import ToggleMode from "../shared/ToggleMode";
 import { dashboardPages } from "@/data/global";
 import { useUser } from "@/contexts/UserContext";
+import Avatar from "../shared/Avatar";
 
 type DashboardSidebarProps = {
   isCollapsed: boolean;
@@ -155,9 +156,12 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
           {!isCollapsed && (
             <div className="mt-4 p-4 bg-gradient-to-r from-[#D2145A]/5 to-[#FF4081]/5 rounded-2xl border border-[#D2145A]/10">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-gradient-to-r from-[#D2145A] to-[#FF4081] rounded-xl flex items-center justify-center text-2xl">
-                  {avatar}
-                </div>
+                <Avatar
+                  size="md"
+                  src={user.avatar}
+                  alt={fullName}
+                  className="w-12 h-12 bg-gradient-to-r from-[#D2145A] to-[#FF4081] rounded-xl flex items-center justify-center text-2xl"
+                />
                 <div>
                   <h3 className="font-semibold text-gray-900 dark:text-white">
                     {fullName}

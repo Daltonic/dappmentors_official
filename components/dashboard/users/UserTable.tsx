@@ -10,7 +10,7 @@ import {
 } from "react-icons/fa";
 import { motion } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
-import Avatar from "../Avatar";
+import Avatar from "../../shared/Avatar";
 
 // SortIcon Component
 const SortIcon: React.FC<{

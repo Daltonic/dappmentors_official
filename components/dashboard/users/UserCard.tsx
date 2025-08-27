@@ -1,8 +1,8 @@
 import { FaEnvelope, FaEye, FaUserCog } from "react-icons/fa";
-import Image from "next/image";
 import { motion } from "framer-motion";
 import { User } from "@/utils/interfaces";
 import { useState, useEffect, useRef } from "react";
+import CardImage from "@/components/shared/CardImage";
 
 const UserCard: React.FC<{
   user: User;
@@ -68,17 +68,16 @@ const UserCard: React.FC<{
 
       {/* Avatar */}
       <div className="relative h-48 overflow-hidden">
-        {user.avatar && (
-          <Image
-            src={user.avatar as string}
-            alt={user.name}
-            width={400}
-            height={192}
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-            style={{ objectFit: "cover" }}
-            unoptimized
-          />
-        )}
+        <CardImage
+          src={user.avatar}
+          alt={user.name}
+          width={400}
+          height={192}
+          className="group-hover:scale-110 transition-transform duration-700"
+          rounded={false}
+          objectFit="cover"
+          showInitials={true}
+        />
         <div className="absolute top-4 left-4">
           <input
             type="checkbox"
