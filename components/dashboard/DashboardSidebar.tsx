@@ -262,22 +262,6 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
           className={`border-t border-gray-200/50 dark:border-gray-700/50 p-6 flex-shrink-0 ${isCollapsed ? "px-3" : ""}`}
         >
           <div className="space-y-4">
-            {/* Quick Actions */}
-            {!isCollapsed && (
-              <div className="grid grid-cols-2 gap-3">
-                <Link
-                  href="/dashboard/products/new"
-                  className="p-3 bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white font-semibold text-center
-                  rounded-xl hover:scale-105 transition-all duration-300 hover:shadow-lg active:scale-95 text-sm"
-                >
-                  + New
-                </Link>
-                <button className="p-3 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-300 text-sm">
-                  Reports
-                </button>
-              </div>
-            )}
-
             {/* Bottom Navigation */}
             <div
               className={`flex ${isCollapsed ? "flex-col space-y-2" : "justify-between items-center"}`}
@@ -365,9 +349,12 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
           {/* Mobile User Profile Card */}
           <div className="mt-4 p-4 bg-gradient-to-r from-[#D2145A]/5 to-[#FF4081]/5 rounded-2xl border border-[#D2145A]/10">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gradient-to-r from-[#D2145A] to-[#FF4081] rounded-xl flex items-center justify-center text-2xl">
-                {avatar}
-              </div>
+              <Avatar
+                size="md"
+                src={user.avatar}
+                alt={fullName}
+                className="w-12 h-12 bg-gradient-to-r from-[#D2145A] to-[#FF4081] rounded-xl flex items-center justify-center text-2xl"
+              />
               <div>
                 <h3 className="font-semibold text-gray-900 dark:text-white">
                   {fullName}
@@ -426,19 +413,6 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
         {/* Mobile Bottom Actions */}
         <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-white/80 to-transparent dark:from-gray-900/80 backdrop-blur-sm border-t border-gray-200/50 dark:border-gray-700/50">
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <Link
-                href="/dashboard/products/new"
-                className="p-3 bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white font-semibold text-center
-                rounded-xl hover:scale-105 transition-all duration-300 hover:shadow-lg active:scale-95 text-sm"
-              >
-                + New Product
-              </Link>
-              <button className="p-3 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-300 text-sm">
-                View Reports
-              </button>
-            </div>
-
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <ToggleMode />
