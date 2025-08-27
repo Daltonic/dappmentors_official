@@ -1,5 +1,4 @@
 import { User } from "@/utils/interfaces";
-import Image from "next/image";
 import {
   FaChevronLeft,
   FaChevronRight,
@@ -11,6 +10,7 @@ import {
 } from "react-icons/fa";
 import { motion } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
+import Avatar from "../Avatar";
 
 // SortIcon Component
 const SortIcon: React.FC<{
@@ -203,15 +203,7 @@ const UserTable: React.FC<{
                 </td>
                 <td className="px-4 py-4">
                   <div className="flex items-center gap-3">
-                    <Image
-                      src={user.avatar as string}
-                      alt={user.name}
-                      width={48}
-                      height={32}
-                      className="w-12 h-8 object-cover rounded-lg flex-shrink-0"
-                      style={{ objectFit: "cover" }}
-                      unoptimized
-                    />
+                    <Avatar src={user.avatar} alt={user.name} size="sm" />
                     <div className="min-w-0 flex-1">
                       <h4 className="font-semibold text-gray-900 dark:text-white text-sm mb-1 line-clamp-1">
                         {user.name}

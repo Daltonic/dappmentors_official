@@ -68,15 +68,17 @@ const UserCard: React.FC<{
 
       {/* Avatar */}
       <div className="relative h-48 overflow-hidden">
-        <Image
-          src={user.avatar as string}
-          alt={user.name}
-          width={400}
-          height={192}
-          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-          style={{ objectFit: "cover" }}
-          unoptimized
-        />
+        {user.avatar && (
+          <Image
+            src={user.avatar as string}
+            alt={user.name}
+            width={400}
+            height={192}
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+            style={{ objectFit: "cover" }}
+            unoptimized
+          />
+        )}
         <div className="absolute top-4 left-4">
           <input
             type="checkbox"

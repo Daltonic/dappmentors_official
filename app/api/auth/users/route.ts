@@ -1,7 +1,9 @@
-// app/api/users/route.ts
+// /api/auth/users/route.ts
+
 import { generateVerificationToken } from "@/heplers/users";
 import { sendVerificationEmail } from "@/lib/email";
 import { connectToDatabase } from "@/lib/mongodb";
+import { verifyAccessToken } from "@/lib/jwt";
 import { User } from "@/utils/interfaces";
 import { signupSchema } from "@/validations/users";
 import bcrypt from "bcryptjs";
@@ -10,6 +12,21 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
+    // Authentication check
+    const accessToken = request.cookies.get("access-token")?.value;
+    if (!accessToken) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const payload = await verifyAccessToken(accessToken);
+    if (!payload) {
+      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+    }
+
+    // if (payload.role !== 'admin' || payload.status !== 'active') {
+    //   return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    // }
+
     const db = await connectToDatabase();
     const collection: Collection<User> = db.collection("users");
 
@@ -43,12 +60,19 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       .limit(limit)
       .toArray();
 
+    // Map _id to id
+    const mappedUsers = users.map((user) => ({
+      ...user,
+      id: user._id.toString(),
+      _id: undefined,
+    }));
+
     // Get total count for pagination
     const total = await collection.countDocuments(filter);
 
     return NextResponse.json(
       {
-        users,
+        users: mappedUsers,
         pagination: {
           page,
           limit,
@@ -126,7 +150,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       name: `${firstName.trim()} ${lastName.trim()}`,
       email,
       password: hashedPassword,
-      role: "student", // Default role
+      role: "admin", // TEMPORARY: Change to 'admin' for initial setup. Revert to 'student' after creating your admin account!
       status: "pending", // Pending email verification
       joinDate: now,
       createdAt: now,

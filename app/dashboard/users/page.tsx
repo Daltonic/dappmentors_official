@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   FaUserSlash,
@@ -13,7 +13,8 @@ import { User } from "@/utils/interfaces";
 import Controls from "@/components/dashboard/users/Controls";
 import UserCard from "@/components/dashboard/users/UserCard";
 import UserTable from "@/components/dashboard/users/UserTable";
-import { mockUsers } from "@/data/global";
+// Commented out to prevent any potential redirects from the auth guard
+// import { useAdminGuard } from "@/hooks/useAuthGuard";
 
 // Header Component
 const Header: React.FC = () => (
@@ -138,6 +139,23 @@ const UserGrid: React.FC<{
 );
 
 const Page: React.FC = () => {
+  // Removed auth guard hook to prevent any redirects
+  // const { isAuthorized, isCheckingAuth } = useAdminGuard();
+
+  // Manual auth state management to avoid redirects
+  const [authState, setAuthState] = useState<{
+    isAuthorized: boolean | null;
+    isCheckingAuth: boolean;
+    authError: string | null;
+  }>({
+    isAuthorized: null,
+    isCheckingAuth: true,
+    authError: null,
+  });
+
+  const [users, setUsers] = useState<User[]>([]);
+  const [dataLoading, setDataLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedRole, setSelectedRole] = useState<"all" | string>("all");
   const [statusFilter, setStatusFilter] = useState<"all" | User["status"]>(
     "all",
@@ -150,15 +168,122 @@ const Page: React.FC = () => {
   } | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "table">("table");
 
-  // Unique roles from mock data
-  const uniqueRoles = useMemo(() => {
-    const roles = new Set(mockUsers.map((user) => user.role));
-    return ["all", ...Array.from(roles)];
+  // Check auth without redirecting
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        // First, try to fetch users - if successful, user is authorized
+        const res = await fetch("/api/auth/users?limit=1", {
+          credentials: "include",
+          method: "GET",
+        });
+
+        if (res.ok) {
+          setAuthState({
+            isAuthorized: true,
+            isCheckingAuth: false,
+            authError: null,
+          });
+        } else if (res.status === 401) {
+          setAuthState({
+            isAuthorized: false,
+            isCheckingAuth: false,
+            authError: "Not authenticated. Please log in.",
+          });
+        } else if (res.status === 403) {
+          setAuthState({
+            isAuthorized: false,
+            isCheckingAuth: false,
+            authError: "Access denied. Admin privileges required.",
+          });
+        } else {
+          setAuthState({
+            isAuthorized: false,
+            isCheckingAuth: false,
+            authError: `Authentication check failed: ${res.status}`,
+          });
+        }
+      } catch (error) {
+        console.error("Auth check error:", error);
+        setAuthState({
+          isAuthorized: false,
+          isCheckingAuth: false,
+          authError: "Failed to check authentication status.",
+        });
+      }
+    };
+
+    checkAuth();
   }, []);
 
-  // Filter users
+  // Fetch users
+  useEffect(() => {
+    const fetchUsers = async () => {
+      // Only fetch if we're authorized or still checking
+      if (authState.isAuthorized === false) {
+        setDataLoading(false);
+        return;
+      }
+
+      try {
+        setDataLoading(true);
+        setError(null);
+
+        const res = await fetch("/api/auth/users?limit=100", {
+          credentials: "include",
+          method: "GET",
+        });
+
+        if (!res.ok) {
+          if (res.status === 401) {
+            throw new Error("Unauthorized - Please log in");
+          } else if (res.status === 403) {
+            throw new Error("Forbidden - Admin access required");
+          } else {
+            throw new Error(`Failed to fetch users: ${res.status}`);
+          }
+        }
+
+        const data = await res.json();
+
+        if (!data.users || !Array.isArray(data.users)) {
+          throw new Error("Invalid response format");
+        }
+
+        setUsers(
+          data.users.map((user: User) => ({
+            ...user,
+            joinDate: new Date(user.joinDate),
+            lastLogin: user.lastLogin ? new Date(user.lastLogin) : undefined,
+          })),
+        );
+      } catch (error) {
+        console.error("Error fetching users:", error);
+        setError(
+          error instanceof Error ? error.message : "Failed to fetch users",
+        );
+      } finally {
+        setDataLoading(false);
+      }
+    };
+
+    // Only fetch users if we're authorized
+    if (authState.isAuthorized === true) {
+      fetchUsers();
+    } else if (authState.isAuthorized === false) {
+      setDataLoading(false);
+    }
+  }, [authState.isAuthorized]);
+
+  // Unique roles from fetched users
+  const uniqueRoles = useMemo(() => {
+    const roles = new Set(users.map((user) => user.role));
+    return ["all", ...Array.from(roles).sort()];
+  }, [users]);
+
+  // Filter users client-side
   const filteredUsers = useMemo(() => {
-    return mockUsers.filter((user) => {
+    return users.filter((user) => {
       const matchesRole = selectedRole === "all" || user.role === selectedRole;
       const matchesStatus =
         statusFilter === "all" || user.status === statusFilter;
@@ -168,7 +293,7 @@ const Page: React.FC = () => {
         user.role.toLowerCase().includes(searchTerm.toLowerCase());
       return matchesRole && matchesStatus && matchesSearch;
     });
-  }, [selectedRole, statusFilter, searchTerm]);
+  }, [users, selectedRole, statusFilter, searchTerm]);
 
   // Sort users
   const sortedUsers = useMemo(() => {
@@ -178,17 +303,17 @@ const Page: React.FC = () => {
       const aValue = a[sortConfig.key];
       const bValue = b[sortConfig.key];
 
-      if (typeof aValue === "string" && typeof bValue === "string") {
-        const comparison = aValue.localeCompare(bValue);
-        return sortConfig.direction === "asc" ? comparison : -comparison;
+      let comparison = 0;
+
+      if (aValue instanceof Date && bValue instanceof Date) {
+        comparison = aValue.getTime() - bValue.getTime();
+      } else if (typeof aValue === "string" && typeof bValue === "string") {
+        comparison = aValue.localeCompare(bValue);
+      } else if (typeof aValue === "number" && typeof bValue === "number") {
+        comparison = aValue - bValue;
       }
 
-      if (typeof aValue === "number" && typeof bValue === "number") {
-        const comparison = aValue - bValue;
-        return sortConfig.direction === "asc" ? comparison : -comparison;
-      }
-
-      return 0;
+      return sortConfig.direction === "asc" ? comparison : -comparison;
     });
   }, [filteredUsers, sortConfig]);
 
@@ -246,16 +371,88 @@ const Page: React.FC = () => {
         return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300";
       case "banned":
         return "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300";
+      case "pending":
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300";
       default:
         return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300";
     }
   };
 
+  // Show loading state while checking authentication
+  if (authState.isCheckingAuth) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-50 dark:from-gray-900 dark:via-[#0A0A0A] dark:to-purple-900/20 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <div className="text-lg text-gray-600 dark:text-gray-300">
+            Checking authentication...
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show access denied without redirecting
+  if (!authState.isAuthorized) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-50 dark:from-gray-900 dark:via-[#0A0A0A] dark:to-purple-900/20 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-8">
+          <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+            <FaUserSlash className="w-8 h-8 text-red-600 dark:text-red-400" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+            Access Denied
+          </h2>
+          <p className="text-gray-600 dark:text-gray-300 mb-6">
+            {authState.authError ||
+              "You don't have permission to access this page."}
+          </p>
+          <button
+            onClick={() => (window.location.href = "/login")}
+            className="bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white px-6 py-3 rounded-xl font-semibold hover:scale-105 transition-transform duration-300 mr-4"
+          >
+            Go to Login
+          </button>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-gray-500 text-white px-6 py-3 rounded-xl font-semibold hover:scale-105 transition-transform duration-300"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state without redirecting
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-50 dark:from-gray-900 dark:via-[#0A0A0A] dark:to-purple-900/20 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-8">
+          <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+            <FaUserSlash className="w-8 h-8 text-red-600 dark:text-red-400" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+            Error Loading Users
+          </h2>
+          <p className="text-gray-600 dark:text-gray-300 mb-6">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-blue-500 text-white px-6 py-3 rounded-xl font-semibold hover:scale-105 transition-transform duration-300"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Main content - only shown when authorized
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-50 dark:from-gray-900 dark:via-[#0A0A0A] dark:to-purple-900/20 p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
         <Header />
-        <StatsCards users={mockUsers} />
+        <StatsCards users={users} />
         <Controls
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
@@ -268,7 +465,14 @@ const Page: React.FC = () => {
           selectedUsers={selectedUsers}
           uniqueRoles={uniqueRoles}
         />
-        {sortedUsers.length === 0 ? (
+        {dataLoading ? (
+          <div className="text-center py-16">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+            <div className="text-gray-600 dark:text-gray-300">
+              Loading users...
+            </div>
+          </div>
+        ) : sortedUsers.length === 0 ? (
           <EmptyState searchTerm={searchTerm} />
         ) : viewMode === "grid" ? (
           <UserGrid
@@ -286,7 +490,7 @@ const Page: React.FC = () => {
             toggleAll={toggleAllUsers}
             sortConfig={sortConfig}
             onSort={handleSort}
-            allUsersLength={mockUsers.length}
+            allUsersLength={users.length}
             getStatusColor={getStatusColor}
             getRoleColor={getRoleColor}
           />
