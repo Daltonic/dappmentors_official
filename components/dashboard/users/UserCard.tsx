@@ -1,7 +1,6 @@
-import { FaEnvelope, FaEye, FaUserCog } from "react-icons/fa";
+import { FaEnvelope } from "react-icons/fa";
 import { motion } from "framer-motion";
 import { User } from "@/utils/interfaces";
-import { useState, useEffect, useRef } from "react";
 import CardImage from "@/components/shared/CardImage";
 
 const UserCard: React.FC<{
@@ -11,53 +10,6 @@ const UserCard: React.FC<{
   getStatusColor: (status: User["status"]) => string;
   getRoleColor: (role: string) => string;
 }> = ({ user, selected, onToggle, getStatusColor, getRoleColor }) => {
-  const [isRoleMenuOpen, setIsRoleMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-  const buttonRef = useRef<HTMLButtonElement>(null);
-
-  // Define available role change actions based on current role
-  const getRoleActions = () => {
-    const actions = [];
-    if (user.role !== "admin") {
-      actions.push({ label: "Promote to Admin", role: "admin" });
-    }
-    if (user.role !== "instructor") {
-      actions.push({ label: "Promote/Set to Instructor", role: "instructor" });
-    }
-    if (user.role !== "student") {
-      actions.push({ label: "Demote/Set to Student", role: "student" });
-    }
-    return actions;
-  };
-
-  const roleActions = getRoleActions();
-
-  // Placeholder function for handling role change
-  const handleRoleChange = (newRole: string) => {
-    // Implement role change logic here (e.g., API call)
-    console.log(`Changing ${user.name}'s role to ${newRole}`);
-    setIsRoleMenuOpen(false);
-  };
-
-  // Close menu on outside click
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        menuRef.current &&
-        !menuRef.current.contains(event.target as Node) &&
-        buttonRef.current &&
-        !buttonRef.current.contains(event.target as Node)
-      ) {
-        setIsRoleMenuOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -147,51 +99,6 @@ const UserCard: React.FC<{
               {user.comments}
             </span>
           </div>
-        </div>
-
-        {/* Actions */}
-        <div className="flex gap-2 relative">
-          <div className="flex-1 relative">
-            <button
-              ref={buttonRef}
-              className="w-full bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white py-2 px-4 rounded-xl text-sm font-semibold hover:scale-105 transition-transform duration-300 flex items-center justify-center gap-2"
-              onClick={() => setIsRoleMenuOpen(!isRoleMenuOpen)}
-            >
-              <FaUserCog className="w-5 h-5" />
-              Change Role
-            </button>
-            {isRoleMenuOpen && (
-              <motion.div
-                ref={menuRef}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-                className="absolute z-20 left-0 right-0 bottom-full mb-2 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 overflow-hidden"
-              >
-                {roleActions.length > 0 ? (
-                  roleActions.map((action) => (
-                    <button
-                      key={action.role}
-                      onClick={() => handleRoleChange(action.role)}
-                      className="w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-left"
-                    >
-                      {action.label}
-                    </button>
-                  ))
-                ) : (
-                  <div className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">
-                    No role changes available
-                  </div>
-                )}
-              </motion.div>
-            )}
-          </div>
-          <button
-            className="p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800 rounded-xl transition-colors"
-            title="View details"
-          >
-            <FaEye className="w-5 h-5" />
-          </button>
         </div>
       </div>
     </motion.div>

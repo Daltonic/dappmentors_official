@@ -2,8 +2,6 @@ import { User } from "@/utils/interfaces";
 import {
   FaChevronLeft,
   FaChevronRight,
-  FaEye,
-  FaUserCog,
   FaSort,
   FaSortDown,
   FaSortUp,
@@ -54,28 +52,6 @@ const UserTable: React.FC<{
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const menuRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const buttonRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
-
-  // Define available role change actions based on current role
-  const getRoleActions = (user: User) => {
-    const actions = [];
-    if (user.role !== "admin") {
-      actions.push({ label: "Promote to Admin", role: "admin" });
-    }
-    if (user.role !== "instructor") {
-      actions.push({ label: "Promote/Set to Instructor", role: "instructor" });
-    }
-    if (user.role !== "student") {
-      actions.push({ label: "Demote/Set to Student", role: "student" });
-    }
-    return actions;
-  };
-
-  // Placeholder function for handling role change
-  const handleRoleChange = (userId: string, newRole: string) => {
-    // Implement role change logic here (e.g., API call)
-    console.log(`Changing user ${userId}'s role to ${newRole}`);
-    setOpenMenuId(null); // Close the menu
-  };
 
   // Close menu on outside click
   useEffect(() => {
@@ -179,9 +155,6 @@ const UserTable: React.FC<{
                   <SortIcon column="comments" sortConfig={sortConfig} />
                 </div>
               </th>
-              <th className="text-right px-4 py-4 font-semibold text-gray-700 dark:text-gray-300 min-w-[120px]">
-                Actions
-              </th>
             </tr>
           </thead>
           <tbody>
@@ -252,61 +225,6 @@ const UserTable: React.FC<{
                 </td>
                 <td className="px-4 py-4 text-gray-900 dark:text-white">
                   {user.comments}
-                </td>
-                <td className="px-4 py-4">
-                  <div className="flex items-center justify-end gap-1 relative">
-                    <div className="relative">
-                      <button
-                        ref={(el) => {
-                          if (el) buttonRefs.current.set(user.id!, el);
-                        }}
-                        className="p-2 text-[#D2145A] hover:bg-[#FF4081]/10 dark:text-[#FF4081] dark:hover:bg-[#FF4081]/20 rounded-lg transition-all duration-300 hover:scale-110"
-                        title="Change role"
-                        onClick={() =>
-                          setOpenMenuId(
-                            openMenuId === user.id! ? null : user.id!,
-                          )
-                        }
-                      >
-                        <FaUserCog className="w-4 h-4" />
-                      </button>
-                      {openMenuId === user.id! && (
-                        <motion.div
-                          ref={(el) => {
-                            if (el) menuRefs.current.set(user.id!, el);
-                          }}
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: 10 }}
-                          className="absolute z-20 right-0 bottom-full mb-2 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 overflow-hidden"
-                        >
-                          {getRoleActions(user).length > 0 ? (
-                            getRoleActions(user).map((action) => (
-                              <button
-                                key={action.role}
-                                onClick={() =>
-                                  handleRoleChange(user.id!, action.role)
-                                }
-                                className="w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-left"
-                              >
-                                {action.label}
-                              </button>
-                            ))
-                          ) : (
-                            <div className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">
-                              No role changes available
-                            </div>
-                          )}
-                        </motion.div>
-                      )}
-                    </div>
-                    <button
-                      className="p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800/50 rounded-lg transition-all duration-300 hover:scale-110"
-                      title="View details"
-                    >
-                      <FaEye className="w-4 h-4" />
-                    </button>
-                  </div>
                 </td>
               </motion.tr>
             ))}

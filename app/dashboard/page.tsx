@@ -18,6 +18,8 @@ import {
 } from "react-icons/fa";
 import { useMemo, useState } from "react";
 import { mockUsers } from "@/data/global";
+import UserCard from "@/components/dashboard/users/UserCard";
+import EmptyState from "@/components/dashboard/EmptyState";
 
 // Sample Data
 const sampleStats: DashboardStats[] = [
@@ -106,8 +108,31 @@ const quickActions: QuickAction[] = [
   },
 ];
 
+// UserGrid Component
+const UserGrid: React.FC<{
+  users: User[];
+  selectedUsers: Set<string>;
+  onToggle: (id: string) => void;
+  getStatusColor: (status: User["status"]) => string;
+  getRoleColor: (role: string) => string;
+}> = ({ users, selectedUsers, onToggle, getStatusColor, getRoleColor }) => (
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+    {users.map((user) => (
+      <UserCard
+        key={user.id}
+        user={user}
+        selected={selectedUsers.has(user.id!)}
+        onToggle={() => onToggle(user.id!)}
+        getStatusColor={getStatusColor}
+        getRoleColor={getRoleColor}
+      />
+    ))}
+  </div>
+);
+
 // Main Dashboard Component
 const Page: React.FC = () => {
+  const [dataLoading] = useState(false);
   const [selectedRole, setSelectedRole] = useState<"all" | string>("all");
   const [statusFilter, setStatusFilter] = useState<"all" | User["status"]>(
     "all",
@@ -118,7 +143,7 @@ const Page: React.FC = () => {
     key: keyof User;
     direction: "asc" | "desc";
   } | null>(null);
-  const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
+  const [viewMode, setViewMode] = useState<"grid" | "table">("table");
 
   // Unique roles from mock data
   const uniqueRoles = useMemo(() => {
@@ -265,17 +290,36 @@ const Page: React.FC = () => {
             {/* User Table with horizontal scroll on mobile */}
             <div className="w-full overflow-hidden">
               <div className="overflow-x-auto">
-                <UserTable
-                  users={sortedUsers}
-                  selectedUsers={selectedUsers}
-                  onToggle={toggleUserSelection}
-                  toggleAll={toggleAllUsers}
-                  sortConfig={sortConfig}
-                  onSort={handleSort}
-                  allUsersLength={mockUsers.length}
-                  getStatusColor={getStatusColor}
-                  getRoleColor={getRoleColor}
-                />
+                {dataLoading ? (
+                  <div className="text-center py-16">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                    <div className="text-gray-600 dark:text-gray-300">
+                      Loading users...
+                    </div>
+                  </div>
+                ) : sortedUsers.length === 0 ? (
+                  <EmptyState searchTerm={searchTerm} />
+                ) : viewMode === "grid" ? (
+                  <UserGrid
+                    users={sortedUsers}
+                    selectedUsers={selectedUsers}
+                    onToggle={toggleUserSelection}
+                    getStatusColor={getStatusColor}
+                    getRoleColor={getRoleColor}
+                  />
+                ) : (
+                  <UserTable
+                    users={sortedUsers}
+                    selectedUsers={selectedUsers}
+                    onToggle={toggleUserSelection}
+                    toggleAll={toggleAllUsers}
+                    sortConfig={sortConfig}
+                    onSort={handleSort}
+                    allUsersLength={mockUsers.length}
+                    getStatusColor={getStatusColor}
+                    getRoleColor={getRoleColor}
+                  />
+                )}
               </div>
             </div>
           </div>
