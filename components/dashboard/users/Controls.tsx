@@ -6,11 +6,17 @@ import {
   FaListUl,
   FaUserCog,
   FaUserShield,
+  FaSpinner,
 } from "react-icons/fa";
 import { motion } from "framer-motion";
+import {
+  BulkUpdateResponse,
+  useApiState,
+  userApiService,
+} from "@/services/api.services";
 
-// Controls Component
-const Controls: React.FC<{
+// Props interface for the Controls component
+interface ControlsProps {
   searchTerm: string;
   setSearchTerm: React.Dispatch<React.SetStateAction<string>>;
   selectedRole: "all" | string;
@@ -21,9 +27,14 @@ const Controls: React.FC<{
   setViewMode: React.Dispatch<React.SetStateAction<"grid" | "table">>;
   selectedUsers: Set<string>;
   uniqueRoles: string[];
-  onBulkRoleChange?: (userIds: string[], newRole: string) => void; // Callback for bulk role change
-  onBulkStatusChange?: (userIds: string[], newStatus: User["status"]) => void; // Callback for bulk status change
-}> = ({
+  onBulkRoleChange?: (userIds: string[], newRole: string) => void;
+  onBulkStatusChange?: (userIds: string[], newStatus: User["status"]) => void;
+  onUsersUpdate?: (users: User[]) => void; // Callback to update parent component's user list
+  onNotification?: (message: string, type: "success" | "error") => void; // Callback for notifications
+}
+
+// Controls Component
+const Controls: React.FC<ControlsProps> = ({
   searchTerm,
   setSearchTerm,
   selectedRole,
@@ -36,9 +47,15 @@ const Controls: React.FC<{
   uniqueRoles,
   onBulkRoleChange,
   onBulkStatusChange,
+  onUsersUpdate,
+  onNotification,
 }) => {
   const [isRoleMenuOpen, setIsRoleMenuOpen] = useState(false);
   const [isStatusMenuOpen, setIsStatusMenuOpen] = useState(false);
+
+  const roleApi = useApiState<BulkUpdateResponse>();
+  const statusApi = useApiState<BulkUpdateResponse>();
+
   const roleMenuRef = useRef<HTMLDivElement>(null);
   const roleButtonRef = useRef<HTMLButtonElement>(null);
   const statusMenuRef = useRef<HTMLDivElement>(null);
@@ -69,32 +86,84 @@ const Controls: React.FC<{
   const roleActions = getBulkRoleActions();
   const statusActions = getBulkStatusActions();
 
-  // Handle bulk role change
-  const handleBulkRoleChange = (newRole: string) => {
+  // Handle bulk role change with API integration
+  const handleBulkRoleChange = async (newRole: string) => {
     const selectedUserIds = Array.from(selectedUsers);
-    console.log(
-      `Changing role for ${selectedUserIds.length} users to ${newRole}`,
-    );
 
-    if (onBulkRoleChange) {
-      onBulkRoleChange(selectedUserIds, newRole);
+    if (selectedUserIds.length === 0) {
+      onNotification?.("No users selected", "error");
+      return;
     }
 
     setIsRoleMenuOpen(false);
+
+    await roleApi.execute(
+      () => userApiService.bulkUpdateRole(selectedUserIds, newRole),
+      (data) => {
+        onNotification?.(
+          data.message || "Roles updated successfully",
+          "success",
+        );
+
+        // Update the parent component with new user data
+        if (data.users && onUsersUpdate) {
+          onUsersUpdate(data.users);
+        }
+
+        // Call the original callback if provided (for backward compatibility)
+        if (onBulkRoleChange) {
+          onBulkRoleChange(selectedUserIds, newRole);
+        }
+
+        console.log(
+          `Successfully changed role for ${selectedUserIds.length} users to ${newRole}`,
+        );
+      },
+      (errorMessage) => {
+        onNotification?.(errorMessage, "error");
+        console.error("Bulk role change failed:", errorMessage);
+      },
+    );
   };
 
-  // Handle bulk status change
-  const handleBulkStatusChange = (newStatus: User["status"]) => {
+  // Handle bulk status change with API integration
+  const handleBulkStatusChange = async (newStatus: User["status"]) => {
     const selectedUserIds = Array.from(selectedUsers);
-    console.log(
-      `Changing status for ${selectedUserIds.length} users to ${newStatus}`,
-    );
 
-    if (onBulkStatusChange) {
-      onBulkStatusChange(selectedUserIds, newStatus);
+    if (selectedUserIds.length === 0) {
+      onNotification?.("No users selected", "error");
+      return;
     }
 
     setIsStatusMenuOpen(false);
+
+    await statusApi.execute(
+      () => userApiService.bulkUpdateStatus(selectedUserIds, newStatus),
+      (data) => {
+        onNotification?.(
+          data.message || "Statuses updated successfully",
+          "success",
+        );
+
+        // Update the parent component with new user data
+        if (data.users && onUsersUpdate) {
+          onUsersUpdate(data.users);
+        }
+
+        // Call the original callback if provided (for backward compatibility)
+        if (onBulkStatusChange) {
+          onBulkStatusChange(selectedUserIds, newStatus);
+        }
+
+        console.log(
+          `Successfully changed status for ${selectedUserIds.length} users to ${newStatus}`,
+        );
+      },
+      (errorMessage) => {
+        onNotification?.(errorMessage, "error");
+        console.error("Bulk status change failed:", errorMessage);
+      },
+    );
   };
 
   // Close role menu on outside click
@@ -215,22 +284,35 @@ const Controls: React.FC<{
         {/* Bulk Actions */}
         {selectedUsers.size > 0 && (
           <div className="flex flex-wrap gap-2">
+            {/* Role Change Dropdown */}
             <div className="relative">
               <button
                 ref={roleButtonRef}
-                className="bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white py-2 px-4 rounded-xl text-sm font-semibold hover:scale-105 transition-transform duration-300 flex items-center justify-center gap-2"
-                onClick={() => setIsRoleMenuOpen(!isRoleMenuOpen)}
+                disabled={roleApi.loading}
+                className={`bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white py-2 px-4 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center justify-center gap-2 min-w-[140px] ${
+                  roleApi.loading
+                    ? "opacity-75 cursor-not-allowed"
+                    : "hover:scale-105"
+                }`}
+                onClick={() =>
+                  !roleApi.loading && setIsRoleMenuOpen(!isRoleMenuOpen)
+                }
               >
-                <FaUserCog className="w-5 h-5" />
+                {roleApi.loading ? (
+                  <FaSpinner className="w-4 h-4 animate-spin" />
+                ) : (
+                  <FaUserCog className="w-4 h-4" />
+                )}
                 Change Role ({selectedUsers.size})
               </button>
-              {isRoleMenuOpen && (
+
+              {isRoleMenuOpen && !roleApi.loading && (
                 <motion.div
                   ref={roleMenuRef}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 10 }}
-                  className="absolute z-20 left-0 right-0 bottom-full mb-2 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 overflow-hidden"
+                  className="absolute z-20 left-0 right-0 bottom-full mb-2 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 overflow-hidden min-w-[200px]"
                 >
                   {roleActions.length > 0 ? (
                     roleActions.map((action) => (
@@ -250,22 +332,36 @@ const Controls: React.FC<{
                 </motion.div>
               )}
             </div>
+
+            {/* Status Change Dropdown */}
             <div className="relative">
               <button
                 ref={statusButtonRef}
-                className="bg-gradient-to-r from-red-900/30 to-red-900/60 text-white py-2 px-4 rounded-xl text-sm font-semibold hover:scale-105 transition-transform duration-300 flex items-center justify-center gap-2"
-                onClick={() => setIsStatusMenuOpen(!isStatusMenuOpen)}
+                disabled={statusApi.loading}
+                className={`bg-gradient-to-r from-red-900/30 to-red-900/60 text-white py-2 px-4 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center justify-center gap-2 min-w-[150px] ${
+                  statusApi.loading
+                    ? "opacity-75 cursor-not-allowed"
+                    : "hover:scale-105"
+                }`}
+                onClick={() =>
+                  !statusApi.loading && setIsStatusMenuOpen(!isStatusMenuOpen)
+                }
               >
-                <FaUserShield className="w-5 h-5" />
+                {statusApi.loading ? (
+                  <FaSpinner className="w-4 h-4 animate-spin" />
+                ) : (
+                  <FaUserShield className="w-4 h-4" />
+                )}
                 Change Status ({selectedUsers.size})
               </button>
-              {isStatusMenuOpen && (
+
+              {isStatusMenuOpen && !statusApi.loading && (
                 <motion.div
                   ref={statusMenuRef}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 10 }}
-                  className="absolute z-20 left-0 right-0 bottom-full mb-2 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 overflow-hidden"
+                  className="absolute z-20 left-0 right-0 bottom-full mb-2 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 overflow-hidden min-w-[200px]"
                 >
                   {statusActions.length > 0 ? (
                     statusActions.map((action) => (

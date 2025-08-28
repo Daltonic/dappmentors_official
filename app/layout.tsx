@@ -1,9 +1,8 @@
 "use client";
 
-import { Provider } from "react-redux";
 import "./globals.css";
-import { store } from "@/store";
 import { UserProvider } from "@/contexts/UserContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 
 export default function RootLayout({
   children,
@@ -11,9 +10,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="antialiased dark:bg-medium transition-all duration-300">
-        <UserProvider>
-          <Provider store={store}>{children}</Provider>
-        </UserProvider>
+        <ThemeProvider>
+          <UserProvider>{children}</UserProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

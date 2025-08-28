@@ -1,83 +1,46 @@
 "use client";
-import { globalActions } from "@/store/globalSlices";
-import { RootState } from "@/utils/interfaces";
-import React, { useEffect, useState } from "react";
+
+import React, { useState } from "react";
 import { BsMoonStarsFill } from "react-icons/bs";
 import { IoSunny } from "react-icons/io5";
-import { useDispatch, useSelector } from "react-redux";
+import { useTheme } from "@/contexts/ThemeContext";
 
 const ToggleMode: React.FC = () => {
-  const { darkMode } = useSelector((states: RootState) => states.globalStates);
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const { darkMode, toggleDarkMode } = useTheme();
   const [isAnimating, setIsAnimating] = useState(false);
-  const { setDarkMode } = globalActions;
-  const dispatch = useDispatch();
 
-  // Initialize from localStorage on component mount
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const savedTheme = localStorage.getItem("theme");
-      const initialDarkMode = savedTheme === "dark";
-      setIsDarkMode(initialDarkMode);
-      dispatch(setDarkMode(initialDarkMode));
-
-      if (initialDarkMode) {
-        document.documentElement.classList.add("dark");
-      } else {
-        document.documentElement.classList.remove("dark");
-      }
-    }
-  }, [dispatch, setDarkMode]);
-
-  // Handle changes to dark mode
-  const toggleDarkMode = () => {
+  // Handle theme toggle with animation
+  const handleToggle = () => {
     setIsAnimating(true);
-    const newDarkMode = !isDarkMode;
-    setIsDarkMode(newDarkMode);
-    dispatch(setDarkMode(newDarkMode));
-
-    if (typeof window !== "undefined") {
-      if (newDarkMode) {
-        document.documentElement.classList.add("dark");
-        localStorage.setItem("theme", "dark");
-      } else {
-        document.documentElement.classList.remove("dark");
-        localStorage.setItem("theme", "light");
-      }
-    }
+    toggleDarkMode();
 
     // Reset animation state
     setTimeout(() => setIsAnimating(false), 600);
   };
 
-  // Sync local state with Redux state
-  useEffect(() => {
-    setIsDarkMode(darkMode);
-  }, [darkMode]);
-
   return (
     <button
-      onClick={toggleDarkMode}
+      onClick={handleToggle}
       className={`
         relative overflow-hidden group
         w-10 h-10 rounded-xl font-extrabold
         transition-all duration-500 ease-in-out
         hover:scale-110 active:scale-95
         ${
-          isDarkMode
+          darkMode
             ? "bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 text-yellow-300 border-2 border-purple-400/50"
             : "bg-gradient-to-br from-yellow-400 via-orange-300 to-pink-300 text-orange-800 border-2 border-orange-200/50"
         }
         ${isAnimating ? "animate-pulse" : ""}
       `}
-      aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
+      aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
     >
       {/* Background glow effect */}
       <div
         className={`
         absolute inset-0 rounded-xl opacity-0 group-hover:opacity-30 transition-opacity duration-300
         ${
-          isDarkMode
+          darkMode
             ? "bg-gradient-to-r from-purple-500 to-pink-500"
             : "bg-gradient-to-r from-yellow-400 to-orange-400"
         }
@@ -92,7 +55,7 @@ const ToggleMode: React.FC = () => {
         ${isAnimating ? "rotate-180 scale-75" : "rotate-0 scale-100"}
       `}
       >
-        {isDarkMode ? (
+        {darkMode ? (
           <div className="relative">
             <BsMoonStarsFill
               size={18}
@@ -127,7 +90,7 @@ const ToggleMode: React.FC = () => {
             key={i}
             className={`
               absolute w-0.5 h-0.5 rounded-full
-              ${isDarkMode ? "bg-purple-300" : "bg-yellow-400"}
+              ${darkMode ? "bg-purple-300" : "bg-yellow-400"}
               animate-bounce
             `}
             style={{
@@ -146,7 +109,7 @@ const ToggleMode: React.FC = () => {
         absolute inset-0 rounded-xl opacity-0 pointer-events-none
         ${isAnimating ? "animate-ping opacity-30" : ""}
         ${
-          isDarkMode
+          darkMode
             ? "bg-gradient-to-r from-purple-500 to-pink-500"
             : "bg-gradient-to-r from-yellow-400 to-orange-400"
         }

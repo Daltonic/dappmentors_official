@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import {
   FaUserSlash,
@@ -13,9 +13,15 @@ import { User } from "@/utils/interfaces";
 import Controls from "@/components/dashboard/users/Controls";
 import UserCard from "@/components/dashboard/users/UserCard";
 import UserTable from "@/components/dashboard/users/UserTable";
+import { userApiService, apiUtils } from "@/services/api.services";
 import EmptyState from "@/components/dashboard/EmptyState";
-// Commented out to prevent any potential redirects from the auth guard
-// import { useAdminGuard } from "@/hooks/useAuthGuard";
+
+// Notification component type
+interface Notification {
+  id: string;
+  message: string;
+  type: "success" | "error";
+}
 
 // Header Component
 const Header: React.FC = () => (
@@ -119,11 +125,42 @@ const UserGrid: React.FC<{
   </div>
 );
 
-const Page: React.FC = () => {
-  // Removed auth guard hook to prevent any redirects
-  // const { isAuthorized, isCheckingAuth } = useAdminGuard();
+// Notifications Component
+const Notifications: React.FC<{
+  notifications: Notification[];
+  onRemove: (id: string) => void;
+}> = ({ notifications, onRemove }) => {
+  if (notifications.length === 0) return null;
 
-  // Manual auth state management to avoid redirects
+  return (
+    <div className="fixed top-4 right-4 z-50 space-y-2">
+      {notifications.map((notification) => (
+        <motion.div
+          key={notification.id}
+          initial={{ opacity: 0, x: 100 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: 100 }}
+          className={`px-4 py-3 rounded-lg shadow-lg flex items-center justify-between min-w-[300px] max-w-[500px] ${
+            notification.type === "success"
+              ? "bg-green-500 text-white"
+              : "bg-red-500 text-white"
+          }`}
+        >
+          <span className="text-sm flex-1">{notification.message}</span>
+          <button
+            onClick={() => onRemove(notification.id)}
+            className="ml-3 text-white hover:text-gray-200 font-bold text-lg"
+          >
+            ×
+          </button>
+        </motion.div>
+      ))}
+    </div>
+  );
+};
+
+const Page: React.FC = () => {
+  // Auth and data state
   const [authState, setAuthState] = useState<{
     isAuthorized: boolean | null;
     isCheckingAuth: boolean;
@@ -137,6 +174,9 @@ const Page: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+
+  // UI state
   const [selectedRole, setSelectedRole] = useState<"all" | string>("all");
   const [statusFilter, setStatusFilter] = useState<"all" | User["status"]>(
     "all",
@@ -148,6 +188,27 @@ const Page: React.FC = () => {
     direction: "asc" | "desc";
   } | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "table">("table");
+
+  // Notification helper
+  const addNotification = useCallback(
+    (message: string, type: "success" | "error") => {
+      const id = Math.random().toString(36).substr(2, 9);
+      const notification: Notification = { id, message, type };
+
+      setNotifications((prev) => [...prev, notification]);
+
+      // Auto remove after 5 seconds
+      setTimeout(() => {
+        setNotifications((prev) => prev.filter((n) => n.id !== id));
+      }, 5000);
+    },
+    [],
+  );
+
+  // Remove notification manually
+  const removeNotification = useCallback((id: string) => {
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+  }, []);
 
   // Check auth without redirecting
   useEffect(() => {
@@ -197,64 +258,98 @@ const Page: React.FC = () => {
     checkAuth();
   }, []);
 
-  // Fetch users
+  // Fetch users using the API service
+  const fetchUsers = useCallback(async () => {
+    if (authState.isAuthorized === false) {
+      setDataLoading(false);
+      return;
+    }
+
+    try {
+      setDataLoading(true);
+      setError(null);
+
+      const response = await userApiService.getUsers({
+        limit: 100,
+        status: statusFilter === "all" ? undefined : statusFilter,
+        role: selectedRole === "all" ? undefined : selectedRole,
+      });
+
+      if (apiUtils.isSuccess(response)) {
+        const processedUsers = response.data.users.map((user: User) => ({
+          ...user,
+          joinDate: new Date(user.joinDate),
+          lastLogin: user.lastLogin ? new Date(user.lastLogin) : undefined,
+        }));
+
+        setUsers(processedUsers);
+      } else {
+        const errorMessage = apiUtils.handleApiError(
+          apiUtils.getErrorMessage(response),
+        );
+        setError(errorMessage);
+        addNotification(errorMessage, "error");
+      }
+    } catch (error) {
+      const errorMessage = "Failed to fetch users. Please try again.";
+      setError(errorMessage);
+      addNotification(errorMessage, "error");
+      console.error("Error fetching users:", error);
+    } finally {
+      setDataLoading(false);
+    }
+  }, [authState.isAuthorized, statusFilter, selectedRole, addNotification]);
+
+  // Fetch users when auth state changes or filters change
   useEffect(() => {
-    const fetchUsers = async () => {
-      // Only fetch if we're authorized or still checking
-      if (authState.isAuthorized === false) {
-        setDataLoading(false);
-        return;
-      }
-
-      try {
-        setDataLoading(true);
-        setError(null);
-
-        const res = await fetch("/api/auth/users?limit=100", {
-          credentials: "include",
-          method: "GET",
-        });
-
-        if (!res.ok) {
-          if (res.status === 401) {
-            throw new Error("Unauthorized - Please log in");
-          } else if (res.status === 403) {
-            throw new Error("Forbidden - Admin access required");
-          } else {
-            throw new Error(`Failed to fetch users: ${res.status}`);
-          }
-        }
-
-        const data = await res.json();
-
-        if (!data.users || !Array.isArray(data.users)) {
-          throw new Error("Invalid response format");
-        }
-
-        setUsers(
-          data.users.map((user: User) => ({
-            ...user,
-            joinDate: new Date(user.joinDate),
-            lastLogin: user.lastLogin ? new Date(user.lastLogin) : undefined,
-          })),
-        );
-      } catch (error) {
-        console.error("Error fetching users:", error);
-        setError(
-          error instanceof Error ? error.message : "Failed to fetch users",
-        );
-      } finally {
-        setDataLoading(false);
-      }
-    };
-
-    // Only fetch users if we're authorized
     if (authState.isAuthorized === true) {
       fetchUsers();
     } else if (authState.isAuthorized === false) {
       setDataLoading(false);
     }
-  }, [authState.isAuthorized]);
+  }, [fetchUsers]);
+
+  // Update users after bulk operations
+  const handleUsersUpdate = useCallback((updatedUsers: User[]) => {
+    // Update the main users array with the updated users
+    setUsers((prevUsers) => {
+      const updatedUserMap = new Map(
+        updatedUsers.map((user) => [user.id, user]),
+      );
+
+      return prevUsers.map((user) =>
+        updatedUserMap.has(user.id)
+          ? {
+              ...updatedUserMap.get(user.id)!,
+              joinDate: new Date(updatedUserMap.get(user.id)!.joinDate),
+              lastLogin: updatedUserMap.get(user.id)!.lastLogin
+                ? new Date(updatedUserMap.get(user.id)!.lastLogin!)
+                : undefined,
+            }
+          : user,
+      );
+    });
+
+    // Clear selected users after successful update
+    setSelectedUsers(new Set());
+
+    // Optionally refresh the user list to ensure consistency
+    // fetchUsers();
+  }, []);
+
+  // Legacy callback handlers for backward compatibility
+  const handleBulkRoleChange = (userIds: string[], newRole: string) => {
+    console.log("Legacy bulk role change callback:", { userIds, newRole });
+    // This is now handled by the API integration in Controls component
+  };
+
+  const handleBulkStatusChange = (
+    userIds: string[],
+    newStatus: User["status"],
+  ) => {
+    console.log("Legacy bulk status change callback:", { userIds, newStatus });
+    // This is now handled by the API integration in Controls component
+  };
 
   // Unique roles from fetched users
   const uniqueRoles = useMemo(() => {
@@ -406,7 +501,7 @@ const Page: React.FC = () => {
   }
 
   // Show error state without redirecting
-  if (error) {
+  if (error && !dataLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-50 dark:from-gray-900 dark:via-[#0A0A0A] dark:to-purple-900/20 flex items-center justify-center">
         <div className="text-center max-w-md mx-auto p-8">
@@ -418,7 +513,7 @@ const Page: React.FC = () => {
           </h2>
           <p className="text-gray-600 dark:text-gray-300 mb-6">{error}</p>
           <button
-            onClick={() => window.location.reload()}
+            onClick={fetchUsers}
             className="bg-blue-500 text-white px-6 py-3 rounded-xl font-semibold hover:scale-105 transition-transform duration-300"
           >
             Retry
@@ -432,6 +527,12 @@ const Page: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-50 dark:from-gray-900 dark:via-[#0A0A0A] dark:to-purple-900/20 p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
+        {/* Notifications */}
+        <Notifications
+          notifications={notifications}
+          onRemove={removeNotification}
+        />
+
         <Header />
         <StatsCards users={users} />
         <Controls
@@ -445,7 +546,12 @@ const Page: React.FC = () => {
           setViewMode={setViewMode}
           selectedUsers={selectedUsers}
           uniqueRoles={uniqueRoles}
+          onBulkRoleChange={handleBulkRoleChange}
+          onBulkStatusChange={handleBulkStatusChange}
+          onUsersUpdate={handleUsersUpdate}
+          onNotification={addNotification}
         />
+
         {dataLoading ? (
           <div className="text-center py-16">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
