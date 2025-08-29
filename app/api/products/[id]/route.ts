@@ -1,8 +1,9 @@
 import { connectToDatabase } from "@/lib/mongodb";
 import { verifyAccessToken } from "@/lib/jwt";
 import { Product } from "@/utils/interfaces";
-import { Collection, ObjectId } from "mongodb";
+import { Collection, Filter, ObjectId } from "mongodb";
 import { NextRequest, NextResponse } from "next/server";
+import { generateUniqueSlug } from "@/heplers/products";
 
 type ProductType = "Course" | "Bootcamp" | "eBook" | "Codebase";
 type ProductStatus = "published" | "draft" | "archived";
@@ -13,14 +14,14 @@ interface ProductDocument extends Omit<Product, "id"> {
   createdBy: string;
 }
 
-// GET - Get single product by ID
+// GET - Get single product by ID or slug
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> {
   try {
     const resolvedParams = await params;
-    const { id } = resolvedParams;
+    const { id: param } = resolvedParams;
 
     // Authentication check
     const accessToken = request.cookies.get("access-token")?.value;
@@ -33,18 +34,18 @@ export async function GET(
       return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
 
-    // Validate ObjectId
-    if (!ObjectId.isValid(id)) {
-      return NextResponse.json(
-        { error: "Invalid product ID" },
-        { status: 400 },
-      );
-    }
-
     const db = await connectToDatabase();
     const collection: Collection<ProductDocument> = db.collection("products");
 
-    const product = await collection.findOne({ _id: new ObjectId(id) });
+    // Determine query based on param
+    let query: Filter<ProductDocument>;
+    if (ObjectId.isValid(param)) {
+      query = { _id: new ObjectId(param) };
+    } else {
+      query = { slug: param };
+    }
+
+    const product = await collection.findOne(query);
 
     if (!product) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
@@ -76,14 +77,14 @@ export async function GET(
   }
 }
 
-// PUT - Update product by ID
+// PUT - Update product by ID or slug
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> {
   try {
     const resolvedParams = await params;
-    const { id } = resolvedParams;
+    const { id: param } = resolvedParams;
 
     // Authentication check
     const accessToken = request.cookies.get("access-token")?.value;
@@ -96,19 +97,19 @@ export async function PUT(
       return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
 
-    // Validate ObjectId
-    if (!ObjectId.isValid(id)) {
-      return NextResponse.json(
-        { error: "Invalid product ID" },
-        { status: 400 },
-      );
-    }
-
     const db = await connectToDatabase();
     const collection: Collection<ProductDocument> = db.collection("products");
 
+    // Determine query based on param
+    let query: Filter<ProductDocument>;
+    if (ObjectId.isValid(param)) {
+      query = { _id: new ObjectId(param) };
+    } else {
+      query = { slug: param };
+    }
+
     // Check if product exists and user has permission
-    const existingProduct = await collection.findOne({ _id: new ObjectId(id) });
+    const existingProduct = await collection.findOne(query);
     if (!existingProduct) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
@@ -179,18 +180,24 @@ export async function PUT(
       }
     });
 
+    // If title is updated, regenerate slug
+    if (body.title && body.title !== existingProduct.title) {
+      updateData.slug = await generateUniqueSlug(
+        body.title,
+        collection,
+        existingProduct._id,
+      );
+    }
+
     // Update product
-    const result = await collection.updateOne(
-      { _id: new ObjectId(id) },
-      { $set: updateData },
-    );
+    const result = await collection.updateOne(query, { $set: updateData });
 
     if (result.matchedCount === 0) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
 
     // Fetch updated product
-    const updatedProduct = await collection.findOne({ _id: new ObjectId(id) });
+    const updatedProduct = await collection.findOne(query);
 
     // Transform for frontend
     if (!updatedProduct) {
@@ -229,14 +236,14 @@ export async function PUT(
   }
 }
 
-// DELETE - Delete product by ID
+// DELETE - Delete product by ID or slug
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> {
   try {
     const resolvedParams = await params;
-    const { id } = resolvedParams;
+    const { id: param } = resolvedParams;
 
     // Authentication check
     const accessToken = request.cookies.get("access-token")?.value;
@@ -249,19 +256,19 @@ export async function DELETE(
       return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
 
-    // Validate ObjectId
-    if (!ObjectId.isValid(id)) {
-      return NextResponse.json(
-        { error: "Invalid product ID" },
-        { status: 400 },
-      );
-    }
-
     const db = await connectToDatabase();
     const collection: Collection<ProductDocument> = db.collection("products");
 
+    // Determine query based on param
+    let query: Filter<ProductDocument>;
+    if (ObjectId.isValid(param)) {
+      query = { _id: new ObjectId(param) };
+    } else {
+      query = { slug: param };
+    }
+
     // Check if product exists and user has permission
-    const existingProduct = await collection.findOne({ _id: new ObjectId(id) });
+    const existingProduct = await collection.findOne(query);
     if (!existingProduct) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
@@ -291,7 +298,7 @@ export async function DELETE(
     }
 
     // Delete product
-    const result = await collection.deleteOne({ _id: new ObjectId(id) });
+    const result = await collection.deleteOne(query);
 
     if (result.deletedCount === 0) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
@@ -299,7 +306,7 @@ export async function DELETE(
 
     return NextResponse.json({
       message: "Product deleted successfully",
-      deletedId: id,
+      deletedId: param,
     });
   } catch (error) {
     console.error("DELETE /api/products/[id] error:", error);

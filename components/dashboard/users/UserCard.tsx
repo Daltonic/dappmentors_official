@@ -1,4 +1,4 @@
-import { FaEnvelope } from "react-icons/fa";
+import { FaEnvelope, FaEye } from "react-icons/fa";
 import { motion } from "framer-motion";
 import { User } from "@/utils/interfaces";
 import CardImage from "@/components/shared/CardImage";
@@ -99,6 +99,16 @@ const UserCard: React.FC<{
               {user.comments}
             </span>
           </div>
+        </div>
+
+        {/* Actions */}
+        <div className="flex gap-2">
+          <button className="flex-1 bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white py-2 px-4 rounded-xl text-sm font-semibold hover:scale-105 transition-transform duration-300">
+            View
+          </button>
+          <button className="p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800 rounded-xl transition-colors">
+            <FaEye className="w-5 h-5" />
+          </button>
         </div>
       </div>
     </motion.div>

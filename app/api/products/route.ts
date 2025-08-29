@@ -5,6 +5,7 @@ import { verifyAccessToken } from "@/lib/jwt";
 import { Product } from "@/utils/interfaces";
 import { Collection, Filter, ObjectId } from "mongodb";
 import { NextRequest, NextResponse } from "next/server";
+import { generateUniqueSlug } from "@/heplers/products";
 
 type ProductType = "Course" | "Bootcamp" | "eBook" | "Codebase";
 type ProductStatus = "published" | "draft" | "archived";
@@ -53,6 +54,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         { title: { $regex: search, $options: "i" } },
         { description: { $regex: search, $options: "i" } },
         { instructor: { $regex: search, $options: "i" } },
+        { slug: { $regex: search, $options: "i" } },
       ];
     }
 
@@ -180,9 +182,16 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
+    // Generate unique slug
+    const slug = await generateUniqueSlug(
+      body.title,
+      db.collection("products"),
+    );
+
     // Prepare product document
-    const now = new Date().toISOString();
+    const now = new Date();
     const productData: Omit<ProductDocument, "_id"> = {
+      slug,
       title: body.title.trim(),
       description: body.description.trim(),
       type: body.type as ProductType,
@@ -195,8 +204,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       rating: 0,
       totalReviews: 0,
       instructor: body.instructor.trim(),
-      createdAt: new Date(now),
-      updatedAt: new Date(now),
+      createdAt: now,
+      updatedAt: now,
       featured: body.featured || false,
       thumbnail: body.thumbnail?.trim() || "",
       createdBy: payload.userId,

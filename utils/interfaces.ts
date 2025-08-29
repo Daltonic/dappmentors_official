@@ -202,6 +202,7 @@ export interface Product {
   updatedAt: Date;
   featured: boolean;
   thumbnail: string;
+  slug: string;
 }
 
 export type Particle = {

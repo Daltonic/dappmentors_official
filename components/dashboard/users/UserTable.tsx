@@ -2,6 +2,7 @@ import { User } from "@/utils/interfaces";
 import {
   FaChevronLeft,
   FaChevronRight,
+  FaEye,
   FaSort,
   FaSortDown,
   FaSortUp,
@@ -155,6 +156,9 @@ const UserTable: React.FC<{
                   <SortIcon column="comments" sortConfig={sortConfig} />
                 </div>
               </th>
+              <th className="text-left px-4 py-4 font-semibold text-gray-700 dark:text-gray-300 cursor-pointer hover:text-[#D2145A] transition-colors min-w-[100px]">
+                <div className="flex items-center gap-2">Actions</div>
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -225,6 +229,16 @@ const UserTable: React.FC<{
                 </td>
                 <td className="px-4 py-4 text-gray-900 dark:text-white">
                   {user.comments}
+                </td>
+                <td className="px-4 py-4">
+                  <div className="flex items-center justify-end gap-1">
+                    <button
+                      className="p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800/50 rounded-lg transition-all duration-300 hover:scale-110"
+                      title="View details"
+                    >
+                      <FaEye className="w-4 h-4" />
+                    </button>
+                  </div>
                 </td>
               </motion.tr>
             ))}
