@@ -9,11 +9,8 @@ import {
   FaSpinner,
 } from "react-icons/fa";
 import { motion } from "framer-motion";
-import {
-  BulkUpdateResponse,
-  useApiState,
-  userApiService,
-} from "@/services/api.services";
+import { useApiState, userApiService } from "@/services/api.services";
+import { BulkUpdateResponse } from "@/services/userApiService";
 
 // Props interface for the Controls component
 interface ControlsProps {

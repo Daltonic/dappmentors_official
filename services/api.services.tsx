@@ -1,32 +1,16 @@
-import { User } from "@/utils/interfaces";
-import { useState } from "react";
+// api.services.ts
+// Updated file that now includes product services along with existing user services
 
-// Types for API responses
+import { useState } from "react";
+import { userApiService } from "./userApiService"; // Adjust path as needed
+import { productApiService } from "./productApiService"; // New import
+
+// Types for API responses (generic, stays here)
 interface ApiResponse<T> {
   data?: T;
   error?: string;
   message?: string;
 }
-
-export interface BulkUpdateResponse {
-  message: string;
-  modifiedCount: number;
-  matchedCount: number;
-  users: User[];
-}
-
-export interface UsersResponse {
-  users: User[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    pages: number;
-  };
-}
-
-// Base API configuration
-const API_BASE_URL = "/api/auth/users";
 
 // Generic API request handler
 async function apiRequest<T>(
@@ -36,6 +20,7 @@ async function apiRequest<T>(
   try {
     const response = await fetch(url, {
       ...options,
+      credentials: "include", // Important for cookie-based auth
       headers: {
         "Content-Type": "application/json",
         ...options.headers,
@@ -59,97 +44,8 @@ async function apiRequest<T>(
   }
 }
 
-// User API Services
-export const userApiService = {
-  // Get all users with pagination and filtering
-  async getUsers(params?: {
-    page?: number;
-    limit?: number;
-    status?: string;
-    role?: string;
-  }): Promise<ApiResponse<UsersResponse>> {
-    const searchParams = new URLSearchParams();
-
-    if (params?.page) searchParams.append("page", params.page.toString());
-    if (params?.limit) searchParams.append("limit", params.limit.toString());
-    if (params?.status && params.status !== "all")
-      searchParams.append("status", params.status);
-    if (params?.role && params.role !== "all")
-      searchParams.append("role", params.role);
-
-    const url = `${API_BASE_URL}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
-    return apiRequest<UsersResponse>(url);
-  },
-
-  // Get specific users by IDs
-  async getUsersByIds(
-    userIds: string[],
-  ): Promise<ApiResponse<{ users: User[] }>> {
-    const idsParam = userIds.join(",");
-    return apiRequest<{ users: User[] }>(
-      `${API_BASE_URL}/bulk?userIds=${idsParam}`,
-    );
-  },
-
-  // Bulk role update
-  async bulkUpdateRole(
-    userIds: string[],
-    newRole: string,
-  ): Promise<ApiResponse<BulkUpdateResponse>> {
-    return apiRequest<BulkUpdateResponse>(`${API_BASE_URL}/bulk`, {
-      method: "PATCH",
-      body: JSON.stringify({
-        action: "bulk-role-change",
-        userIds,
-        newRole,
-      }),
-    });
-  },
-
-  // Bulk status update
-  async bulkUpdateStatus(
-    userIds: string[],
-    newStatus: User["status"],
-  ): Promise<ApiResponse<BulkUpdateResponse>> {
-    return apiRequest<BulkUpdateResponse>(`${API_BASE_URL}/bulk`, {
-      method: "PATCH",
-      body: JSON.stringify({
-        action: "bulk-status-change",
-        userIds,
-        newStatus,
-      }),
-    });
-  },
-
-  // Create new user
-  async createUser(userData: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    password: string;
-  }): Promise<ApiResponse<{ message: string; user: Partial<User> }>> {
-    return apiRequest(`${API_BASE_URL}`, {
-      method: "POST",
-      body: JSON.stringify(userData),
-    });
-  },
-
-  // Verify email
-  async verifyEmail(
-    token: string,
-  ): Promise<ApiResponse<{ message: string; user: Partial<User> }>> {
-    return apiRequest(`${API_BASE_URL}`, {
-      method: "PATCH",
-      body: JSON.stringify({
-        action: "verify-email",
-        token,
-      }),
-    });
-  },
-};
-
 // Utility functions for error handling and notifications
-export const apiUtils = {
+const apiUtils = {
   // Extract error message from API response
   getErrorMessage<T>(response: ApiResponse<T>): string {
     return response.error || "An unexpected error occurred";
@@ -177,22 +73,46 @@ export const apiUtils = {
         "Please check your internet connection and try again",
       "Internal Server Error":
         "Something went wrong on our end. Please try again later",
+      "Invalid product ID": "The product you're looking for doesn't exist",
+      "Product not found": "The product you're looking for was not found",
+      "Cannot delete product with active enrollments":
+        "This product has active enrollments and cannot be deleted. Archive it instead.",
     };
 
     return errorMap[error] || error;
   },
+
+  // Show toast notifications (you can integrate with your toast system)
+  showToast(message: string, type: "success" | "error" | "info" = "info") {
+    // This is a placeholder - integrate with your actual toast system
+    console.log(`[${type.toUpperCase()}] ${message}`);
+
+    // Example integration with react-hot-toast:
+    // if (typeof window !== 'undefined') {
+    //   const toast = (await import('react-hot-toast')).default;
+    //   if (type === 'success') toast.success(message);
+    //   else if (type === 'error') toast.error(message);
+    //   else toast(message);
+    // }
+  },
 };
 
-// Hook for managing API loading states (optional utility)
-export function useApiState<T>() {
+// Hook for managing API loading states with enhanced features
+function useApiState<T>(options?: {
+  onSuccess?: (data: T, message?: string) => void;
+  onError?: (error: string) => void;
+  showToasts?: boolean;
+}) {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const { onSuccess, onError, showToasts = false } = options || {};
+
   const execute = async (
     apiCall: () => Promise<ApiResponse<T>>,
-    onSuccess?: (data: T) => void,
-    onError?: (error: string) => void,
+    customOnSuccess?: (data: T) => void,
+    customOnError?: (error: string) => void,
   ) => {
     setLoading(true);
     setError(null);
@@ -202,19 +122,38 @@ export function useApiState<T>() {
 
       if (apiUtils.isSuccess(response)) {
         setData(response.data as T);
-        onSuccess?.(response.data);
+
+        const successMessage = apiUtils.getSuccessMessage(response);
+        if (showToasts) {
+          apiUtils.showToast(successMessage, "success");
+        }
+
+        onSuccess?.(response.data, successMessage);
+        customOnSuccess?.(response.data);
       } else {
         const errorMessage = apiUtils.handleApiError(
           apiUtils.getErrorMessage(response),
         );
         setError(errorMessage);
+
+        if (showToasts) {
+          apiUtils.showToast(errorMessage, "error");
+        }
+
         onError?.(errorMessage);
+        customOnError?.(errorMessage);
       }
     } catch (error) {
       const errorMessage = "An unexpected error occurred";
       console.error("useApiState execute error:", error);
       setError(errorMessage);
+
+      if (showToasts) {
+        apiUtils.showToast(errorMessage, "error");
+      }
+
       onError?.(errorMessage);
+      customOnError?.(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -234,3 +173,15 @@ export function useApiState<T>() {
     reset,
   };
 }
+
+// Export generic parts
+export { apiRequest, apiUtils, useApiState, type ApiResponse };
+
+// Export service modules
+export { userApiService };
+export { productApiService };
+
+// Future services can be added here:
+// export { blogApiService };
+// export { courseApiService };
+// export { paymentApiService };

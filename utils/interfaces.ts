@@ -198,8 +198,8 @@ export interface Product {
   rating: number;
   totalReviews: number;
   instructor: string;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Date;
+  updatedAt: Date;
   featured: boolean;
   thumbnail: string;
 }

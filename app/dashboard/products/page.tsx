@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { FaBox, FaCheckCircle, FaPen, FaDollarSign } from "react-icons/fa";
 import { Product } from "@/utils/interfaces";
@@ -8,170 +8,15 @@ import ProductCard from "@/components/dashboard/products/ProductCard";
 import ProductTable from "@/components/dashboard/products/ProductTable";
 import Controls from "@/components/dashboard/products/Controls";
 import Link from "next/link";
+import { productApiService, apiUtils } from "@/services/api.services";
+import EmptyState from "@/components/dashboard/EmptyState"; // Assuming this exists or reuse from users if shared
 
-// Mock data
-const mockProducts: Product[] = [
-  {
-    id: "1",
-    title: "Complete Solidity Smart Contract Development",
-    description:
-      "Master smart contract development with comprehensive hands-on projects",
-    type: "Course",
-    price: 299,
-    status: "published",
-    category: "Blockchain Development",
-    difficulty: "Intermediate",
-    duration: "12 weeks",
-    enrollments: 1247,
-    rating: 4.8,
-    totalReviews: 234,
-    instructor: "Darlington Gospel",
-    createdAt: "2024-01-15",
-    updatedAt: "2024-08-10",
-    featured: true,
-    thumbnail:
-      "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=400&h=240&fit=crop",
-  },
-  {
-    id: "2",
-    title: "Solana Web3 Development Bootcamp",
-    description:
-      "Intensive 8-week bootcamp covering Rust, Anchor framework, and dApp development",
-    type: "Bootcamp",
-    price: 1299,
-    status: "published",
-    category: "Web3 Development",
-    difficulty: "Advanced",
-    duration: "8 weeks",
-    enrollments: 432,
-    rating: 4.9,
-    totalReviews: 89,
-    instructor: "Darlington Gospel",
-    createdAt: "2024-02-20",
-    updatedAt: "2024-08-15",
-    featured: true,
-    thumbnail:
-      "https://images.unsplash.com/photo-1518186233392-c232efbf2373?w=400&h=240&fit=crop",
-  },
-  {
-    id: "3",
-    title: "The Complete Guide to DeFi Development",
-    description:
-      "Comprehensive eBook covering DeFi protocols, yield farming, and liquidity pools",
-    type: "eBook",
-    price: 49,
-    status: "published",
-    category: "DeFi",
-    difficulty: "Intermediate",
-    duration: "320 pages",
-    enrollments: 2156,
-    rating: 4.7,
-    totalReviews: 445,
-    instructor: "Darlington Gospel",
-    createdAt: "2024-03-10",
-    updatedAt: "2024-07-25",
-    featured: false,
-    thumbnail:
-      "https://images.unsplash.com/photo-1544377193-33dcf4d68fb5?w=400&h=240&fit=crop",
-  },
-  {
-    id: "4",
-    title: "NFT Marketplace Codebase",
-    description:
-      "Production-ready NFT marketplace with minting, trading, and auction features",
-    type: "Codebase",
-    price: 249,
-    status: "draft",
-    category: "NFT Development",
-    difficulty: "Advanced",
-    duration: "Full Stack",
-    enrollments: 156,
-    rating: 4.6,
-    totalReviews: 32,
-    instructor: "Darlington Gospel",
-    createdAt: "2024-04-05",
-    updatedAt: "2024-08-18",
-    featured: false,
-    thumbnail:
-      "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&h=240&fit=crop",
-  },
-  {
-    id: "5",
-    title: "React & Web3 Integration Masterclass",
-    description:
-      "Learn to build modern dApps with React, Web3.js, and MetaMask integration",
-    type: "Course",
-    price: 199,
-    status: "published",
-    category: "Frontend Development",
-    difficulty: "Beginner",
-    duration: "6 weeks",
-    enrollments: 890,
-    rating: 4.5,
-    totalReviews: 178,
-    instructor: "Sarah Johnson",
-    createdAt: "2024-05-12",
-    updatedAt: "2024-08-12",
-    featured: false,
-    thumbnail:
-      "https://images.unsplash.com/photo-1633356122102-3fe601e05bd2?w=400&h=240&fit=crop",
-  },
-  {
-    id: "6",
-    title: "Blockchain Security Fundamentals",
-    description:
-      "Essential security practices for smart contract development and DeFi protocols",
-    type: "eBook",
-    price: 39,
-    status: "archived",
-    category: "Security",
-    difficulty: "Intermediate",
-    duration: "180 pages",
-    enrollments: 567,
-    rating: 4.4,
-    totalReviews: 89,
-    instructor: "Michael Chen",
-    createdAt: "2024-01-30",
-    updatedAt: "2024-06-15",
-    featured: false,
-    thumbnail:
-      "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=400&h=240&fit=crop",
-  },
-];
-
-const EmptyState: React.FC<{ searchTerm: string }> = ({ searchTerm }) => (
-  <div className="text-center py-16">
-    <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
-      <svg
-        className="w-8 h-8 text-gray-400"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M20 7l-8-4-8 4m16 0l-8 4-8-4m16 0v10l-8 4-8-4V7"
-        />
-      </svg>
-    </div>
-    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-      No products found
-    </h3>
-    <p className="text-gray-600 dark:text-gray-300 mb-6">
-      {searchTerm
-        ? `No products match "${searchTerm}"`
-        : "Get started by creating your first product"}
-    </p>
-    <Link
-      href="/dashboard/products/new"
-      className="bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white px-6 py-3 rounded-xl font-semibold hover:scale-105 transition-transform duration-300"
-    >
-      Create Product
-    </Link>
-  </div>
-);
+// Notification component type
+interface Notification {
+  id: string;
+  message: string;
+  type: "success" | "error";
+}
 
 // Header Component
 const Header: React.FC = () => (
@@ -232,7 +77,7 @@ const StatsCards: React.FC<{ products: Product[] }> = ({ products }) => {
     },
     {
       label: "Total Revenue",
-      value: "$45,230",
+      value: `$${products.reduce((sum, p) => sum + p.price * p.enrollments, 0).toLocaleString()}`,
       color: "from-purple-500 to-purple-600",
       icon: <FaDollarSign className="text-white text-2xl" />,
     },
@@ -289,8 +134,59 @@ const ProductGrid: React.FC<{
   </div>
 );
 
-// Main Page Component (Reassembled)
+// Notifications Component
+const Notifications: React.FC<{
+  notifications: Notification[];
+  onRemove: (id: string) => void;
+}> = ({ notifications, onRemove }) => {
+  if (notifications.length === 0) return null;
+
+  return (
+    <div className="fixed top-4 right-4 z-50 space-y-2">
+      {notifications.map((notification) => (
+        <motion.div
+          key={notification.id}
+          initial={{ opacity: 0, x: 100 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: 100 }}
+          className={`px-4 py-3 rounded-lg shadow-lg flex items-center justify-between min-w-[300px] max-w-[500px] ${
+            notification.type === "success"
+              ? "bg-green-500 text-white"
+              : "bg-red-500 text-white"
+          }`}
+        >
+          <span className="text-sm flex-1">{notification.message}</span>
+          <button
+            onClick={() => onRemove(notification.id)}
+            className="ml-3 text-white hover:text-gray-200 font-bold text-lg"
+          >
+            ×
+          </button>
+        </motion.div>
+      ))}
+    </div>
+  );
+};
+
+// Main Page Component
 const Page: React.FC = () => {
+  // Auth and data state
+  const [authState, setAuthState] = useState<{
+    isAuthorized: boolean | null;
+    isCheckingAuth: boolean;
+    authError: string | null;
+  }>({
+    isAuthorized: null,
+    isCheckingAuth: true,
+    authError: null,
+  });
+
+  const [products, setProducts] = useState<Product[]>([]);
+  const [dataLoading, setDataLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+
+  // UI state
   const [selectedTab, setSelectedTab] = useState<"all" | Product["type"]>(
     "all",
   );
@@ -307,20 +203,139 @@ const Page: React.FC = () => {
   } | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "table">("table");
 
-  // Filter products
+  // Notification helper
+  const addNotification = useCallback(
+    (message: string, type: "success" | "error") => {
+      const id = Math.random().toString(36).substr(2, 9);
+      const notification: Notification = { id, message, type };
+
+      setNotifications((prev) => [...prev, notification]);
+
+      // Auto remove after 5 seconds
+      setTimeout(() => {
+        setNotifications((prev) => prev.filter((n) => n.id !== id));
+      }, 5000);
+    },
+    [],
+  );
+
+  // Remove notification manually
+  const removeNotification = useCallback((id: string) => {
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+  }, []);
+
+  // Check auth without redirecting
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        // First, try to fetch products - if successful, user is authorized
+        const res = await fetch("/api/products?limit=1", {
+          credentials: "include",
+          method: "GET",
+        });
+
+        if (res.ok) {
+          setAuthState({
+            isAuthorized: true,
+            isCheckingAuth: false,
+            authError: null,
+          });
+        } else if (res.status === 401) {
+          setAuthState({
+            isAuthorized: false,
+            isCheckingAuth: false,
+            authError: "Not authenticated. Please log in.",
+          });
+        } else if (res.status === 403) {
+          setAuthState({
+            isAuthorized: false,
+            isCheckingAuth: false,
+            authError: "Access denied. Admin privileges required.",
+          });
+        } else {
+          setAuthState({
+            isAuthorized: false,
+            isCheckingAuth: false,
+            authError: `Authentication check failed: ${res.status}`,
+          });
+        }
+      } catch (error) {
+        console.error("Auth check error:", error);
+        setAuthState({
+          isAuthorized: false,
+          isCheckingAuth: false,
+          authError: "Failed to check authentication status.",
+        });
+      }
+    };
+
+    checkAuth();
+  }, []);
+
+  // Fetch products using the API service
+  const fetchProducts = useCallback(async () => {
+    if (authState.isAuthorized === false) {
+      setDataLoading(false);
+      return;
+    }
+
+    try {
+      setDataLoading(true);
+      setError(null);
+
+      const response = await productApiService.getProducts({
+        limit: 100,
+        status: statusFilter === "all" ? undefined : statusFilter,
+        type: selectedTab === "all" ? undefined : selectedTab,
+      });
+
+      if (apiUtils.isSuccess(response)) {
+        const processedProducts: Product[] = response.data.products.map(
+          (product) => ({
+            ...product,
+            createdAt: new Date(product.createdAt), // Keep as Date object
+            updatedAt: new Date(product.updatedAt), // Keep as Date object
+          }),
+        );
+
+        setProducts(processedProducts);
+      } else {
+        const errorMessage = apiUtils.handleApiError(
+          apiUtils.getErrorMessage(response),
+        );
+        setError(errorMessage);
+        addNotification(errorMessage, "error");
+      }
+    } catch (error) {
+      const errorMessage = "Failed to fetch products. Please try again.";
+      setError(errorMessage);
+      addNotification(errorMessage, "error");
+      console.error("Error fetching products:", error);
+    } finally {
+      setDataLoading(false);
+    }
+  }, [authState.isAuthorized, statusFilter, selectedTab, addNotification]);
+
+  // Fetch products when auth state changes or filters change
+  useEffect(() => {
+    if (authState.isAuthorized === true) {
+      fetchProducts();
+    } else if (authState.isAuthorized === false) {
+      setDataLoading(false);
+    }
+  }, [fetchProducts, authState.isAuthorized]);
+
+  // Filter products client-side (for search)
   const filteredProducts = useMemo(() => {
-    return mockProducts.filter((product) => {
-      const matchesType = selectedTab === "all" || product.type === selectedTab;
-      const matchesStatus =
-        statusFilter === "all" || product.status === statusFilter;
+    return products.filter((product) => {
       const matchesSearch =
         product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         product.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
         product.instructor.toLowerCase().includes(searchTerm.toLowerCase()) ||
         product.category.toLowerCase().includes(searchTerm.toLowerCase());
-      return matchesType && matchesStatus && matchesSearch;
+      return matchesSearch;
     });
-  }, [selectedTab, statusFilter, searchTerm]);
+  }, [products, searchTerm]);
 
   // Sort products
   const sortedProducts = useMemo(() => {
@@ -330,17 +345,17 @@ const Page: React.FC = () => {
       const aValue = a[sortConfig.key];
       const bValue = b[sortConfig.key];
 
-      if (typeof aValue === "string" && typeof bValue === "string") {
-        const comparison = aValue.localeCompare(bValue);
-        return sortConfig.direction === "asc" ? comparison : -comparison;
+      let comparison = 0;
+
+      if (aValue instanceof Date && bValue instanceof Date) {
+        comparison = aValue.getTime() - bValue.getTime();
+      } else if (typeof aValue === "string" && typeof bValue === "string") {
+        comparison = aValue.localeCompare(bValue);
+      } else if (typeof aValue === "number" && typeof bValue === "number") {
+        comparison = aValue - bValue;
       }
 
-      if (typeof aValue === "number" && typeof bValue === "number") {
-        const comparison = aValue - bValue;
-        return sortConfig.direction === "asc" ? comparison : -comparison;
-      }
-
-      return 0;
+      return sortConfig.direction === "asc" ? comparison : -comparison;
     });
   }, [filteredProducts, sortConfig]);
 
@@ -402,11 +417,89 @@ const Page: React.FC = () => {
     }
   };
 
+  // Show loading state while checking authentication
+  if (authState.isCheckingAuth) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-50 dark:from-gray-900 dark:via-[#0A0A0A] dark:to-purple-900/20 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <div className="text-lg text-gray-600 dark:text-gray-300">
+            Checking authentication...
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show access denied without redirecting
+  if (!authState.isAuthorized) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-50 dark:from-gray-900 dark:via-[#0A0A0A] dark:to-purple-900/20 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-8">
+          <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+            <FaBox className="w-8 h-8 text-red-600 dark:text-red-400" />{" "}
+            {/* Adapted icon */}
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+            Access Denied
+          </h2>
+          <p className="text-gray-600 dark:text-gray-300 mb-6">
+            {authState.authError ||
+              "You don't have permission to access this page."}
+          </p>
+          <button
+            onClick={() => (window.location.href = "/login")}
+            className="bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white px-6 py-3 rounded-xl font-semibold hover:scale-105 transition-transform duration-300 mr-4"
+          >
+            Go to Login
+          </button>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-gray-500 text-white px-6 py-3 rounded-xl font-semibold hover:scale-105 transition-transform duration-300"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state without redirecting
+  if (error && !dataLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-50 dark:from-gray-900 dark:via-[#0A0A0A] dark:to-purple-900/20 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-8">
+          <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+            <FaBox className="w-8 h-8 text-red-600 dark:text-red-400" />{" "}
+            {/* Adapted icon */}
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+            Error Loading Products
+          </h2>
+          <p className="text-gray-600 dark:text-gray-300 mb-6">{error}</p>
+          <button
+            onClick={fetchProducts}
+            className="bg-blue-500 text-white px-6 py-3 rounded-xl font-semibold hover:scale-105 transition-transform duration-300"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Main content - only shown when authorized
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-50 dark:from-gray-900 dark:via-[#0A0A0A] dark:to-purple-900/20 p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
+        {/* Notifications */}
+        <Notifications
+          notifications={notifications}
+          onRemove={removeNotification}
+        />
+
         <Header />
-        <StatsCards products={mockProducts} />
+        <StatsCards products={products} />
         <Controls
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
@@ -418,7 +511,15 @@ const Page: React.FC = () => {
           setViewMode={setViewMode}
           selectedProducts={selectedProducts}
         />
-        {sortedProducts.length === 0 ? (
+
+        {dataLoading ? (
+          <div className="text-center py-16">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+            <div className="text-gray-600 dark:text-gray-300">
+              Loading products...
+            </div>
+          </div>
+        ) : sortedProducts.length === 0 ? (
           <EmptyState searchTerm={searchTerm} />
         ) : viewMode === "grid" ? (
           <ProductGrid
@@ -434,7 +535,7 @@ const Page: React.FC = () => {
             toggleAll={toggleAllProducts}
             sortConfig={sortConfig}
             onSort={handleSort}
-            allProductsLength={mockProducts.length}
+            allProductsLength={products.length}
             getStatusColor={getStatusColor}
             getTypeColor={getTypeColor}
           />

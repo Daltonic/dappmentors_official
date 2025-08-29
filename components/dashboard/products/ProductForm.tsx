@@ -265,13 +265,13 @@ const ProductForm: React.FC<ProductFormProps> = ({
       const productData = {
         ...formData,
         price: parseFloat(formData.price),
-        updatedAt: new Date().toISOString().split("T")[0],
+        updatedAt: new Date(),
         ...(!isEditMode && {
           id: Date.now().toString(),
           enrollments: 0,
           rating: 0,
           totalReviews: 0,
-          createdAt: new Date().toISOString().split("T")[0],
+          createdAt: new Date(),
         }),
       };
 

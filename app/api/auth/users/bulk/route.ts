@@ -20,9 +20,12 @@ export async function PATCH(request: NextRequest): Promise<NextResponse> {
     }
 
     // Check if user has admin privileges (uncomment when ready)
-    // if (payload.role !== 'admin' || payload.status !== 'active') {
-    //   return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 })
-    // }
+    if (payload.role !== "admin" || payload.status !== "active") {
+      return NextResponse.json(
+        { error: "Forbidden - Admin access required" },
+        { status: 403 },
+      );
+    }
 
     const db = await connectToDatabase();
     const collection: Collection<User> = db.collection("users");

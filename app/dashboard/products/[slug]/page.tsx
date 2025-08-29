@@ -22,8 +22,8 @@ const Page: React.FC = () => {
     rating: 4.8,
     totalReviews: 234,
     instructor: "Darlington Gospel",
-    createdAt: "2024-01-15",
-    updatedAt: "2024-08-10",
+    createdAt: new Date("2024-08-01"),
+    updatedAt: new Date("2024-08-15"),
     featured: true,
     thumbnail:
       "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=400&h=240&fit=crop",
