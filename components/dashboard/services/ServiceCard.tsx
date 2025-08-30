@@ -24,11 +24,6 @@ const ServiceCard: React.FC<{
     >
       <div className="absolute inset-0 bg-gradient-to-br from-[#D2145A]/5 to-[#FF4081]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
       <div className="relative h-48 overflow-hidden">
-        {/* <img
-                    src={service.thumbnail}
-                    alt={service.title}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                /> */}
         <CardImage
           src={service.thumbnail}
           alt={service.title}

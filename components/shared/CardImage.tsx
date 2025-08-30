@@ -74,8 +74,7 @@ const CardImage: React.FC<{
   };
 
   // Check if we should show placeholder
-  const shouldShowPlaceholder =
-    !src || src === "" || imageError || !imageLoaded;
+  const shouldShowPlaceholder = !src || src === "" || imageError;
 
   // Reset error state when src changes
   useEffect(() => {

@@ -19,6 +19,7 @@ import {
   FaChartBar,
   FaCog,
   FaUserSlash,
+  FaUserPlus,
 } from "react-icons/fa";
 import { useMemo, useState, useEffect, useCallback } from "react";
 import { userApiService, apiUtils } from "@/services/api.services";
@@ -599,7 +600,16 @@ const Page: React.FC = () => {
                     </button>
                   </div>
                 ) : sortedUsers.length === 0 ? (
-                  <EmptyState searchTerm={searchTerm} />
+                  <EmptyState
+                    searchTerm={searchTerm}
+                    title="No users found"
+                    subtitle={(term) =>
+                      term
+                        ? `No users match "${term}". Try adjusting your search or filters.`
+                        : "You haven't added any users yet. Start by inviting new users."
+                    }
+                    icon={<FaUserPlus className="w-8 h-8 text-gray-400" />}
+                  />
                 ) : viewMode === "grid" ? (
                   <UserGrid
                     users={sortedUsers}

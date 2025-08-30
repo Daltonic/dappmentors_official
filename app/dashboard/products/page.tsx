@@ -2,57 +2,21 @@
 
 import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { FaBox, FaCheckCircle, FaPen, FaDollarSign } from "react-icons/fa";
+import {
+  FaBox,
+  FaCheckCircle,
+  FaPen,
+  FaDollarSign,
+  FaPlus,
+} from "react-icons/fa";
 import { Product } from "@/utils/interfaces";
 import ProductCard from "@/components/dashboard/products/ProductCard";
 import ProductTable from "@/components/dashboard/products/ProductTable";
 import Controls from "@/components/dashboard/products/Controls";
-import Link from "next/link";
 import { productApiService, apiUtils } from "@/services/api.services";
-import EmptyState from "@/components/dashboard/EmptyState"; // Assuming this exists or reuse from users if shared
-
-// Notification component type
-interface Notification {
-  id: string;
-  message: string;
-  type: "success" | "error";
-}
-
-// Header Component
-const Header: React.FC = () => (
-  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-    <div>
-      <h1 className="text-4xl md:text-5xl font-cambo font-normal text-gray-900 dark:text-white mb-2">
-        Product Management
-      </h1>
-      <p className="text-gray-600 dark:text-gray-300">
-        Manage your courses, bootcamps, eBooks, and codebases
-      </p>
-    </div>
-    <Link
-      href="/dashboard/products/new"
-      className="relative bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white px-6 py-3 rounded-2xl font-semibold transition-all duration-500 hover:shadow-2xl overflow-hidden group"
-    >
-      <span className="relative z-10 flex items-center gap-2">
-        Create Product
-        <svg
-          className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M12 4v16m8-8H4"
-          />
-        </svg>
-      </span>
-      <div className="absolute inset-0 bg-white/20 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
-    </Link>
-  </div>
-);
+import EmptyState from "@/components/dashboard/EmptyState";
+import DashboardHeader from "@/components/dashboard/DashboardHeader";
+import { toast } from "react-toastify";
 
 // StatsCards Component
 const StatsCards: React.FC<{ products: Product[] }> = ({ products }) => {
@@ -77,7 +41,9 @@ const StatsCards: React.FC<{ products: Product[] }> = ({ products }) => {
     },
     {
       label: "Total Revenue",
-      value: `$${products.reduce((sum, p) => sum + p.price * p.enrollments, 0).toLocaleString()}`,
+      value: `$${products
+        .reduce((sum, p) => sum + p.price * p.enrollments, 0)
+        .toLocaleString()}`,
       color: "from-purple-500 to-purple-600",
       icon: <FaDollarSign className="text-white text-2xl" />,
     },
@@ -134,40 +100,6 @@ const ProductGrid: React.FC<{
   </div>
 );
 
-// Notifications Component
-const Notifications: React.FC<{
-  notifications: Notification[];
-  onRemove: (id: string) => void;
-}> = ({ notifications, onRemove }) => {
-  if (notifications.length === 0) return null;
-
-  return (
-    <div className="fixed top-4 right-4 z-50 space-y-2">
-      {notifications.map((notification) => (
-        <motion.div
-          key={notification.id}
-          initial={{ opacity: 0, x: 100 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: 100 }}
-          className={`px-4 py-3 rounded-lg shadow-lg flex items-center justify-between min-w-[300px] max-w-[500px] ${
-            notification.type === "success"
-              ? "bg-green-500 text-white"
-              : "bg-red-500 text-white"
-          }`}
-        >
-          <span className="text-sm flex-1">{notification.message}</span>
-          <button
-            onClick={() => onRemove(notification.id)}
-            className="ml-3 text-white hover:text-gray-200 font-bold text-lg"
-          >
-            ×
-          </button>
-        </motion.div>
-      ))}
-    </div>
-  );
-};
-
 // Main Page Component
 const Page: React.FC = () => {
   // Auth and data state
@@ -184,7 +116,6 @@ const Page: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
 
   // UI state
   const [selectedTab, setSelectedTab] = useState<"all" | Product["type"]>(
@@ -206,29 +137,77 @@ const Page: React.FC = () => {
   // Notification helper
   const addNotification = useCallback(
     (message: string, type: "success" | "error") => {
-      const id = Math.random().toString(36).substr(2, 9);
-      const notification: Notification = { id, message, type };
-
-      setNotifications((prev) => [...prev, notification]);
-
-      // Auto remove after 5 seconds
-      setTimeout(() => {
-        setNotifications((prev) => prev.filter((n) => n.id !== id));
-      }, 5000);
+      toast[type](message, {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "colored",
+        toastId: Math.random().toString(36).substr(2, 9), // Unique ID for each toast
+      });
     },
     [],
   );
 
-  // Remove notification manually
-  const removeNotification = useCallback((id: string) => {
-    setNotifications((prev) => prev.filter((n) => n.id !== id));
-  }, []);
+  // Fetch products using the API service
+  const fetchProducts = useCallback(async () => {
+    if (authState.isAuthorized === false) {
+      setDataLoading(false);
+      return;
+    }
+
+    try {
+      setDataLoading(true);
+      setError(null);
+
+      const response = await productApiService.getProducts({
+        limit: 100,
+        status: statusFilter === "all" ? undefined : statusFilter,
+        type: selectedTab === "all" ? undefined : selectedTab,
+      });
+
+      if (apiUtils.isSuccess(response)) {
+        const processedProducts: Product[] = response.data.products.map(
+          (product) => ({
+            ...product,
+            createdAt: new Date(product.createdAt),
+            updatedAt: new Date(product.updatedAt),
+          }),
+        );
+
+        setProducts(processedProducts);
+      } else {
+        const errorMessage = apiUtils.handleApiError(
+          apiUtils.getErrorMessage(response),
+        );
+        setError(errorMessage);
+        addNotification(errorMessage, "error");
+      }
+    } catch (error) {
+      const errorMessage = "Failed to fetch products. Please try again.";
+      setError(errorMessage);
+      addNotification(errorMessage, "error");
+      console.error("Error fetching products:", error);
+    } finally {
+      setDataLoading(false);
+    }
+  }, [authState.isAuthorized, statusFilter, selectedTab, addNotification]);
+
+  // Fetch products when auth state changes or filters change
+  useEffect(() => {
+    if (authState.isAuthorized === true) {
+      fetchProducts();
+    } else if (authState.isAuthorized === false) {
+      setDataLoading(false);
+    }
+  }, [fetchProducts, authState.isAuthorized]);
 
   // Check auth without redirecting
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        // First, try to fetch products - if successful, user is authorized
         const res = await fetch("/api/products?limit=1", {
           credentials: "include",
           method: "GET",
@@ -271,59 +250,6 @@ const Page: React.FC = () => {
 
     checkAuth();
   }, []);
-
-  // Fetch products using the API service
-  const fetchProducts = useCallback(async () => {
-    if (authState.isAuthorized === false) {
-      setDataLoading(false);
-      return;
-    }
-
-    try {
-      setDataLoading(true);
-      setError(null);
-
-      const response = await productApiService.getProducts({
-        limit: 100,
-        status: statusFilter === "all" ? undefined : statusFilter,
-        type: selectedTab === "all" ? undefined : selectedTab,
-      });
-
-      if (apiUtils.isSuccess(response)) {
-        const processedProducts: Product[] = response.data.products.map(
-          (product) => ({
-            ...product,
-            createdAt: new Date(product.createdAt), // Keep as Date object
-            updatedAt: new Date(product.updatedAt), // Keep as Date object
-          }),
-        );
-
-        setProducts(processedProducts);
-      } else {
-        const errorMessage = apiUtils.handleApiError(
-          apiUtils.getErrorMessage(response),
-        );
-        setError(errorMessage);
-        addNotification(errorMessage, "error");
-      }
-    } catch (error) {
-      const errorMessage = "Failed to fetch products. Please try again.";
-      setError(errorMessage);
-      addNotification(errorMessage, "error");
-      console.error("Error fetching products:", error);
-    } finally {
-      setDataLoading(false);
-    }
-  }, [authState.isAuthorized, statusFilter, selectedTab, addNotification]);
-
-  // Fetch products when auth state changes or filters change
-  useEffect(() => {
-    if (authState.isAuthorized === true) {
-      fetchProducts();
-    } else if (authState.isAuthorized === false) {
-      setDataLoading(false);
-    }
-  }, [fetchProducts, authState.isAuthorized]);
 
   // Filter products client-side (for search)
   const filteredProducts = useMemo(() => {
@@ -437,8 +363,7 @@ const Page: React.FC = () => {
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-50 dark:from-gray-900 dark:via-[#0A0A0A] dark:to-purple-900/20 flex items-center justify-center">
         <div className="text-center max-w-md mx-auto p-8">
           <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-            <FaBox className="w-8 h-8 text-red-600 dark:text-red-400" />{" "}
-            {/* Adapted icon */}
+            <FaBox className="w-8 h-8 text-red-600 dark:text-red-400" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
             Access Denied
@@ -470,8 +395,7 @@ const Page: React.FC = () => {
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-50 dark:from-gray-900 dark:via-[#0A0A0A] dark:to-purple-900/20 flex items-center justify-center">
         <div className="text-center max-w-md mx-auto p-8">
           <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-            <FaBox className="w-8 h-8 text-red-600 dark:text-red-400" />{" "}
-            {/* Adapted icon */}
+            <FaBox className="w-8 h-8 text-red-600 dark:text-red-400" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
             Error Loading Products
@@ -492,13 +416,13 @@ const Page: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-50 dark:from-gray-900 dark:via-[#0A0A0A] dark:to-purple-900/20 p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
-        {/* Notifications */}
-        <Notifications
-          notifications={notifications}
-          onRemove={removeNotification}
+        <DashboardHeader
+          title="Products Management"
+          subtitle="Manage your courses, bootcamps, eBooks, and codebases"
+          buttonText="Create Product"
+          location="/dashboard/products/new"
+          buttonIcon={<FaPlus size={18} />}
         />
-
-        <Header />
         <StatsCards products={products} />
         <Controls
           searchTerm={searchTerm}
@@ -520,7 +444,18 @@ const Page: React.FC = () => {
             </div>
           </div>
         ) : sortedProducts.length === 0 ? (
-          <EmptyState searchTerm={searchTerm} />
+          <EmptyState
+            searchTerm={searchTerm}
+            title="No product found"
+            subtitle={(term) =>
+              term
+                ? `No products match "${term}". Try adjusting your search or filters.`
+                : "You haven't added any products yet. Start by creating a new product."
+            }
+            location="/dashboard/products/new"
+            buttonText="Create Product"
+            icon={<FaBox className="w-8 h-8 text-gray-400" />}
+          />
         ) : viewMode === "grid" ? (
           <ProductGrid
             products={sortedProducts}

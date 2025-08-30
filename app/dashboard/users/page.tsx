@@ -15,6 +15,7 @@ import UserCard from "@/components/dashboard/users/UserCard";
 import UserTable from "@/components/dashboard/users/UserTable";
 import { userApiService, apiUtils } from "@/services/api.services";
 import EmptyState from "@/components/dashboard/EmptyState";
+import DashboardHeader from "@/components/dashboard/DashboardHeader";
 
 // Notification component type
 interface Notification {
@@ -22,20 +23,6 @@ interface Notification {
   message: string;
   type: "success" | "error";
 }
-
-// Header Component
-const Header: React.FC = () => (
-  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-    <div>
-      <h1 className="text-4xl md:text-5xl font-cambo font-normal text-gray-900 dark:text-white mb-2">
-        User Management
-      </h1>
-      <p className="text-gray-600 dark:text-gray-300">
-        Manage your platform users and roles
-      </p>
-    </div>
-  </div>
-);
 
 // StatsCards Component
 const StatsCards: React.FC<{ users: User[] }> = ({ users }) => {
@@ -533,7 +520,10 @@ const Page: React.FC = () => {
           onRemove={removeNotification}
         />
 
-        <Header />
+        <DashboardHeader
+          title="Users Management"
+          subtitle="Manage your platform users and roles"
+        />
         <StatsCards users={users} />
         <Controls
           searchTerm={searchTerm}
@@ -560,7 +550,16 @@ const Page: React.FC = () => {
             </div>
           </div>
         ) : sortedUsers.length === 0 ? (
-          <EmptyState searchTerm={searchTerm} />
+          <EmptyState
+            searchTerm={searchTerm}
+            title="No users found"
+            subtitle={(term) =>
+              term
+                ? `No users match "${term}". Try adjusting your search or filters.`
+                : "You haven't added any users yet. Start by inviting new users."
+            }
+            icon={<FaUserPlus className="w-8 h-8 text-gray-400" />}
+          />
         ) : viewMode === "grid" ? (
           <UserGrid
             users={sortedUsers}

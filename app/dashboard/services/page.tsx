@@ -1,11 +1,20 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Service } from "@/utils/interfaces";
 import Controls from "@/components/dashboard/services/Controls";
 import ServiceCard from "@/components/dashboard/services/ServiceCard";
 import ServiceTable from "@/components/dashboard/services/ServiceTable";
+import EmptyState from "@/components/dashboard/EmptyState";
+import DashboardHeader from "@/components/dashboard/DashboardHeader";
+import {
+  FaBriefcase,
+  FaTools,
+  FaCheckCircle,
+  FaUsers,
+  FaDollarSign,
+} from "react-icons/fa";
 
 // Mock data
 const mockServices: Service[] = [
@@ -135,7 +144,7 @@ const mockServices: Service[] = [
     updatedAt: "2024-08-08",
     featured: false,
     thumbnail:
-      "https://images.unsplashed.com/photo-1486312338219-ce68d2c6f44d?w=400&h=240&fit=crop",
+      "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=400&h=240&fit=crop",
     tags: ["Technical Writing", "Documentation", "Whitepapers", "Blogs"],
     deliverables: [
       "Written Content",
@@ -222,87 +231,6 @@ const mockServices: Service[] = [
   },
 ];
 
-// EmptyState Component
-const EmptyState: React.FC<{
-  searchTerm: string;
-  setShowServiceModal: (show: boolean) => void;
-}> = ({ searchTerm, setShowServiceModal }) => (
-  <div className="text-center py-16">
-    <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
-      <svg
-        className="w-8 h-8 text-gray-400"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2h8zM8 14v4a2 2 0 002 2h4a2 2 0 002-2v-4m-6 4h4"
-        />
-      </svg>
-    </div>
-    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-      No services found
-    </h3>
-    <p className="text-gray-600 dark:text-gray-300 mb-6">
-      {searchTerm
-        ? `No services match "${searchTerm}"`
-        : "Get started by creating your first service"}
-    </p>
-    <button
-      onClick={() => setShowServiceModal(true)}
-      className="bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white px-6 py-3 rounded-xl font-semibold hover:scale-105 transition-transform duration-300"
-    >
-      Create Service
-    </button>
-  </div>
-);
-
-// Header Component
-const Header: React.FC<{ onCreateService: () => void }> = ({
-  onCreateService,
-}) => {
-  return (
-    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-      <div>
-        <h1 className="text-4xl md:text-5xl font-cambo font-normal text-gray-900 dark:text-white mb-2">
-          Services Management
-        </h1>
-        <p className="text-gray-600 dark:text-gray-300">
-          manage your educational, mentorship, development, and community
-          services
-        </p>
-      </div>
-      <motion.button
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={onCreateService}
-        className="relative bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white px-6 py-3 rounded-2xl font-semibold transition-all duration-500 hover:shadow-2xl overflow-hidden group"
-      >
-        <span className="relative z-10 flex items-center gap-2">
-          Create Service
-          <svg
-            className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 4v16m8-8H4"
-            />
-          </svg>
-        </span>
-        <div className="absolute inset-0 bg-white/20 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
-      </motion.button>
-    </div>
-  );
-};
-
 // StatsCards Component
 const StatsCards: React.FC<{ services: Service[] }> = ({ services }) => {
   const stats = [
@@ -310,25 +238,25 @@ const StatsCards: React.FC<{ services: Service[] }> = ({ services }) => {
       label: "Total Services",
       value: services.length,
       color: "from-blue-500 to-blue-600",
-      icon: "🔧",
+      icon: <FaTools className="text-white text-2xl" />,
     },
     {
       label: "Active",
       value: services.filter((s) => s.status === "active").length,
       color: "from-green-500 to-green-600",
-      icon: "✅",
+      icon: <FaCheckCircle className="text-white text-2xl" />,
     },
     {
       label: "Total Clients",
       value: services.reduce((acc, s) => acc + s.clients, 0),
       color: "from-purple-500 to-purple-600",
-      icon: "👥",
+      icon: <FaUsers className="text-white text-2xl" />,
     },
     {
       label: "Revenue",
       value: "$125,450",
       color: "from-orange-500 to-orange-600",
-      icon: "💰",
+      icon: <FaDollarSign className="text-white text-2xl" />,
     },
   ];
 
@@ -344,7 +272,7 @@ const StatsCards: React.FC<{ services: Service[] }> = ({ services }) => {
         >
           <div className="flex items-center justify-between mb-4">
             <div
-              className={`w-12 h-12 bg-gradient-to-r ${stat.color} rounded-xl flex items-center justify-center text-2xl`}
+              className={`w-12 h-12 bg-gradient-to-r ${stat.color} rounded-xl flex items-center justify-center`}
             >
               {stat.icon}
             </div>
@@ -365,194 +293,8 @@ const StatsCards: React.FC<{ services: Service[] }> = ({ services }) => {
   );
 };
 
-// CreateServiceModal Component
-const CreateServiceModal: React.FC<{
-  showServiceModal: boolean;
-  setShowServiceModal: (show: boolean) => void;
-}> = ({ showServiceModal, setShowServiceModal }) => {
-  return (
-    <AnimatePresence>
-      {showServiceModal && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-          onClick={() => setShowServiceModal(false)}
-        >
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.9, opacity: 0 }}
-            className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-3xl p-8 w-full max-w-2xl border border-gray-200/50 dark:border-gray-700/50 shadow-2xl max-h-[90vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-cambo font-normal text-gray-900 dark:text-white">
-                Create New Service
-              </h3>
-              <button
-                onClick={() => setShowServiceModal(false)}
-                className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
-              >
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-            </div>
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                    Service Title
-                  </label>
-                  <input
-                    type="text"
-                    className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200/50 dark:border-gray-700/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF4081]/50 focus:border-transparent transition-all duration-300"
-                    placeholder="Enter service title"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                    Service Type
-                  </label>
-                  <select className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200/50 dark:border-gray-700/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF4081]/50 focus:border-transparent transition-all duration-300">
-                    <option value="Education">Education</option>
-                    <option value="Mentorship">Mentorship</option>
-                    <option value="Development">Development</option>
-                    <option value="Writing">Writing</option>
-                    <option value="Hiring">Hiring</option>
-                    <option value="Community">Community</option>
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                  Description
-                </label>
-                <textarea
-                  rows={4}
-                  className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200/50 dark:border-gray-700/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF4081]/50 focus:border-transparent transition-all duration-300"
-                  placeholder="Enter service description"
-                />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                    Price
-                  </label>
-                  <input
-                    type="text"
-                    className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200/50 dark:border-gray-700/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF4081]/50 focus:border-transparent transition-all duration-300"
-                    placeholder="e.g. $299 or Custom Quote"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                    Duration
-                  </label>
-                  <input
-                    type="text"
-                    className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200/50 dark:border-gray-700/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF4081]/50 focus:border-transparent transition-all duration-300"
-                    placeholder="e.g. 4-8 weeks"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                    Status
-                  </label>
-                  <select className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200/50 dark:border-gray-700/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF4081]/50 focus:border-transparent transition-all duration-300">
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                    <option value="coming-soon">Coming Soon</option>
-                  </select>
-                </div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                    Category
-                  </label>
-                  <input
-                    type="text"
-                    className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200/50 dark:border-gray-700/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF4081]/50 focus:border-transparent transition-all duration-300"
-                    placeholder="e.g. Blockchain Development"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                    Lead/Team
-                  </label>
-                  <input
-                    type="text"
-                    className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200/50 dark:border-gray-700/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF4081]/50 focus:border-transparent transition-all duration-300"
-                    placeholder="Enter team lead name"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                  Thumbnail URL
-                </label>
-                <input
-                  type="url"
-                  className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200/50 dark:border-gray-700/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF4081]/50 focus:border-transparent transition-all duration-300"
-                  placeholder="https://example.com/image.jpg"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                  Tags (comma-separated)
-                </label>
-                <input
-                  type="text"
-                  className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200/50 dark:border-gray-700/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF4081]/50 focus:border-transparent transition-all duration-300"
-                  placeholder="Solidity, Security, Multi-chain"
-                />
-              </div>
-              <div className="flex items-center gap-4">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    className="w-4 h-4 text-[#D2145A] bg-gray-100 border-gray-300 rounded focus:ring-[#D2145A] focus:ring-2"
-                  />
-                  <span className="text-sm text-gray-700 dark:text-gray-300">
-                    Featured Service
-                  </span>
-                </label>
-              </div>
-            </div>
-            <div className="flex gap-3 mt-8">
-              <button
-                onClick={() => setShowServiceModal(false)}
-                className="flex-1 px-6 py-3 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-xl font-semibold hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-300"
-              >
-                Cancel
-              </button>
-              <button className="flex-1 relative bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white px-6 py-3 rounded-xl font-semibold transition-all duration-500 hover:shadow-2xl overflow-hidden group">
-                <span className="relative z-10">Create Service</span>
-                <div className="absolute inset-0 bg-white/20 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
-              </button>
-            </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
-};
-
 // Main ServicesManagement Component
-const ServicesManagement: React.FC = () => {
+const Page: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState<"all" | Service["type"]>(
     "all",
   );
@@ -560,7 +302,6 @@ const ServicesManagement: React.FC = () => {
     "all",
   );
   const [searchTerm, setSearchTerm] = useState("");
-  const [showServiceModal, setShowServiceModal] = useState(false);
   const [selectedServices, setSelectedServices] = useState<Set<string>>(
     new Set(),
   );
@@ -568,7 +309,7 @@ const ServicesManagement: React.FC = () => {
     key: keyof Service;
     direction: "asc" | "desc";
   } | null>(null);
-  const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
+  const [viewMode, setViewMode] = useState<"grid" | "table">("table");
 
   // Filter services
   const filteredServices = useMemo(() => {
@@ -675,7 +416,13 @@ const ServicesManagement: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-50 dark:from-gray-900 dark:via-[#0A0A0A] dark:to-purple-900/20 p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
-        <Header onCreateService={() => setShowServiceModal(true)} />
+        <DashboardHeader
+          title="Services Management"
+          subtitle="Manage your educational, mentorship, development, and community services"
+          buttonText="Create Service"
+          location="/dashboard/services/new"
+          buttonIcon={<FaBriefcase size={18} />}
+        />
         <StatsCards services={mockServices} />
         <Controls
           selectedTab={selectedTab}
@@ -693,7 +440,15 @@ const ServicesManagement: React.FC = () => {
             {sortedServices.length === 0 ? (
               <EmptyState
                 searchTerm={searchTerm}
-                setShowServiceModal={setShowServiceModal}
+                title="No services found"
+                subtitle={(term) =>
+                  term
+                    ? `No services match "${term}". Try adjusting your search or filters.`
+                    : "You have no services yet. Start by creating a new service."
+                }
+                location="/dashboard/services/new"
+                buttonText="Create Service"
+                icon={<FaBriefcase className="w-8 h-8 text-gray-400" />}
               />
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -722,13 +477,9 @@ const ServicesManagement: React.FC = () => {
             getStatusColor={getStatusColor}
           />
         )}
-        <CreateServiceModal
-          showServiceModal={showServiceModal}
-          setShowServiceModal={setShowServiceModal}
-        />
       </div>
     </div>
   );
 };
 
-export default ServicesManagement;
+export default Page;
