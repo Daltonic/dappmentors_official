@@ -277,3 +277,30 @@ export interface PasswordData {
   newPassword: string;
   confirmPassword: string;
 }
+
+export interface Service {
+  id: string;
+  title: string;
+  description: string;
+  type:
+    | "Education"
+    | "Mentorship"
+    | "Development"
+    | "Writing"
+    | "Hiring"
+    | "Community";
+  category: string;
+  price: number | string;
+  status: "active" | "inactive" | "coming-soon";
+  duration: string;
+  clients: number;
+  rating: number;
+  totalReviews: number;
+  lead: string;
+  createdAt: string;
+  updatedAt: string;
+  featured: boolean;
+  thumbnail: string;
+  tags: string[];
+  deliverables: string[];
+}

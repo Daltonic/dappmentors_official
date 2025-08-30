@@ -1,6 +1,13 @@
 import { PostProp, ProductProp, ProductStruct, User } from "@/utils/interfaces";
 // @/config/dashboardConfig.ts
-import { FaChartPie, FaBox, FaPen, FaUsers, FaCog } from "react-icons/fa";
+import {
+  FaChartPie,
+  FaBox,
+  FaPen,
+  FaUsers,
+  FaCog,
+  FaBriefcase,
+} from "react-icons/fa";
 
 export const navlinks = [
   { label: "Home", link: "/" },
@@ -384,6 +391,13 @@ export const dashboardPages = [
     title: "Products Management",
     icon: FaBox,
     badge: "12",
+  },
+  {
+    path: "/dashboard/services",
+    label: "Services",
+    title: "Services Management",
+    icon: FaBriefcase,
+    badge: "4",
   },
   {
     path: "/dashboard/blogs",
