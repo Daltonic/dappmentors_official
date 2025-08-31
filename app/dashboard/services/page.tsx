@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Service } from "@/utils/interfaces";
 import Controls from "@/components/dashboard/services/Controls";
@@ -8,6 +8,8 @@ import ServiceCard from "@/components/dashboard/services/ServiceCard";
 import ServiceTable from "@/components/dashboard/services/ServiceTable";
 import EmptyState from "@/components/dashboard/EmptyState";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
+import { apiUtils } from "@/services/api.services";
+import { toast } from "react-toastify";
 import {
   FaBriefcase,
   FaTools,
@@ -15,221 +17,7 @@ import {
   FaUsers,
   FaDollarSign,
 } from "react-icons/fa";
-
-// Mock data
-const mockServices: Service[] = [
-  {
-    id: "1",
-    title: "Smart Contract Development",
-    description:
-      "Custom smart contract development using Solidity, Rust, and Vyper for multiple blockchains",
-    type: "Development",
-    category: "Blockchain Development",
-    price: "Custom Quote",
-    status: "active",
-    duration: "4-8 weeks",
-    clients: 45,
-    rating: 4.9,
-    totalReviews: 23,
-    lead: "Darlington Gospel",
-    createdAt: "2024-01-15",
-    updatedAt: "2024-08-20",
-    featured: true,
-    thumbnail:
-      "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=400&h=240&fit=crop",
-    tags: ["Solidity", "Rust", "Security", "Multi-chain"],
-    deliverables: [
-      "Smart Contracts",
-      "Documentation",
-      "Testing Suite",
-      "Deployment",
-    ],
-  },
-  {
-    id: "2",
-    title: "One-on-One Mentorship",
-    description:
-      "Personal blockchain development mentorship with industry experts",
-    type: "Mentorship",
-    category: "Personal Development",
-    price: 150,
-    status: "active",
-    duration: "1 hour sessions",
-    clients: 120,
-    rating: 4.8,
-    totalReviews: 67,
-    lead: "Darlington Gospel",
-    createdAt: "2024-02-01",
-    updatedAt: "2024-08-18",
-    featured: true,
-    thumbnail:
-      "https://images.unsplash.com/photo-1552664730-d307ca884978?w=400&h=240&fit=crop",
-    tags: ["1-on-1", "Career Guidance", "Code Review", "Project Support"],
-    deliverables: [
-      "Session Recording",
-      "Action Plan",
-      "Resources",
-      "Follow-up",
-    ],
-  },
-  {
-    id: "3",
-    title: "Dapp Mentors Academy",
-    description:
-      "Premium membership platform with exclusive courses and content",
-    type: "Education",
-    category: "Online Learning",
-    price: 99,
-    status: "active",
-    duration: "Monthly subscription",
-    clients: 850,
-    rating: 4.7,
-    totalReviews: 156,
-    lead: "Team",
-    createdAt: "2024-01-01",
-    updatedAt: "2024-08-15",
-    featured: true,
-    thumbnail:
-      "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400&h=240&fit=crop",
-    tags: ["Premium Content", "Video Tutorials", "Books", "Community"],
-    deliverables: [
-      "Course Access",
-      "eBooks",
-      "Video Content",
-      "Community Access",
-    ],
-  },
-  {
-    id: "4",
-    title: "Full-Stack dApp Development",
-    description:
-      "End-to-end decentralized application development with modern frameworks",
-    type: "Development",
-    category: "Web Development",
-    price: "Custom Quote",
-    status: "active",
-    duration: "8-16 weeks",
-    clients: 28,
-    rating: 4.9,
-    totalReviews: 15,
-    lead: "Development Team",
-    createdAt: "2024-03-10",
-    updatedAt: "2024-08-12",
-    featured: false,
-    thumbnail:
-      "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=240&fit=crop",
-    tags: ["React", "Next.js", "Web3", "Full-stack"],
-    deliverables: [
-      "Frontend App",
-      "Smart Contracts",
-      "Documentation",
-      "Deployment",
-    ],
-  },
-  {
-    id: "5",
-    title: "Technical Writing & Documentation",
-    description:
-      "Professional technical content creation for Web3 projects and companies",
-    type: "Writing",
-    category: "Content Creation",
-    price: 250,
-    status: "active",
-    duration: "1-4 weeks",
-    clients: 67,
-    rating: 4.6,
-    totalReviews: 34,
-    lead: "Content Team",
-    createdAt: "2024-04-05",
-    updatedAt: "2024-08-08",
-    featured: false,
-    thumbnail:
-      "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=400&h=240&fit=crop",
-    tags: ["Technical Writing", "Documentation", "Whitepapers", "Blogs"],
-    deliverables: [
-      "Written Content",
-      "Documentation",
-      "SEO Optimization",
-      "Revisions",
-    ],
-  },
-  {
-    id: "6",
-    title: "Developer Hiring & Recruitment",
-    description:
-      "Connect with skilled Web3 developers from our community network",
-    type: "Hiring",
-    category: "Recruitment",
-    price: "Custom Quote",
-    status: "active",
-    duration: "2-6 weeks",
-    clients: 35,
-    rating: 4.5,
-    totalReviews: 18,
-    lead: "HR Team",
-    createdAt: "2024-05-15",
-    updatedAt: "2024-07-30",
-    featured: false,
-    thumbnail:
-      "https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=400&h=240&fit=crop",
-    tags: ["Recruitment", "Web3 Talent", "Screening", "Placement"],
-    deliverables: [
-      "Candidate Pool",
-      "Interview Process",
-      "Background Check",
-      "Placement",
-    ],
-  },
-  {
-    id: "7",
-    title: "Live Workshops & Hackathons",
-    description:
-      "Interactive virtual workshops and hackathon events for Web3 learning",
-    type: "Education",
-    category: "Events",
-    price: 50,
-    status: "coming-soon",
-    duration: "1-3 days",
-    clients: 0,
-    rating: 0,
-    totalReviews: 0,
-    lead: "Events Team",
-    createdAt: "2024-06-20",
-    updatedAt: "2024-08-01",
-    featured: false,
-    thumbnail:
-      "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=400&h=240&fit=crop",
-    tags: ["Workshops", "Hackathons", "Virtual Events", "Collaboration"],
-    deliverables: ["Workshop Access", "Materials", "Certificate", "Networking"],
-  },
-  {
-    id: "8",
-    title: "Discord Community Access",
-    description:
-      "Join our exclusive Discord community with 5,000+ Web3 developers",
-    type: "Community",
-    category: "Networking",
-    price: 0,
-    status: "active",
-    duration: "Ongoing",
-    clients: 5200,
-    rating: 4.4,
-    totalReviews: 89,
-    lead: "Community Team",
-    createdAt: "2024-01-01",
-    updatedAt: "2024-08-25",
-    featured: false,
-    thumbnail:
-      "https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=400&h=240&fit=crop",
-    tags: ["Discord", "Community", "Networking", "Support"],
-    deliverables: [
-      "Discord Access",
-      "Community Events",
-      "Q&A Sessions",
-      "Networking",
-    ],
-  },
-];
+import { serviceApiService } from "@/services/serviceApiService";
 
 // StatsCards Component
 const StatsCards: React.FC<{ services: Service[] }> = ({ services }) => {
@@ -254,7 +42,9 @@ const StatsCards: React.FC<{ services: Service[] }> = ({ services }) => {
     },
     {
       label: "Revenue",
-      value: "$125,450",
+      value: `$${services
+        .reduce((sum, p) => sum + Number(p.price) * p.clients, 0)
+        .toLocaleString()}`,
       color: "from-orange-500 to-orange-600",
       icon: <FaDollarSign className="text-white text-2xl" />,
     },
@@ -293,8 +83,52 @@ const StatsCards: React.FC<{ services: Service[] }> = ({ services }) => {
   );
 };
 
+// ServiceGrid Component
+const ServiceGrid: React.FC<{
+  services: Service[];
+  selectedServices: Set<string>;
+  onToggle: (id: string) => void;
+  getTypeColor: (type: Service["type"]) => string;
+  getStatusColor: (status: Service["status"]) => string;
+}> = ({
+  services,
+  selectedServices,
+  onToggle,
+  getTypeColor,
+  getStatusColor,
+}) => (
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+    {services.map((service) => (
+      <ServiceCard
+        key={service.id}
+        service={service}
+        selectedServices={selectedServices}
+        toggleServiceSelection={onToggle}
+        getTypeColor={getTypeColor}
+        getStatusColor={getStatusColor}
+      />
+    ))}
+  </div>
+);
+
 // Main ServicesManagement Component
 const Page: React.FC = () => {
+  // Auth and data state
+  const [authState, setAuthState] = useState<{
+    isAuthorized: boolean | null;
+    isCheckingAuth: boolean;
+    authError: string | null;
+  }>({
+    isAuthorized: null,
+    isCheckingAuth: true,
+    authError: null,
+  });
+
+  const [services, setServices] = useState<Service[]>([]);
+  const [dataLoading, setDataLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // UI state
   const [selectedTab, setSelectedTab] = useState<"all" | Service["type"]>(
     "all",
   );
@@ -311,12 +145,133 @@ const Page: React.FC = () => {
   } | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "table">("table");
 
-  // Filter services
+  // Notification helper
+  const addNotification = useCallback(
+    (message: string, type: "success" | "error") => {
+      toast[type](message, {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "colored",
+        toastId: Math.random().toString(36).substr(2, 9), // Unique ID for each toast
+      });
+    },
+    [],
+  );
+
+  // Fetch services using the API service
+  const fetchServices = useCallback(async () => {
+    if (authState.isAuthorized === false) {
+      setDataLoading(false);
+      return;
+    }
+
+    try {
+      setDataLoading(true);
+      setError(null);
+
+      const response = await serviceApiService.getServices({
+        limit: 100,
+        status: statusFilter === "all" ? undefined : statusFilter,
+        type: selectedTab === "all" ? undefined : selectedTab,
+      });
+
+      if (apiUtils.isSuccess(response)) {
+        const processedServices: Service[] = response.data.services.map(
+          (service) => ({
+            ...service,
+            createdAt:
+              typeof service.createdAt === "string"
+                ? service.createdAt
+                : new Date(service.createdAt).toISOString(),
+            updatedAt:
+              typeof service.updatedAt === "string"
+                ? service.updatedAt
+                : new Date(service.updatedAt).toISOString(),
+          }),
+        );
+
+        setServices(processedServices);
+      } else {
+        const errorMessage = apiUtils.handleApiError(
+          apiUtils.getErrorMessage(response),
+        );
+        setError(errorMessage);
+        addNotification(errorMessage, "error");
+      }
+    } catch (error) {
+      const errorMessage = "Failed to fetch services. Please try again.";
+      setError(errorMessage);
+      addNotification(errorMessage, "error");
+      console.error("Error fetching services:", error);
+    } finally {
+      setDataLoading(false);
+    }
+  }, [authState.isAuthorized, statusFilter, selectedTab, addNotification]);
+
+  // Fetch services when auth state changes or filters change
+  useEffect(() => {
+    if (authState.isAuthorized === true) {
+      fetchServices();
+    } else if (authState.isAuthorized === false) {
+      setDataLoading(false);
+    }
+  }, [fetchServices, authState.isAuthorized]);
+
+  // Check auth without redirecting
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const res = await fetch("/api/services?limit=1", {
+          credentials: "include",
+          method: "GET",
+        });
+
+        if (res.ok) {
+          setAuthState({
+            isAuthorized: true,
+            isCheckingAuth: false,
+            authError: null,
+          });
+        } else if (res.status === 401) {
+          setAuthState({
+            isAuthorized: false,
+            isCheckingAuth: false,
+            authError: "Not authenticated. Please log in.",
+          });
+        } else if (res.status === 403) {
+          setAuthState({
+            isAuthorized: false,
+            isCheckingAuth: false,
+            authError:
+              "Access denied. Admin or Instructor privileges required.",
+          });
+        } else {
+          setAuthState({
+            isAuthorized: false,
+            isCheckingAuth: false,
+            authError: `Authentication check failed: ${res.status}`,
+          });
+        }
+      } catch (error) {
+        console.error("Auth check error:", error);
+        setAuthState({
+          isAuthorized: false,
+          isCheckingAuth: false,
+          authError: "Failed to check authentication status.",
+        });
+      }
+    };
+
+    checkAuth();
+  }, []);
+
+  // Filter services client-side (for search)
   const filteredServices = useMemo(() => {
-    return mockServices.filter((service) => {
-      const matchesType = selectedTab === "all" || service.type === selectedTab;
-      const matchesStatus =
-        statusFilter === "all" || service.status === statusFilter;
+    return services.filter((service) => {
       const matchesSearch =
         service.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         service.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -325,9 +280,9 @@ const Page: React.FC = () => {
         service.tags.some((tag) =>
           tag.toLowerCase().includes(searchTerm.toLowerCase()),
         );
-      return matchesType && matchesStatus && matchesSearch;
+      return matchesSearch;
     });
-  }, [selectedTab, statusFilter, searchTerm]);
+  }, [services, searchTerm]);
 
   // Sort services
   const sortedServices = useMemo(() => {
@@ -337,17 +292,22 @@ const Page: React.FC = () => {
       const aValue = a[sortConfig.key];
       const bValue = b[sortConfig.key];
 
+      let comparison = 0;
+
       if (typeof aValue === "string" && typeof bValue === "string") {
-        const comparison = aValue.localeCompare(bValue);
-        return sortConfig.direction === "asc" ? comparison : -comparison;
+        comparison = aValue.localeCompare(bValue);
+      } else if (typeof aValue === "number" && typeof bValue === "number") {
+        comparison = aValue - bValue;
+      } else if (
+        sortConfig.key === "createdAt" ||
+        sortConfig.key === "updatedAt"
+      ) {
+        const aDate = new Date(aValue as string);
+        const bDate = new Date(bValue as string);
+        comparison = aDate.getTime() - bDate.getTime();
       }
 
-      if (typeof aValue === "number" && typeof bValue === "number") {
-        const comparison = aValue - bValue;
-        return sortConfig.direction === "asc" ? comparison : -comparison;
-      }
-
-      return 0;
+      return sortConfig.direction === "asc" ? comparison : -comparison;
     });
   }, [filteredServices, sortConfig]);
 
@@ -413,6 +373,76 @@ const Page: React.FC = () => {
     }
   };
 
+  // Show loading state while checking authentication
+  if (authState.isCheckingAuth) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-50 dark:from-gray-900 dark:via-[#0A0A0A] dark:to-purple-900/20 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <div className="text-lg text-gray-600 dark:text-gray-300">
+            Checking authentication...
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show access denied without redirecting
+  if (!authState.isAuthorized) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-50 dark:from-gray-900 dark:via-[#0A0A0A] dark:to-purple-900/20 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-8">
+          <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+            <FaBriefcase className="w-8 h-8 text-red-600 dark:text-red-400" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+            Access Denied
+          </h2>
+          <p className="text-gray-600 dark:text-gray-300 mb-6">
+            {authState.authError ||
+              "You don't have permission to access this page."}
+          </p>
+          <button
+            onClick={() => (window.location.href = "/login")}
+            className="bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white px-6 py-3 rounded-xl font-semibold hover:scale-105 transition-transform duration-300 mr-4"
+          >
+            Go to Login
+          </button>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-gray-500 text-white px-6 py-3 rounded-xl font-semibold hover:scale-105 transition-transform duration-300"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state without redirecting
+  if (error && !dataLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-50 dark:from-gray-900 dark:via-[#0A0A0A] dark:to-purple-900/20 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-8">
+          <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+            <FaBriefcase className="w-8 h-8 text-red-600 dark:text-red-400" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+            Error Loading Services
+          </h2>
+          <p className="text-gray-600 dark:text-gray-300 mb-6">{error}</p>
+          <button
+            onClick={fetchServices}
+            className="bg-blue-500 text-white px-6 py-3 rounded-xl font-semibold hover:scale-105 transition-transform duration-300"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Main content - only shown when authorized
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-50 dark:from-gray-900 dark:via-[#0A0A0A] dark:to-purple-900/20 p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
@@ -423,7 +453,7 @@ const Page: React.FC = () => {
           location="/dashboard/services/new"
           buttonIcon={<FaBriefcase size={18} />}
         />
-        <StatsCards services={mockServices} />
+        <StatsCards services={services} />
         <Controls
           selectedTab={selectedTab}
           setSelectedTab={setSelectedTab}
@@ -435,36 +465,35 @@ const Page: React.FC = () => {
           setViewMode={setViewMode}
           selectedServices={selectedServices}
         />
-        {viewMode === "grid" ? (
-          <div>
-            {sortedServices.length === 0 ? (
-              <EmptyState
-                searchTerm={searchTerm}
-                title="No services found"
-                subtitle={(term) =>
-                  term
-                    ? `No services match "${term}". Try adjusting your search or filters.`
-                    : "You have no services yet. Start by creating a new service."
-                }
-                location="/dashboard/services/new"
-                buttonText="Create Service"
-                icon={<FaBriefcase className="w-8 h-8 text-gray-400" />}
-              />
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {sortedServices.map((service, index) => (
-                  <ServiceCard
-                    key={index}
-                    service={service}
-                    selectedServices={selectedServices}
-                    toggleServiceSelection={toggleServiceSelection}
-                    getTypeColor={getTypeColor}
-                    getStatusColor={getStatusColor}
-                  />
-                ))}
-              </div>
-            )}
+
+        {dataLoading ? (
+          <div className="text-center py-16">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+            <div className="text-gray-600 dark:text-gray-300">
+              Loading services...
+            </div>
           </div>
+        ) : sortedServices.length === 0 ? (
+          <EmptyState
+            searchTerm={searchTerm}
+            title="No services found"
+            subtitle={(term) =>
+              term
+                ? `No services match "${term}". Try adjusting your search or filters.`
+                : "You haven't added any services yet. Start by creating a new service."
+            }
+            location="/dashboard/services/new"
+            buttonText="Create Service"
+            icon={<FaBriefcase className="w-8 h-8 text-gray-400" />}
+          />
+        ) : viewMode === "grid" ? (
+          <ServiceGrid
+            services={sortedServices}
+            selectedServices={selectedServices}
+            onToggle={toggleServiceSelection}
+            getTypeColor={getTypeColor}
+            getStatusColor={getStatusColor}
+          />
         ) : (
           <ServiceTable
             sortedServices={sortedServices}

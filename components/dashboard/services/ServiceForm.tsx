@@ -18,11 +18,19 @@ import {
   FiEdit,
   FiPackage,
   FiHelpCircle,
+  FiPlus,
+  FiMinus,
 } from "react-icons/fi";
+import {
+  serviceApiService,
+  CreateServiceData,
+  UpdateServiceData,
+} from "@/services/serviceApiService";
 
 interface ServiceFormProps {
   service?: Service | null;
-  onSubmit: (serviceData: Partial<Service>) => void;
+  onSubmit?: (serviceData: Partial<Service>) => void;
+  onSuccess?: (service: Service) => void;
   onCancel?: () => void;
   className?: string;
 }
@@ -39,6 +47,7 @@ interface FormData {
   featured: boolean;
   status: Service["status"];
   tags: string;
+  deliverables: string[];
 }
 
 interface FormErrors {
@@ -49,11 +58,14 @@ interface FormErrors {
   duration?: string;
   lead?: string;
   thumbnail?: string;
+  deliverables?: string;
+  submit?: string;
 }
 
 const ServiceForm: React.FC<ServiceFormProps> = ({
   service = null,
   onSubmit,
+  onSuccess,
   onCancel,
   className = "",
 }) => {
@@ -71,11 +83,13 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
     featured: false,
     status: "active",
     tags: "",
+    deliverables: [],
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showImagePreview, setShowImagePreview] = useState(false);
+  const [newDeliverable, setNewDeliverable] = useState("");
 
   // Categories based on service types
   const categoryOptions = {
@@ -143,10 +157,11 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
         category: service.category,
         duration: service.duration,
         lead: service.lead,
-        thumbnail: service.thumbnail,
+        thumbnail: service.thumbnail || "",
         featured: service.featured,
         status: service.status,
         tags: service.tags.join(", "),
+        deliverables: service.deliverables || [],
       });
     } else {
       setFormData({
@@ -161,6 +176,7 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
         featured: false,
         status: "active",
         tags: "",
+        deliverables: [],
       });
     }
     setErrors({});
@@ -205,6 +221,11 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
       newErrors.thumbnail = "Please enter a valid URL";
     }
 
+    // Validate deliverables
+    if (formData.deliverables.length > 20) {
+      newErrors.deliverables = "Maximum 20 deliverables allowed";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -220,7 +241,7 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
 
   const handleInputChange = (
     field: keyof FormData,
-    value: string | boolean,
+    value: string | boolean | string[],
   ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
 
@@ -228,6 +249,23 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
     if (errors[field as keyof FormErrors]) {
       setErrors((prev) => ({ ...prev, [field]: undefined }));
     }
+  };
+
+  const addDeliverable = () => {
+    if (newDeliverable.trim() && formData.deliverables.length < 20) {
+      setFormData((prev) => ({
+        ...prev,
+        deliverables: [...prev.deliverables, newDeliverable.trim()],
+      }));
+      setNewDeliverable("");
+    }
+  };
+
+  const removeDeliverable = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      deliverables: prev.deliverables.filter((_, i) => i !== index),
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -238,31 +276,84 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
     }
 
     setIsSubmitting(true);
+    setErrors({}); // Clear any previous errors
 
     try {
       const serviceData = {
-        ...formData,
+        title: formData.title.trim(),
+        description: formData.description.trim(),
+        type: formData.type,
         price: isNaN(parseFloat(formData.price))
-          ? formData.price
+          ? formData.price.trim()
           : parseFloat(formData.price),
+        category: formData.category.trim(),
+        duration: formData.duration.trim(),
+        lead: formData.lead.trim(),
+        thumbnail: formData.thumbnail.trim(),
+        featured: formData.featured,
+        status: formData.status,
         tags: formData.tags
           .split(",")
           .map((tag) => tag.trim())
           .filter(Boolean),
-        updatedAt: new Date().toISOString(),
-        ...(!isEditMode && {
-          id: Date.now().toString(),
-          clients: 0,
-          rating: 0,
-          totalReviews: 0,
-          createdAt: new Date().toISOString(),
-          deliverables: [],
-        }),
+        deliverables: formData.deliverables,
       };
 
-      await onSubmit(serviceData);
+      let response;
+
+      if (isEditMode && service) {
+        // Update existing service
+        const updateData: UpdateServiceData = serviceData;
+        response = await serviceApiService.updateService(
+          service.id,
+          updateData,
+        );
+      } else {
+        // Create new service
+        const createData: CreateServiceData = serviceData;
+        response = await serviceApiService.createService(createData);
+      }
+
+      if (response.data) {
+        // Call the legacy onSubmit callback if provided
+        if (onSubmit) {
+          onSubmit(response.data.service);
+        }
+
+        // Call the new onSuccess callback if provided
+        if (onSuccess) {
+          onSuccess(response.data.service);
+        }
+
+        // Reset form if creating new service
+        if (!isEditMode) {
+          setFormData({
+            title: "",
+            description: "",
+            type: "Development",
+            price: "",
+            category: "",
+            duration: "",
+            lead: "",
+            thumbnail: "",
+            featured: false,
+            status: "active",
+            tags: "",
+            deliverables: [],
+          });
+        }
+      } else {
+        // Handle API errors
+        setErrors({
+          submit:
+            response.error || "An error occurred while saving the service",
+        });
+      }
     } catch (error) {
       console.error("Error submitting form:", error);
+      setErrors({
+        submit: "An unexpected error occurred. Please try again.",
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -333,6 +424,15 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
 
       {/* Form Content */}
       <form onSubmit={handleSubmit} className="p-6">
+        {/* Display submission errors */}
+        {errors.submit && (
+          <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl">
+            <p className="text-red-600 dark:text-red-400 text-sm">
+              {errors.submit}
+            </p>
+          </div>
+        )}
+
         <div className="space-y-8">
           {/* Basic Information */}
           <div>
@@ -603,6 +703,72 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
             </div>
           </div>
 
+          {/* Deliverables */}
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <FiPackage className="w-5 h-5 text-[#D2145A]" />
+              Deliverables
+            </h3>
+
+            <div className="space-y-4">
+              {/* Add new deliverable */}
+              <div className="flex gap-3">
+                <input
+                  type="text"
+                  value={newDeliverable}
+                  onChange={(e) => setNewDeliverable(e.target.value)}
+                  className="flex-1 px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200/50 dark:border-gray-700/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF4081]/50 focus:border-transparent transition-all duration-300"
+                  placeholder="Add a deliverable (e.g. Complete source code)"
+                  onKeyPress={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      addDeliverable();
+                    }
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={addDeliverable}
+                  disabled={
+                    !newDeliverable.trim() || formData.deliverables.length >= 20
+                  }
+                  className="px-4 py-3 bg-[#D2145A] text-white rounded-xl hover:bg-[#D2145A]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <FiPlus className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Deliverables list */}
+              {formData.deliverables.length > 0 && (
+                <div className="space-y-2">
+                  {formData.deliverables.map((deliverable, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200/50 dark:border-gray-700/50"
+                    >
+                      <span className="flex-1 text-gray-700 dark:text-gray-300">
+                        {deliverable}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => removeDeliverable(index)}
+                        className="p-1 text-red-500 hover:text-red-700 transition-colors"
+                      >
+                        <FiMinus className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {errors.deliverables && (
+                <p className="text-sm text-red-600 dark:text-red-400">
+                  {errors.deliverables}
+                </p>
+              )}
+            </div>
+          </div>
+
           {/* Media & Settings */}
           <div>
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
@@ -648,15 +814,17 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
 
                 {/* Image Preview */}
                 {showImagePreview && formData.thumbnail && (
-                  <Image
-                    src={formData.thumbnail}
-                    alt="Thumbnail preview"
-                    width={400}
-                    height={160}
-                    className="w-full max-w-md h-40 object-cover rounded-lg"
-                    onError={() => setShowImagePreview(false)}
-                    unoptimized
-                  />
+                  <div className="mt-4">
+                    <Image
+                      src={formData.thumbnail}
+                      alt="Thumbnail preview"
+                      width={400}
+                      height={160}
+                      className="w-full max-w-md h-40 object-cover rounded-lg border border-gray-200 dark:border-gray-700"
+                      onError={() => setShowImagePreview(false)}
+                      unoptimized
+                    />
+                  </div>
                 )}
               </div>
 
@@ -710,7 +878,7 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
               {isSubmitting ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Saving...
+                  {isEditMode ? "Updating..." : "Creating..."}
                 </>
               ) : (
                 <>

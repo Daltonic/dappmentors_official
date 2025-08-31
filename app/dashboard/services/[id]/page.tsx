@@ -1,44 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Service } from "@/utils/interfaces";
 import ServiceForm from "@/components/dashboard/services/ServiceForm";
 import { use } from "react";
 import { toast } from "react-toastify";
-
-// Mock data for design purposes
-const mockServices: Service[] = [
-  {
-    id: "1",
-    title: "Smart Contract Development",
-    description:
-      "Custom smart contract development using Solidity, Rust, and Vyper for multiple blockchains",
-    type: "Development",
-    category: "Blockchain Development",
-    price: "Custom Quote",
-    status: "active",
-    duration: "4-8 weeks",
-    clients: 45,
-    rating: 4.9,
-    totalReviews: 23,
-    lead: "Darlington Gospel",
-    createdAt: "2024-01-15",
-    updatedAt: "2024-08-20",
-    featured: true,
-    thumbnail:
-      "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=400&h=240&fit=crop",
-    tags: ["Solidity", "Rust", "Security", "Multi-chain"],
-    deliverables: [
-      "Smart Contracts",
-      "Documentation",
-      "Testing Suite",
-      "Deployment",
-    ],
-  },
-  // Add more mock services as needed
-];
 
 const Page = ({ params }: { params: Promise<{ id: string }> }) => {
   const router = useRouter();
@@ -47,19 +15,30 @@ const Page = ({ params }: { params: Promise<{ id: string }> }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Mock fetch for design purposes
-  const fetchService = () => {
-    const foundService = mockServices.find((s) => s.id === id);
-    if (foundService) {
-      setService(foundService);
-    } else {
-      setError("Service not found");
-    }
-    setLoading(false);
-  };
+  useEffect(() => {
+    const fetchService = async () => {
+      try {
+        const response = await fetch(`/api/products/${id}`, {
+          credentials: "include",
+        });
 
-  // Simulate fetching service data
-  setTimeout(fetchService, 1000);
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Failed to fetch product");
+        }
+
+        const data = await response.json();
+        setService(data.service);
+      } catch (err) {
+        console.error("Fetch product error:", err);
+        setError(err instanceof Error ? err.message : "An error occurred");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchService();
+  }, [id]);
 
   const handleFormSubmit = async (serviceData: Partial<Service>) => {
     try {

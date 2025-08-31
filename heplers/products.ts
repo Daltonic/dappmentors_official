@@ -1,36 +1,14 @@
-import { Product } from "@/utils/interfaces";
-import { Collection, Filter, ObjectId } from "mongodb";
+export function generateSlug(title: string, id?: string | number): string {
+  if (!title || title.trim() === "") {
+    throw new Error("Title cannot be empty");
+  }
 
-interface ProductDocument extends Omit<Product, "id"> {
-  _id: ObjectId;
-  createdBy: string;
-}
-
-// Helper function to generate unique slug
-export async function generateUniqueSlug(
-  title: string,
-  collection: Collection<ProductDocument>,
-  excludeId?: ObjectId,
-): Promise<string> {
   const baseSlug = title
     .toLowerCase()
     .trim()
     .replace(/\s+/g, "-")
-    .replace(/[^\w-]+/g, "");
+    .replace(/[^\w-]+/g, "")
+    .replace(/-+/g, "-");
 
-  let slug = baseSlug;
-  let count = 1;
-
-  const query: Filter<ProductDocument> = { slug };
-  if (excludeId) {
-    query._id = { $ne: excludeId };
-  }
-
-  while (await collection.findOne(query)) {
-    slug = `${baseSlug}-${count}`;
-    query.slug = slug;
-    count++;
-  }
-
-  return slug;
+  return id ? `${baseSlug}-${id}` : baseSlug;
 }

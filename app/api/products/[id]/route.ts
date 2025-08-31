@@ -3,7 +3,7 @@ import { verifyAccessToken } from "@/lib/jwt";
 import { Product } from "@/utils/interfaces";
 import { Collection, Filter, ObjectId } from "mongodb";
 import { NextRequest, NextResponse } from "next/server";
-import { generateUniqueSlug } from "@/heplers/products";
+import { generateSlug } from "@/heplers/products";
 
 type ProductType = "Course" | "Bootcamp" | "eBook" | "Codebase";
 type ProductStatus = "published" | "draft" | "archived";
@@ -182,10 +182,9 @@ export async function PUT(
 
     // If title is updated, regenerate slug
     if (body.title && body.title !== existingProduct.title) {
-      updateData.slug = await generateUniqueSlug(
+      updateData.slug = generateSlug(
         body.title,
-        collection,
-        existingProduct._id,
+        existingProduct._id.toString(),
       );
     }
 

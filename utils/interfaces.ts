@@ -303,4 +303,5 @@ export interface Service {
   thumbnail: string;
   tags: string[];
   deliverables: string[];
+  slug: string;
 }

@@ -1,22 +1,28 @@
-// /api/products/route.ts
+// /api/services/route.ts
 
 import { connectToDatabase } from "@/lib/mongodb";
 import { verifyAccessToken } from "@/lib/jwt";
-import { Product } from "@/utils/interfaces";
+import { Service } from "@/utils/interfaces";
 import { Collection, Filter, ObjectId } from "mongodb";
 import { NextRequest, NextResponse } from "next/server";
 import { generateSlug } from "@/heplers/products";
 
-type ProductType = "Course" | "Bootcamp" | "eBook" | "Codebase";
-type ProductStatus = "published" | "draft" | "archived";
-type ProductDifficulty = "Beginner" | "Intermediate" | "Advanced";
+type ServiceType =
+  | "Education"
+  | "Mentorship"
+  | "Development"
+  | "Writing"
+  | "Hiring"
+  | "Community";
+type ServiceStatus = "active" | "inactive" | "coming-soon";
 
-interface ProductDocument extends Omit<Product, "id"> {
+interface ServiceDocument extends Omit<Service, "id"> {
   _id: ObjectId;
   createdBy: string;
+  slug: string;
 }
 
-// GET - List all products with filtering and pagination
+// GET - List all services with filtering and pagination
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     // Authentication check
@@ -31,7 +37,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
 
     const db = await connectToDatabase();
-    const collection: Collection<ProductDocument> = db.collection("products");
+    const collection: Collection<ServiceDocument> = db.collection("services");
 
     // Parse query parameters
     const url = new URL(request.url);
@@ -41,34 +47,33 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const type = url.searchParams.get("type") || "";
     const status = url.searchParams.get("status") || "";
     const category = url.searchParams.get("category") || "";
-    const difficulty = url.searchParams.get("difficulty") || "";
     const featured = url.searchParams.get("featured");
     const sortBy = url.searchParams.get("sortBy") || "createdAt";
     const sortOrder = url.searchParams.get("sortOrder") || "desc";
 
     // Build filter query
-    const filter: Filter<ProductDocument> = {};
+    const filter: Filter<ServiceDocument> = {};
 
     if (search) {
       filter.$or = [
         { title: { $regex: search, $options: "i" } },
         { description: { $regex: search, $options: "i" } },
-        { instructor: { $regex: search, $options: "i" } },
+        { lead: { $regex: search, $options: "i" } },
         { slug: { $regex: search, $options: "i" } },
+        { tags: { $in: [new RegExp(search, "i")] } },
       ];
     }
 
-    if (type) filter.type = type as ProductType;
-    if (status) filter.status = status as ProductStatus;
+    if (type) filter.type = type as ServiceType;
+    if (status) filter.status = status as ServiceStatus;
     if (category) filter.category = category;
-    if (difficulty) filter.difficulty = difficulty as ProductDifficulty;
     if (featured !== null && featured !== undefined) {
       filter.featured = featured === "true";
     }
 
-    // Non-admin users can only see published products (unless they're the creator)
+    // Non-admin users can only see active services (unless they're the creator)
     if (payload.role !== "admin") {
-      filter.$or = [{ status: "published" }, { createdBy: payload.userId }];
+      filter.$or = [{ status: "active" }, { createdBy: payload.userId }];
     }
 
     // Build sort object
@@ -79,29 +84,30 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const skip = (page - 1) * limit;
 
     // Execute queries
-    const [products, totalProducts] = await Promise.all([
+    const [services, totalServices] = await Promise.all([
       collection.find(filter).sort(sort).skip(skip).limit(limit).toArray(),
       collection.countDocuments(filter),
     ]);
 
-    // Transform products for frontend
-    const transformedProducts = products.map(
-      (product) =>
+    // Transform services for frontend
+    const transformedServices = services.map(
+      (service) =>
         ({
-          ...product,
-          id: product._id.toString(),
+          ...service,
+          id: service._id.toString(),
           _id: undefined,
-        }) as Product,
+          slug: undefined,
+        }) as unknown as Service,
     );
 
-    const totalPages = Math.ceil(totalProducts / limit);
+    const totalPages = Math.ceil(totalServices / limit);
 
     return NextResponse.json({
-      products: transformedProducts,
+      services: transformedServices,
       pagination: {
         currentPage: page,
         totalPages,
-        totalProducts,
+        totalServices,
         hasNextPage: page < totalPages,
         hasPrevPage: page > 1,
       },
@@ -110,12 +116,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         type,
         status,
         category,
-        difficulty,
         featured,
       },
     });
   } catch (error) {
-    console.error("GET /api/products error:", error);
+    console.error("GET /api/services error:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 },
@@ -123,7 +128,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }
 }
 
-// POST - Create new product
+// POST - Create new service
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     // Authentication check
@@ -137,7 +142,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
 
-    // Check if user has permission to create products
+    // Check if user has permission to create services
     if (payload.role !== "admin" && payload.role !== "instructor") {
       return NextResponse.json(
         {
@@ -148,8 +153,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     const db = await connectToDatabase();
-    const collection: Collection<Omit<ProductDocument, "_id">> =
-      db.collection("products");
+    const collection: Collection<Omit<ServiceDocument, "_id">> =
+      db.collection("services");
 
     const body = await request.json();
 
@@ -160,9 +165,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       "type",
       "price",
       "category",
-      "difficulty",
       "duration",
-      "instructor",
+      "lead",
     ];
     const missingFields = requiredFields.filter((field) => !body[field]);
 
@@ -174,7 +178,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     // Validate data types and constraints
-    const validationErrors = validateProductData(body);
+    const validationErrors = validateServiceData(body);
     if (validationErrors.length > 0) {
       return NextResponse.json(
         { error: `Validation errors: ${validationErrors.join(", ")}` },
@@ -185,64 +189,69 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // Generate unique slug
     const slug = generateSlug(body.title, new ObjectId().toString());
 
-    // Prepare product document
+    // Prepare service document
     const now = new Date();
-    const productData: Omit<ProductDocument, "_id"> = {
+    const serviceData: Omit<ServiceDocument, "_id"> = {
       slug,
       title: body.title.trim(),
       description: body.description.trim(),
-      type: body.type as ProductType,
-      price: parseFloat(body.price),
-      status: (body.status || "draft") as ProductStatus,
+      type: body.type as ServiceType,
+      price:
+        typeof body.price === "string"
+          ? body.price.trim()
+          : parseFloat(body.price),
+      status: (body.status || "active") as ServiceStatus,
       category: body.category.trim(),
-      difficulty: body.difficulty as ProductDifficulty,
       duration: body.duration.trim(),
-      enrollments: 0,
+      clients: 0,
       rating: 0,
       totalReviews: 0,
-      instructor: body.instructor.trim(),
-      createdAt: now,
-      updatedAt: now,
+      lead: body.lead.trim(),
+      createdAt: now.toISOString(),
+      updatedAt: now.toISOString(),
       featured: body.featured || false,
       thumbnail: body.thumbnail?.trim() || "",
+      tags: Array.isArray(body.tags) ? body.tags : [],
+      deliverables: Array.isArray(body.deliverables) ? body.deliverables : [],
       createdBy: payload.userId,
     };
 
-    // Insert product
-    const result = await collection.insertOne(productData);
+    // Insert service
+    const result = await collection.insertOne(serviceData);
 
-    // Fetch the created product
-    const createdProduct = await collection.findOne({ _id: result.insertedId });
+    // Fetch the created service
+    const createdService = await collection.findOne({ _id: result.insertedId });
 
-    if (!createdProduct) {
+    if (!createdService) {
       return NextResponse.json(
-        { error: "Failed to retrieve created product" },
+        { error: "Failed to retrieve created service" },
         { status: 500 },
       );
     }
 
     // Transform for frontend
-    const transformedProduct = {
-      ...createdProduct,
-      id: createdProduct._id.toString(),
+    const transformedService = {
+      ...createdService,
+      id: createdService._id.toString(),
       _id: undefined,
-    } as Product;
+      slug: createdService.slug,
+    } as Service;
 
     return NextResponse.json(
       {
-        message: "Product created successfully",
-        product: transformedProduct,
+        message: "Service created successfully",
+        service: transformedService,
       },
       { status: 201 },
     );
   } catch (error) {
-    console.error("POST /api/products error:", error);
+    console.error("POST /api/services error:", error);
 
     // Handle specific MongoDB errors
     if (error instanceof Error) {
       if (error.message.includes("E11000")) {
         return NextResponse.json(
-          { error: "A product with this title already exists" },
+          { error: "A service with this title already exists" },
           { status: 409 },
         );
       }
@@ -256,7 +265,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 }
 
 // Validation helper function
-function validateProductData(data: Partial<Product>): string[] {
+function validateServiceData(data: Partial<Service>): string[] {
   const errors: string[] = [];
 
   // Title validation
@@ -279,30 +288,64 @@ function validateProductData(data: Partial<Product>): string[] {
   }
 
   // Type validation
-  const validTypes = ["Course", "Bootcamp", "eBook", "Codebase"];
+  const validTypes = [
+    "Education",
+    "Mentorship",
+    "Development",
+    "Writing",
+    "Hiring",
+    "Community",
+  ];
   if (!validTypes.includes(data.type as string)) {
-    errors.push("Invalid product type");
+    errors.push("Invalid service type");
   }
 
-  // Price validation
-  const price = parseFloat(data.price as unknown as string);
-  if (isNaN(price) || price < 0) {
-    errors.push("Price must be a valid positive number");
-  }
-  if (price > 10000) {
-    errors.push("Price cannot exceed $10,000");
+  // Price validation (can be string or number)
+  if (data.price !== undefined) {
+    if (typeof data.price === "string") {
+      if (data.price.trim().length === 0) {
+        errors.push("Price is required");
+      }
+    } else if (typeof data.price === "number") {
+      if (isNaN(data.price) || data.price < 0) {
+        errors.push("Price must be a valid positive number");
+      }
+      if (data.price > 100000) {
+        errors.push("Price cannot exceed $100,000");
+      }
+    } else {
+      errors.push("Price must be a number or string");
+    }
   }
 
   // Status validation
-  const validStatuses = ["published", "draft", "archived"];
+  const validStatuses = ["active", "inactive", "coming-soon"];
   if (data.status && !validStatuses.includes(data.status)) {
     errors.push("Invalid status");
   }
 
-  // Difficulty validation
-  const validDifficulties = ["Beginner", "Intermediate", "Advanced"];
-  if (!validDifficulties.includes(data.difficulty as string)) {
-    errors.push("Invalid difficulty level");
+  // Lead validation
+  if (typeof data.lead !== "string" || data.lead.trim().length < 2) {
+    errors.push("Lead must be at least 2 characters long");
+  }
+  if (data.lead && data.lead.length > 100) {
+    errors.push("Lead must be less than 100 characters");
+  }
+
+  // Duration validation
+  if (typeof data.duration !== "string" || data.duration.trim().length < 2) {
+    errors.push("Duration must be at least 2 characters long");
+  }
+  if (data.duration && data.duration.length > 100) {
+    errors.push("Duration must be less than 100 characters");
+  }
+
+  // Category validation
+  if (typeof data.category !== "string" || data.category.trim().length < 2) {
+    errors.push("Category must be at least 2 characters long");
+  }
+  if (data.category && data.category.length > 50) {
+    errors.push("Category must be less than 50 characters");
   }
 
   // Thumbnail validation
@@ -312,6 +355,38 @@ function validateProductData(data: Partial<Product>): string[] {
     } catch {
       errors.push("Thumbnail must be a valid URL");
     }
+  }
+
+  // Tags validation
+  if (data.tags && Array.isArray(data.tags)) {
+    if (data.tags.length > 10) {
+      errors.push("Maximum 10 tags allowed");
+    }
+    data.tags.forEach((tag, index) => {
+      if (typeof tag !== "string" || tag.trim().length === 0) {
+        errors.push(`Tag ${index + 1} must be a non-empty string`);
+      }
+      if (tag.length > 30) {
+        errors.push(`Tag ${index + 1} must be less than 30 characters`);
+      }
+    });
+  }
+
+  // Deliverables validation
+  if (data.deliverables && Array.isArray(data.deliverables)) {
+    if (data.deliverables.length > 20) {
+      errors.push("Maximum 20 deliverables allowed");
+    }
+    data.deliverables.forEach((deliverable, index) => {
+      if (typeof deliverable !== "string" || deliverable.trim().length === 0) {
+        errors.push(`Deliverable ${index + 1} must be a non-empty string`);
+      }
+      if (deliverable.length > 200) {
+        errors.push(
+          `Deliverable ${index + 1} must be less than 200 characters`,
+        );
+      }
+    });
   }
 
   return errors;
