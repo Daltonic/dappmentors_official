@@ -43,7 +43,13 @@ const StatsCards: React.FC<{ services: Service[] }> = ({ services }) => {
     {
       label: "Revenue",
       value: `$${services
-        .reduce((sum, p) => sum + Number(p.price) * p.clients, 0)
+        .reduce(
+          (sum, p) =>
+            typeof p.price === "number"
+              ? sum + Number(p.price) * p.clients
+              : sum,
+          0,
+        )
         .toLocaleString()}`,
       color: "from-orange-500 to-orange-600",
       icon: <FaDollarSign className="text-white text-2xl" />,

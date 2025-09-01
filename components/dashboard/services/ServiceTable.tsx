@@ -1,7 +1,9 @@
+"use client";
+
 import { Service } from "@/utils/interfaces";
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import {
   FiChevronUp,
   FiChevronDown,
@@ -11,6 +13,21 @@ import {
   FiChevronLeft,
   FiChevronRight,
 } from "react-icons/fi";
+import { useDelete } from "@/contexts/DeleteContext";
+
+// Props interface for ServiceTable
+interface ServiceTableProps {
+  sortedServices: Service[];
+  selectedServices: Set<string>;
+  toggleServiceSelection: (serviceId: string) => void;
+  toggleAllServices: () => void;
+  handleSort: (key: keyof Service) => void;
+  sortConfig: { key: keyof Service; direction: "asc" | "desc" } | null;
+  getTypeColor: (type: Service["type"]) => string;
+  getStatusColor: (status: Service["status"]) => string;
+  onServiceUpdate?: (service: Service) => void;
+  onServiceDelete?: (serviceId: string) => void;
+}
 
 // SortIcon Component
 const SortIcon: React.FC<{
@@ -29,16 +46,7 @@ const SortIcon: React.FC<{
 };
 
 // ServiceTable Component
-const ServiceTable: React.FC<{
-  sortedServices: Service[];
-  selectedServices: Set<string>;
-  toggleServiceSelection: (serviceId: string) => void;
-  toggleAllServices: () => void;
-  handleSort: (key: keyof Service) => void;
-  sortConfig: { key: keyof Service; direction: "asc" | "desc" } | null;
-  getTypeColor: (type: Service["type"]) => string;
-  getStatusColor: (status: Service["status"]) => string;
-}> = ({
+const ServiceTable: React.FC<ServiceTableProps> = ({
   sortedServices,
   selectedServices,
   toggleServiceSelection,
@@ -47,8 +55,31 @@ const ServiceTable: React.FC<{
   sortConfig,
   getTypeColor,
   getStatusColor,
+  onServiceDelete,
 }) => {
   const router = useRouter();
+  const { showDeleteModal } = useDelete();
+
+  // Handle individual service deletion
+  const handleDeleteService = (serviceId: string) => {
+    const service = sortedServices.find((s) => s.id === serviceId);
+    showDeleteModal({
+      apiUrl: `/api/services/${serviceId}`,
+      itemTitle: service?.title || "Service",
+      onSuccess: () => onServiceDelete?.(serviceId),
+      entity: "service",
+    });
+  };
+
+  // Handle edit navigation
+  const handleEditService = (serviceId: string) => {
+    router.push(`/dashboard/services/${serviceId}/edit`);
+  };
+
+  // Handle view navigation
+  const handleViewService = (serviceId: string) => {
+    router.push(`/services/${serviceId}`);
+  };
 
   return (
     <div className="bg-white/10 dark:bg-gray-900/80 backdrop-blur-sm rounded-3xl border border-gray-200/50 dark:border-gray-700/50 shadow-lg overflow-hidden">
@@ -191,7 +222,7 @@ const ServiceTable: React.FC<{
                 <td className="px-4 py-4">
                   <span className="text-lg font-bold text-gray-900 dark:text-white">
                     {typeof service.price === "number"
-                      ? `${service.price}`
+                      ? `$${service.price}`
                       : service.price}
                   </span>
                 </td>
@@ -230,22 +261,21 @@ const ServiceTable: React.FC<{
                 <td className="px-4 py-4">
                   <div className="flex items-center justify-end gap-1">
                     <button
-                      onClick={() =>
-                        router.push(`/dashboard/services/${service.id}`)
-                      }
+                      onClick={() => handleEditService(service.id)}
                       className="p-2 text-[#D2145A] hover:bg-[#FF4081]/10 dark:text-[#FF4081] dark:hover:bg-[#FF4081]/20 rounded-lg transition-all duration-300 hover:scale-110"
                       title="Edit service"
                     >
                       <FiEdit className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={() => router.push(`/services/${service.id}`)}
+                      onClick={() => handleViewService(service.id)}
                       className="p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800/50 rounded-lg transition-all duration-300 hover:scale-110"
                       title="View details"
                     >
                       <FiEye className="w-4 h-4" />
                     </button>
                     <button
+                      onClick={() => handleDeleteService(service.id)}
                       className="p-2 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/30 rounded-lg transition-all duration-300 hover:scale-110"
                       title="Delete service"
                     >
