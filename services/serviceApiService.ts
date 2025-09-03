@@ -25,6 +25,7 @@ export interface ServicesResponse {
 
 export interface CreateServiceData {
   title: string;
+  subtitle?: string;
   description: string;
   type: Service["type"];
   price: number | string;
@@ -36,6 +37,14 @@ export interface CreateServiceData {
   thumbnail?: string;
   tags?: string[];
   deliverables?: string[];
+  technologies?: string[];
+  blockchains?: string[];
+  clients?: number;
+  rating?: number;
+  totalReviews?: number;
+  features?: Service["features"];
+  packages?: Service["packages"];
+  faqs?: Service["faqs"];
 }
 
 export interface UpdateServiceData extends Partial<CreateServiceData> {
@@ -85,7 +94,7 @@ export const serviceApiService = {
     return apiRequest<ServicesResponse>(url);
   },
 
-  // Get single service by ID
+  // Get single service by ID or slug
   async getService(id: string): Promise<ApiResponse<{ service: Service }>> {
     return apiRequest<{ service: Service }>(`${API_BASE_URL}/${id}`);
   },
@@ -255,21 +264,6 @@ export const serviceApiService = {
   ): Promise<ApiResponse<ServicesResponse>> {
     return this.getServices({
       type,
-      ...params,
-    });
-  },
-
-  // Get services by lead
-  async getServicesByLead(
-    lead: string,
-    params?: {
-      page?: number;
-      limit?: number;
-      status?: string;
-    },
-  ): Promise<ApiResponse<ServicesResponse>> {
-    return this.getServices({
-      search: lead, // Assuming search includes lead
       ...params,
     });
   },

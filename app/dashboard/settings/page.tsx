@@ -20,6 +20,8 @@ import ProfileTab from "@/components/dashboard/settings/ProfileTab";
 import SystemTab from "@/components/dashboard/settings/SystemTab";
 import NotificationsTab from "@/components/dashboard/settings/NotificationsTab";
 import SecurityTab from "@/components/dashboard/settings/SecurityTab";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 // Header Component
 const Header: React.FC = () => (
@@ -165,7 +167,6 @@ const DangerZone: React.FC = () => (
           Export Data
         </button>
       </div>
-
       <div className="flex items-center justify-between">
         <div>
           <p className="font-medium text-gray-900 dark:text-white">
@@ -278,17 +279,33 @@ const SettingsPage: React.FC = () => {
     });
     setUnsavedChanges(false);
 
-    // Show success message (in real app, use toast notification)
-    alert("Settings saved successfully!");
+    // Show success toast
+    toast.success("Settings saved successfully!");
   };
 
   const handlePasswordChange = () => {
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      alert("New passwords do not match!");
+      toast.error("New passwords do not match!", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: systemSettings.darkMode ? "dark" : "light",
+      });
       return;
     }
     if (passwordData.newPassword.length < 8) {
-      alert("Password must be at least 8 characters long!");
+      toast.error("Password must be at least 8 characters long!", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: systemSettings.darkMode ? "dark" : "light",
+      });
       return;
     }
 
@@ -298,7 +315,7 @@ const SettingsPage: React.FC = () => {
       newPassword: "",
       confirmPassword: "",
     });
-    alert("Password changed successfully!");
+    toast.success("Password changed successfully!");
   };
 
   return (

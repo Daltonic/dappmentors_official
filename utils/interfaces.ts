@@ -278,9 +278,25 @@ export interface PasswordData {
   confirmPassword: string;
 }
 
+export interface ServiceFeature {
+  icon: string;
+  title: string;
+  description: string;
+}
+
+export interface ServicePackage {
+  name: string;
+  price: string;
+  duration: string;
+  features: string[];
+  popular?: boolean;
+}
+
 export interface Service {
+  _id?: ObjectId;
   id: string;
   title: string;
+  subtitle: string;
   description: string;
   type:
     | "Education"
@@ -297,11 +313,16 @@ export interface Service {
   rating: number;
   totalReviews: number;
   lead: string;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Date;
+  updatedAt: Date;
   featured: boolean;
   thumbnail: string;
   tags: string[];
   deliverables: string[];
   slug: string;
+  technologies: string[];
+  blockchains: string[];
+  features: ServiceFeature[];
+  packages: ServicePackage[];
+  faqs: FAQs[];
 }

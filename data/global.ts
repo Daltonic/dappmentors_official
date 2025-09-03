@@ -1,4 +1,10 @@
-import { PostProp, ProductProp, ProductStruct, User } from "@/utils/interfaces";
+import {
+  PostProp,
+  ProductProp,
+  ProductStruct,
+  Service,
+  User,
+} from "@/utils/interfaces";
 // @/config/dashboardConfig.ts
 import {
   FaChartPie,
@@ -556,3 +562,137 @@ export const mockUsers: User[] = [
     updatedAt: new Date("2024-08-21"),
   },
 ];
+
+export const serviceData: Service = {
+  id: "smart-contract-development",
+  title: "Smart Contract Development",
+  subtitle: "Professional Ethereum & Multi-Chain Solutions",
+  description:
+    "Custom smart contract development with security-first approach, gas optimization, and comprehensive testing for production-ready dApps.",
+  type: "Development",
+  category: "Blockchain Development",
+  price: "2500",
+  status: "active",
+  duration: "2-6 weeks",
+  clients: 150,
+  rating: 4.9,
+  totalReviews: 120,
+  lead: "Darlington Gospel",
+  createdAt: new Date("2024-01-15T10:00:00Z"),
+  updatedAt: new Date("2025-09-03T02:27:00Z"),
+  featured: true,
+  thumbnail: "/assets/images/products/solana.jpg",
+  tags: [
+    "Solidity",
+    "Smart Contracts",
+    "Blockchain",
+    "Security",
+    "DeFi",
+    "NFT",
+  ],
+  deliverables: [
+    "Complete source code",
+    "Deployment scripts",
+    "Unit test suite",
+    "Security audit report",
+    "Documentation",
+  ],
+  slug: "smart-contract-development",
+  technologies: [
+    "Solidity",
+    "Hardhat",
+    "OpenZeppelin",
+    "Foundry",
+    "Remix",
+    "Web3.js",
+    "Ethers.js",
+  ],
+  blockchains: [
+    "Ethereum",
+    "Polygon",
+    "BSC",
+    "Arbitrum",
+    "Optimism",
+    "Avalanche",
+  ],
+  features: [
+    {
+      icon: "🔒",
+      title: "Security-First Development",
+      description:
+        "Implement industry-standard security practices with comprehensive audits.",
+    },
+    {
+      icon: "⚡",
+      title: "Gas Optimization",
+      description:
+        "Optimized code to reduce transaction costs and improve efficiency.",
+    },
+    {
+      icon: "🧪",
+      title: "Thorough Testing",
+      description:
+        "Extensive unit and integration testing for robust contracts.",
+    },
+    {
+      icon: "📖",
+      title: "Detailed Documentation",
+      description:
+        "Comprehensive documentation for easy integration and maintenance.",
+    },
+  ],
+  packages: [
+    {
+      name: "Basic",
+      price: "$2,500",
+      duration: "2-4 weeks",
+      features: [
+        "Single smart contract",
+        "Basic testing",
+        "Standard deployment",
+        "Basic documentation",
+      ],
+    },
+    {
+      name: "Standard",
+      price: "$5,000",
+      duration: "4-6 weeks",
+      features: [
+        "Up to 3 smart contracts",
+        "Comprehensive testing",
+        "Security audit",
+        "Detailed documentation",
+      ],
+      popular: true,
+    },
+    {
+      name: "Premium",
+      price: "$10,000+",
+      duration: "6-8 weeks",
+      features: [
+        "Complex contract system",
+        "Full test suite",
+        "Advanced security audit",
+        "Ongoing support",
+        "Custom integrations",
+      ],
+    },
+  ],
+  faqs: [
+    {
+      question: "What blockchains do you support?",
+      answer:
+        "We support Ethereum, Polygon, BSC, Arbitrum, Optimism, Avalanche, and other EVM-compatible chains.",
+    },
+    {
+      question: "How do you ensure contract security?",
+      answer:
+        "We follow best practices with rigorous testing, code reviews, and third-party audits when required.",
+    },
+    {
+      question: "What is included in the deliverables?",
+      answer:
+        "You receive full source code, deployment scripts, test suites, audit reports, and detailed documentation.",
+    },
+  ],
+};

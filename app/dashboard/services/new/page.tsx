@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { FiXCircle } from "react-icons/fi";
-import ServiceForm from "@/components/dashboard/services/ServiceForm";
+import ServiceForm from "@/components/dashboard/services/ServiceForm2";
 import { toast } from "react-toastify";
 
 const Page: React.FC = () => {

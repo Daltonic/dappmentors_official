@@ -1,11 +1,20 @@
 // /api/services/[id]/route.ts
-
 import { connectToDatabase } from "@/lib/mongodb";
 import { verifyAccessToken } from "@/lib/jwt";
-import { Service } from "@/utils/interfaces";
+import {
+  FAQs,
+  Service,
+  ServiceFeature,
+  ServicePackage,
+} from "@/utils/interfaces";
 import { Collection, Filter, ObjectId } from "mongodb";
 import { NextRequest, NextResponse } from "next/server";
 import { generateSlug } from "@/heplers/products";
+import {
+  validateAndNormalizeFAQs,
+  validateAndNormalizeFeatures,
+  validateAndNormalizePackages,
+} from "@/validations/services";
 
 type ServiceType =
   | "Education"
@@ -14,6 +23,7 @@ type ServiceType =
   | "Writing"
   | "Hiring"
   | "Community";
+
 type ServiceStatus = "active" | "inactive" | "coming-soon";
 
 interface ServiceDocument extends Omit<Service, "id"> {
@@ -148,12 +158,13 @@ export async function PUT(
 
     // Prepare update data
     const updateData: Partial<Omit<Service, "id">> = {
-      updatedAt: new Date().toISOString(),
+      updatedAt: new Date(),
     };
 
     // Only update provided fields
     const allowedFields = [
       "title",
+      "subtitle",
       "description",
       "type",
       "price",
@@ -165,6 +176,14 @@ export async function PUT(
       "thumbnail",
       "tags",
       "deliverables",
+      "technologies",
+      "blockchains",
+      "clients",
+      "rating",
+      "totalReviews",
+      "features",
+      "packages",
+      "faqs",
     ];
 
     allowedFields.forEach((field) => {
@@ -187,8 +206,27 @@ export async function PUT(
           updateData[field] = value as ServiceStatus;
         } else if (field === "featured") {
           updateData[field] = !!value;
-        } else if (field === "tags" || field === "deliverables") {
+        } else if (
+          field === "tags" ||
+          field === "deliverables" ||
+          field === "technologies" ||
+          field === "blockchains"
+        ) {
           updateData[field] = Array.isArray(value) ? value : [];
+        } else if (field === "clients" || field === "totalReviews") {
+          updateData[field] = parseInt(value as string) || 0;
+        } else if (field === "rating") {
+          updateData[field] = parseFloat(value as string) || 0;
+        } else if (field === "features") {
+          updateData[field] = validateAndNormalizeFeatures(
+            value as ServiceFeature[],
+          );
+        } else if (field === "packages") {
+          updateData[field] = validateAndNormalizePackages(
+            value as ServicePackage[],
+          );
+        } else if (field === "faqs") {
+          updateData[field] = validateAndNormalizeFAQs(value as FAQs[]);
         } else {
           (updateData as Record<string, unknown>)[field] = value;
         }
@@ -345,6 +383,11 @@ function validateUpdateServiceData(data: Partial<Service>): string[] {
     }
   }
 
+  // Subtitle validation (if provided)
+  if (data.subtitle !== undefined && data.subtitle.length > 150) {
+    errors.push("Subtitle must be less than 150 characters");
+  }
+
   // Description validation (if provided)
   if (data.description !== undefined) {
     if (
@@ -353,8 +396,8 @@ function validateUpdateServiceData(data: Partial<Service>): string[] {
     ) {
       errors.push("Description must be at least 10 characters long");
     }
-    if (data.description.length > 500) {
-      errors.push("Description must be less than 500 characters");
+    if (data.description.length > 1000) {
+      errors.push("Description must be less than 1000 characters");
     }
   }
 
@@ -457,6 +500,48 @@ function validateUpdateServiceData(data: Partial<Service>): string[] {
     }
   }
 
+  // Technologies validation (if provided)
+  if (data.technologies !== undefined) {
+    if (!Array.isArray(data.technologies)) {
+      errors.push("Technologies must be an array");
+    } else {
+      if (data.technologies.length > 20) {
+        errors.push("Maximum 20 technologies allowed");
+      }
+      data.technologies.forEach((tech, index) => {
+        if (typeof tech !== "string" || tech.trim().length === 0) {
+          errors.push(`Technology ${index + 1} must be a non-empty string`);
+        }
+        if (tech.length > 50) {
+          errors.push(
+            `Technology ${index + 1} must be less than 50 characters`,
+          );
+        }
+      });
+    }
+  }
+
+  // Blockchains validation (if provided)
+  if (data.blockchains !== undefined) {
+    if (!Array.isArray(data.blockchains)) {
+      errors.push("Blockchains must be an array");
+    } else {
+      if (data.blockchains.length > 15) {
+        errors.push("Maximum 15 blockchains allowed");
+      }
+      data.blockchains.forEach((blockchain, index) => {
+        if (typeof blockchain !== "string" || blockchain.trim().length === 0) {
+          errors.push(`Blockchain ${index + 1} must be a non-empty string`);
+        }
+        if (blockchain.length > 50) {
+          errors.push(
+            `Blockchain ${index + 1} must be less than 50 characters`,
+          );
+        }
+      });
+    }
+  }
+
   // Deliverables validation (if provided)
   if (data.deliverables !== undefined) {
     if (!Array.isArray(data.deliverables)) {
@@ -476,6 +561,109 @@ function validateUpdateServiceData(data: Partial<Service>): string[] {
           errors.push(
             `Deliverable ${index + 1} must be less than 200 characters`,
           );
+        }
+      });
+    }
+  }
+
+  // Features validation (if provided)
+  if (data.features !== undefined) {
+    if (!Array.isArray(data.features)) {
+      errors.push("Features must be an array");
+    } else {
+      if (data.features.length > 10) {
+        errors.push("Maximum 10 features allowed");
+      }
+      data.features.forEach((feature, index) => {
+        if (!feature || typeof feature !== "object") {
+          errors.push(`Feature ${index + 1} must be an object`);
+          return;
+        }
+        if (
+          !feature.title ||
+          typeof feature.title !== "string" ||
+          feature.title.trim().length === 0
+        ) {
+          errors.push(`Feature ${index + 1} title is required`);
+        }
+        if (
+          !feature.description ||
+          typeof feature.description !== "string" ||
+          feature.description.trim().length === 0
+        ) {
+          errors.push(`Feature ${index + 1} description is required`);
+        }
+      });
+    }
+  }
+
+  // Packages validation (if provided)
+  if (data.packages !== undefined) {
+    if (!Array.isArray(data.packages)) {
+      errors.push("Packages must be an array");
+    } else {
+      if (data.packages.length > 5) {
+        errors.push("Maximum 5 packages allowed");
+      }
+      data.packages.forEach((pkg, index) => {
+        if (!pkg || typeof pkg !== "object") {
+          errors.push(`Package ${index + 1} must be an object`);
+          return;
+        }
+        if (
+          !pkg.name ||
+          typeof pkg.name !== "string" ||
+          pkg.name.trim().length === 0
+        ) {
+          errors.push(`Package ${index + 1} name is required`);
+        }
+        if (
+          !pkg.price ||
+          typeof pkg.price !== "string" ||
+          pkg.price.trim().length === 0
+        ) {
+          errors.push(`Package ${index + 1} price is required`);
+        }
+        if (
+          !pkg.duration ||
+          typeof pkg.duration !== "string" ||
+          pkg.duration.trim().length === 0
+        ) {
+          errors.push(`Package ${index + 1} duration is required`);
+        }
+        if (pkg.features && !Array.isArray(pkg.features)) {
+          errors.push(`Package ${index + 1} features must be an array`);
+        }
+      });
+    }
+  }
+
+  // FAQs validation (if provided)
+  if (data.faqs !== undefined) {
+    if (!Array.isArray(data.faqs)) {
+      errors.push("FAQs must be an array");
+    } else {
+      if (data.faqs.length > 10) {
+        errors.push("Maximum 10 FAQs allowed");
+      }
+      data.faqs.forEach((faq, index) => {
+        if (!faq || typeof faq !== "object") {
+          errors.push(`FAQ ${index + 1} must be an object`);
+          return;
+        }
+        if (
+          !faq.question ||
+          typeof faq.question !== "string" ||
+          faq.question.trim().length === 0
+        ) {
+          errors.push(`FAQ ${index + 1} question is required`);
+        }
+        if (
+          !faq.answer ||
+          typeof faq.answer !== "string" ||
+          faq.answer.trim().length === 0
+        ) {
+          errors.push(`FAQ ${index + 1} answer is required`);
         }
       });
     }

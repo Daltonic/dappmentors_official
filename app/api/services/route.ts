@@ -1,11 +1,16 @@
 // /api/services/route.ts
-
 import { connectToDatabase } from "@/lib/mongodb";
 import { verifyAccessToken } from "@/lib/jwt";
 import { Service } from "@/utils/interfaces";
 import { Collection, Filter, ObjectId } from "mongodb";
 import { NextRequest, NextResponse } from "next/server";
 import { generateSlug } from "@/heplers/products";
+import {
+  validateAndNormalizeFAQs,
+  validateAndNormalizeFeatures,
+  validateAndNormalizePackages,
+  validateServiceData,
+} from "@/validations/services";
 
 type ServiceType =
   | "Education"
@@ -14,6 +19,7 @@ type ServiceType =
   | "Writing"
   | "Hiring"
   | "Community";
+
 type ServiceStatus = "active" | "inactive" | "coming-soon";
 
 interface ServiceDocument extends Omit<Service, "id"> {
@@ -57,10 +63,13 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     if (search) {
       filter.$or = [
         { title: { $regex: search, $options: "i" } },
+        { subtitle: { $regex: search, $options: "i" } },
         { description: { $regex: search, $options: "i" } },
         { lead: { $regex: search, $options: "i" } },
         { slug: { $regex: search, $options: "i" } },
         { tags: { $in: [new RegExp(search, "i")] } },
+        { technologies: { $in: [new RegExp(search, "i")] } },
+        { blockchains: { $in: [new RegExp(search, "i")] } },
       ];
     }
 
@@ -194,25 +203,31 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const serviceData: Omit<ServiceDocument, "_id"> = {
       slug,
       title: body.title.trim(),
+      subtitle: body.subtitle?.trim() || "",
       description: body.description.trim(),
       type: body.type as ServiceType,
+      category: body.category.trim(),
       price:
         typeof body.price === "string"
           ? body.price.trim()
           : parseFloat(body.price),
       status: (body.status || "active") as ServiceStatus,
-      category: body.category.trim(),
       duration: body.duration.trim(),
-      clients: 0,
-      rating: 0,
-      totalReviews: 0,
+      clients: parseInt(body.clients) || 0,
+      rating: parseFloat(body.rating) || 0,
+      totalReviews: parseInt(body.totalReviews) || 0,
       lead: body.lead.trim(),
-      createdAt: now.toISOString(),
-      updatedAt: now.toISOString(),
+      createdAt: now,
+      updatedAt: now,
       featured: body.featured || false,
       thumbnail: body.thumbnail?.trim() || "",
       tags: Array.isArray(body.tags) ? body.tags : [],
       deliverables: Array.isArray(body.deliverables) ? body.deliverables : [],
+      technologies: Array.isArray(body.technologies) ? body.technologies : [],
+      blockchains: Array.isArray(body.blockchains) ? body.blockchains : [],
+      features: validateAndNormalizeFeatures(body.features || []),
+      packages: validateAndNormalizePackages(body.packages || []),
+      faqs: validateAndNormalizeFAQs(body.faqs || []),
       createdBy: payload.userId,
     };
 
@@ -262,132 +277,4 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       { status: 500 },
     );
   }
-}
-
-// Validation helper function
-function validateServiceData(data: Partial<Service>): string[] {
-  const errors: string[] = [];
-
-  // Title validation
-  if (typeof data.title !== "string" || data.title.trim().length < 3) {
-    errors.push("Title must be at least 3 characters long");
-  }
-  if (data.title && data.title.length > 100) {
-    errors.push("Title must be less than 100 characters");
-  }
-
-  // Description validation
-  if (
-    typeof data.description !== "string" ||
-    data.description.trim().length < 10
-  ) {
-    errors.push("Description must be at least 10 characters long");
-  }
-  if (data.description && data.description.length > 500) {
-    errors.push("Description must be less than 500 characters");
-  }
-
-  // Type validation
-  const validTypes = [
-    "Education",
-    "Mentorship",
-    "Development",
-    "Writing",
-    "Hiring",
-    "Community",
-  ];
-  if (!validTypes.includes(data.type as string)) {
-    errors.push("Invalid service type");
-  }
-
-  // Price validation (can be string or number)
-  if (data.price !== undefined) {
-    if (typeof data.price === "string") {
-      if (data.price.trim().length === 0) {
-        errors.push("Price is required");
-      }
-    } else if (typeof data.price === "number") {
-      if (isNaN(data.price) || data.price < 0) {
-        errors.push("Price must be a valid positive number");
-      }
-      if (data.price > 100000) {
-        errors.push("Price cannot exceed $100,000");
-      }
-    } else {
-      errors.push("Price must be a number or string");
-    }
-  }
-
-  // Status validation
-  const validStatuses = ["active", "inactive", "coming-soon"];
-  if (data.status && !validStatuses.includes(data.status)) {
-    errors.push("Invalid status");
-  }
-
-  // Lead validation
-  if (typeof data.lead !== "string" || data.lead.trim().length < 2) {
-    errors.push("Lead must be at least 2 characters long");
-  }
-  if (data.lead && data.lead.length > 100) {
-    errors.push("Lead must be less than 100 characters");
-  }
-
-  // Duration validation
-  if (typeof data.duration !== "string" || data.duration.trim().length < 2) {
-    errors.push("Duration must be at least 2 characters long");
-  }
-  if (data.duration && data.duration.length > 100) {
-    errors.push("Duration must be less than 100 characters");
-  }
-
-  // Category validation
-  if (typeof data.category !== "string" || data.category.trim().length < 2) {
-    errors.push("Category must be at least 2 characters long");
-  }
-  if (data.category && data.category.length > 50) {
-    errors.push("Category must be less than 50 characters");
-  }
-
-  // Thumbnail validation
-  if (data.thumbnail && data.thumbnail.trim()) {
-    try {
-      new URL(data.thumbnail);
-    } catch {
-      errors.push("Thumbnail must be a valid URL");
-    }
-  }
-
-  // Tags validation
-  if (data.tags && Array.isArray(data.tags)) {
-    if (data.tags.length > 10) {
-      errors.push("Maximum 10 tags allowed");
-    }
-    data.tags.forEach((tag, index) => {
-      if (typeof tag !== "string" || tag.trim().length === 0) {
-        errors.push(`Tag ${index + 1} must be a non-empty string`);
-      }
-      if (tag.length > 30) {
-        errors.push(`Tag ${index + 1} must be less than 30 characters`);
-      }
-    });
-  }
-
-  // Deliverables validation
-  if (data.deliverables && Array.isArray(data.deliverables)) {
-    if (data.deliverables.length > 20) {
-      errors.push("Maximum 20 deliverables allowed");
-    }
-    data.deliverables.forEach((deliverable, index) => {
-      if (typeof deliverable !== "string" || deliverable.trim().length === 0) {
-        errors.push(`Deliverable ${index + 1} must be a non-empty string`);
-      }
-      if (deliverable.length > 200) {
-        errors.push(
-          `Deliverable ${index + 1} must be less than 200 characters`,
-        );
-      }
-    });
-  }
-
-  return errors;
 }

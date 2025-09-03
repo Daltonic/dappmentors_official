@@ -1,10 +1,15 @@
 // /api/services/bulk/route.ts
-
 import { connectToDatabase } from "@/lib/mongodb";
 import { verifyAccessToken } from "@/lib/jwt";
 import { Service } from "@/utils/interfaces";
 import { Collection, Filter, ObjectId } from "mongodb";
 import { NextRequest, NextResponse } from "next/server";
+
+interface ServiceDocument extends Omit<Service, "id"> {
+  _id: ObjectId;
+  createdBy: string;
+  slug: string;
+}
 
 export async function PATCH(request: NextRequest): Promise<NextResponse> {
   try {
@@ -30,7 +35,7 @@ export async function PATCH(request: NextRequest): Promise<NextResponse> {
     }
 
     const db = await connectToDatabase();
-    const collection: Collection<Service> = db.collection("services");
+    const collection: Collection<ServiceDocument> = db.collection("services");
 
     const body = await request.json();
     const { action, serviceIds, updateData } = body;
@@ -56,7 +61,7 @@ export async function PATCH(request: NextRequest): Promise<NextResponse> {
     }
 
     let updateResult;
-    const now = new Date().toISOString();
+    const now = new Date();
 
     switch (action) {
       case "bulk-status-change":
@@ -306,10 +311,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
 
     const db = await connectToDatabase();
-    const collection: Collection<Service> = db.collection("services");
+    const collection: Collection<ServiceDocument> = db.collection("services");
 
     // Build filter - non-admin users can only see active services or their own
-    const filter: Filter<Service> = { _id: { $in: objectIds } };
+    const filter: Filter<ServiceDocument> = { _id: { $in: objectIds } };
     if (payload.role !== "admin") {
       filter.$or = [{ status: "active" }, { createdBy: payload.userId }];
     }

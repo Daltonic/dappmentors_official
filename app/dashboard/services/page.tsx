@@ -188,15 +188,9 @@ const Page: React.FC = () => {
       if (apiUtils.isSuccess(response)) {
         const processedServices: Service[] = response.data.services.map(
           (service) => ({
-            ...service,
-            createdAt:
-              typeof service.createdAt === "string"
-                ? service.createdAt
-                : new Date(service.createdAt).toISOString(),
-            updatedAt:
-              typeof service.updatedAt === "string"
-                ? service.updatedAt
-                : new Date(service.updatedAt).toISOString(),
+            ...service, // Keep existing properties
+            createdAt: new Date(service.createdAt), // Convert to Date object
+            updatedAt: new Date(service.updatedAt), // Convert to Date object
           }),
         );
 
