@@ -40,7 +40,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
 
   // Handle edit navigation
   const handleEditService = () => {
-    router.push(`/dashboard/services/${service.id}/edit`);
+    router.push(`/dashboard/services/${service.id}`);
   };
 
   // Handle view navigation

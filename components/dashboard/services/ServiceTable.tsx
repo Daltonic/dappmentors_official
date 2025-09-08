@@ -73,7 +73,7 @@ const ServiceTable: React.FC<ServiceTableProps> = ({
 
   // Handle edit navigation
   const handleEditService = (serviceId: string) => {
-    router.push(`/dashboard/services/${serviceId}/edit`);
+    router.push(`/dashboard/services/${serviceId}`);
   };
 
   // Handle view navigation

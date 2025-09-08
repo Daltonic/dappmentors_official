@@ -18,7 +18,7 @@ const Page = ({ params }: { params: Promise<{ id: string }> }) => {
   useEffect(() => {
     const fetchService = async () => {
       try {
-        const response = await fetch(`/api/products/${id}`, {
+        const response = await fetch(`/api/services/${id}`, {
           credentials: "include",
         });
 
@@ -30,7 +30,7 @@ const Page = ({ params }: { params: Promise<{ id: string }> }) => {
         const data = await response.json();
         setService(data.service);
       } catch (err) {
-        console.error("Fetch product error:", err);
+        console.error("Fetch service error:", err);
         setError(err instanceof Error ? err.message : "An error occurred");
       } finally {
         setLoading(false);
