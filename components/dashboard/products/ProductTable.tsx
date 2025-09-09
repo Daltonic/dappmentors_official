@@ -15,6 +15,7 @@ import {
   FaChevronLeft,
   FaChevronRight,
 } from "react-icons/fa";
+import Link from "next/link";
 
 // Helper function components (these can be in a separate utils file if needed)
 const SortIcon: React.FC<{
@@ -252,13 +253,14 @@ const ProductTable: React.FC<{
                     >
                       <FaEdit className="w-4 h-4" />
                     </button>
-                    <button
+                    <Link
+                      href={`/products/${product.slug}`}
+                      target="_blank"
                       className="p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800/50 rounded-lg transition-all duration-300 hover:scale-110"
                       title="View details"
-                      onClick={() => router.push(`/products/${product.id}`)}
                     >
                       <FaEye className="w-4 h-4" />
-                    </button>
+                    </Link>
                     <button
                       className="p-2 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/30 rounded-lg transition-all duration-300 hover:scale-110"
                       title="Delete product"

@@ -270,3 +270,77 @@ function isValidUrl(url: string): boolean {
     return false;
   }
 }
+
+export // Validation helper for updates
+function validateUpdateProductData(data: Partial<Product>): string[] {
+  const errors: string[] = [];
+
+  // Title validation (if provided)
+  if (data.title !== undefined) {
+    if (typeof data.title !== "string" || data.title.trim().length < 3) {
+      errors.push("Title must be at least 3 characters long");
+    }
+    if (data.title.length > 100) {
+      errors.push("Title must be less than 100 characters");
+    }
+  }
+
+  // Description validation (if provided)
+  if (data.description !== undefined) {
+    if (
+      typeof data.description !== "string" ||
+      data.description.trim().length < 10
+    ) {
+      errors.push("Description must be at least 10 characters long");
+    }
+    if (data.description.length > 500) {
+      errors.push("Description must be less than 500 characters");
+    }
+  }
+
+  // Type validation (if provided)
+  if (data.type !== undefined) {
+    const validTypes = ["Course", "Bootcamp", "eBook", "Codebase"];
+    if (!validTypes.includes(data.type)) {
+      errors.push("Invalid product type");
+    }
+  }
+
+  // Price validation (if provided)
+  if (data.price !== undefined) {
+    const price = parseFloat(String(data.price));
+    if (isNaN(price) || price < 0) {
+      errors.push("Price must be a valid positive number");
+    }
+    if (price > 10000) {
+      errors.push("Price cannot exceed $10,000");
+    }
+  }
+
+  // Status validation (if provided)
+  if (data.status !== undefined) {
+    const validStatuses = ["published", "draft", "archived"];
+    if (!validStatuses.includes(data.status)) {
+      errors.push("Invalid status");
+    }
+  }
+
+  // Difficulty validation (if provided)
+  if (data.difficulty !== undefined) {
+    const validDifficulties = ["Beginner", "Intermediate", "Advanced"];
+    if (!validDifficulties.includes(data.difficulty)) {
+      errors.push("Invalid difficulty level");
+    }
+  }
+
+  // Thumbnail validation (if provided)
+  if (data.imageUrl !== undefined && data.imageUrl.trim()) {
+    try {
+      new URL(data.imageUrl);
+    } catch {
+      errors.push("Thumbnail must be a valid URL");
+    }
+  }
+
+  return errors;
+}

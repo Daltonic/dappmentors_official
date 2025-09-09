@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { FiEye, FiTrash2, FiEdit } from "react-icons/fi";
 import { useDelete } from "@/contexts/DeleteContext";
+import Link from "next/link";
 
 interface ServiceCardProps {
   service: Service;
@@ -41,11 +42,6 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
   // Handle edit navigation
   const handleEditService = () => {
     router.push(`/dashboard/services/${service.id}`);
-  };
-
-  // Handle view navigation
-  const handleViewService = () => {
-    router.push(`/services/${service.id}`);
   };
 
   return (
@@ -196,13 +192,14 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
           </button>
 
           {/* View Button */}
-          <button
-            onClick={handleViewService}
+          <Link
+            href={`/services/${service.slug}`}
+            target="_blank"
             className="p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800 rounded-xl transition-colors"
             title="View service details"
           >
             <FiEye className="w-5 h-5" />
-          </button>
+          </Link>
 
           {/* Delete Button */}
           <button

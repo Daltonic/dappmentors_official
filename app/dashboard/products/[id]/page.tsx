@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Product } from "@/utils/interfaces";
 import ProductForm from "@/components/dashboard/products/ProductForm";
 import { use } from "react";
+import { toast } from "react-toastify";
 
 const Page = ({ params }: { params: Promise<{ id: string }> }) => {
   const router = useRouter();
@@ -56,12 +57,15 @@ const Page = ({ params }: { params: Promise<{ id: string }> }) => {
       }
 
       await response.json();
-      alert("Product updated successfully!");
-      // Optionally refresh or navigate back
-      router.refresh(); // Or router.push("/dashboard/products");
+      toast.success("Product updated successfully!", {
+        onClose: () => router.push("/dashboard/products"), // Redirect after toast closes
+      });
     } catch (err) {
       console.error("Update product error:", err);
-      alert(err instanceof Error ? err.message : "An error occurred");
+      toast.error(err instanceof Error ? err.message : "An error occurred", {
+        position: "top-right",
+        autoClose: 5000,
+      });
     }
   };
 

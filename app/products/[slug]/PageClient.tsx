@@ -11,6 +11,7 @@ import InstructorSection from "@/components/products/details/InstructorSection";
 import TestimonialsSection from "@/components/products/details/TestimonialsSection";
 import FAQSection from "@/components/shared/FAQSection";
 import FinalCTASection from "@/components/products/details/FinalCTASection";
+import { toast } from "react-toastify";
 
 interface PageClientProps {
   product: Product;
@@ -25,7 +26,7 @@ const PageClient: React.FC<PageClientProps> = ({ product }) => {
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
     console.log(`Enrolling in: ${product.title}`);
-    alert(`Successfully enrolled in ${product.title}!`);
+    toast.success(`Successfully enrolled in ${product.title}!`);
     setIsEnrolling(false);
   };
 

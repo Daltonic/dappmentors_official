@@ -4,7 +4,7 @@ import { verifyAccessToken } from "@/lib/jwt";
 import { Product } from "@/utils/interfaces";
 import { Collection, Filter, ObjectId } from "mongodb";
 import { NextRequest, NextResponse } from "next/server";
-import { generateSlug } from "@/heplers/products";
+import { generateSlug } from "@/heplers/global";
 import {
   validateAndNormalizeFeatures,
   validateAndNormalizeModules,
@@ -23,20 +23,9 @@ interface ProductDocument extends Omit<Product, "id"> {
   slug: string;
 }
 
-// GET - List all products with filtering and pagination
+// GET - List all products with filtering and pagination (PUBLIC ACCESS)
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
-    // Authentication check
-    const accessToken = request.cookies.get("access-token")?.value;
-    if (!accessToken) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const payload = await verifyAccessToken(accessToken);
-    if (!payload) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-    }
-
     const db = await connectToDatabase();
     const collection: Collection<ProductDocument> = db.collection("products");
 
@@ -51,6 +40,19 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const featured = url.searchParams.get("featured");
     const sortBy = url.searchParams.get("sortBy") || "createdAt";
     const sortOrder = url.searchParams.get("sortOrder") || "desc";
+
+    // Check authentication to determine access level
+    const accessToken = request.cookies.get("access-token")?.value;
+    let payload = null;
+
+    if (accessToken) {
+      try {
+        payload = await verifyAccessToken(accessToken);
+      } catch (error) {
+        // Invalid token, but we'll continue with public access
+        console.warn("Invalid access token in GET request:", error);
+      }
+    }
 
     // Build filter query
     const filter: Filter<ProductDocument> = {};
@@ -69,15 +71,23 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
 
     if (type) filter.type = type as ProductType;
-    if (status) filter.status = status as ProductStatus;
     if (category) filter.category = category;
     if (featured !== null && featured !== undefined) {
       filter.featured = featured === "true";
     }
 
-    // Non-admin users can only see published products (unless they're the creator)
-    if (payload.role !== "admin") {
-      filter.$or = [{ status: "published" }, { createdBy: payload.userId }];
+    // Apply access-based filtering
+    if (!payload) {
+      // Public access - only published products
+      filter.status = "published";
+    } else {
+      // Authenticated access
+      if (status) filter.status = status as ProductStatus;
+
+      // Non-admin users can only see published products (unless they're the creator)
+      if (payload.role !== "admin") {
+        filter.$or = [{ status: "published" }, { createdBy: payload.userId }];
+      }
     }
 
     // Build sort object
@@ -100,7 +110,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           ...product,
           id: product._id.toString(),
           _id: undefined,
-          slug: undefined,
         }) as unknown as Product,
     );
 
@@ -118,7 +127,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       filters: {
         search,
         type,
-        status,
+        status: payload ? status : "published", // Only show applied status filter for authenticated users
         category,
         featured,
       },
@@ -132,7 +141,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }
 }
 
-// POST - Create new product
+// POST - Create new product (REQUIRES AUTHENTICATION)
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     // Authentication check

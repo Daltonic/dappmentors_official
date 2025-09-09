@@ -2,57 +2,12 @@
 import ProductForm from "@/components/dashboard/products/ProductForm";
 import { Product } from "@/utils/interfaces";
 import { motion } from "framer-motion";
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { productApiService, useApiState } from "@/services/api.services";
-import { FiCheckCircle, FiXCircle, FiAlertTriangle } from "react-icons/fi";
-
-// Success/Error notification component
-const Notification: React.FC<{
-  type: "success" | "error" | "warning";
-  message: string;
-  onClose: () => void;
-}> = ({ type, message, onClose }) => {
-  const icons = {
-    success: <FiCheckCircle className="w-5 h-5" />,
-    error: <FiXCircle className="w-5 h-5" />,
-    warning: <FiAlertTriangle className="w-5 h-5" />,
-  };
-
-  const colors = {
-    success:
-      "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 border-green-200 dark:border-green-800",
-    error:
-      "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200 border-red-200 dark:border-red-800",
-    warning:
-      "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 border-yellow-200 dark:border-yellow-800",
-  };
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      className={`fixed top-4 right-4 z-50 p-4 rounded-xl border flex items-center gap-3 shadow-lg backdrop-blur-sm ${colors[type]}`}
-    >
-      {icons[type]}
-      <span className="font-medium">{message}</span>
-      <button
-        onClick={onClose}
-        className="ml-2 hover:opacity-70 transition-opacity"
-      >
-        <FiXCircle className="w-4 h-4" />
-      </button>
-    </motion.div>
-  );
-};
+import { toast } from "react-toastify";
 
 const Page: React.FC = () => {
   const router = useRouter();
-  const [notification, setNotification] = useState<{
-    type: "success" | "error" | "warning";
-    message: string;
-  } | null>(null);
 
   // Use the API state hook with enhanced features
   const {
@@ -63,20 +18,14 @@ const Page: React.FC = () => {
     reset: resetApiState,
   } = useApiState<{ message: string; product: Product }>({
     onSuccess: (data, message) => {
-      setNotification({
-        type: "success",
-        message: message || "Product created successfully!",
-      });
-      // Redirect to products list or product detail page after success
+      toast.success(message || "Product created successfully!");
+      // Redirect to products list after success
       setTimeout(() => {
         router.push("/dashboard/products");
       }, 2000);
     },
     onError: (error) => {
-      setNotification({
-        type: "error",
-        message: error,
-      });
+      toast.error(error || "Failed to create product. Please try again.");
     },
   });
 
@@ -84,7 +33,6 @@ const Page: React.FC = () => {
     try {
       // Reset previous states
       resetApiState();
-      setNotification(null);
 
       // Validate required fields and convert to CreateProductData format
       if (
@@ -97,10 +45,7 @@ const Page: React.FC = () => {
         !productData.duration ||
         !productData.instructor
       ) {
-        setNotification({
-          type: "error",
-          message: "Please fill in all required fields.",
-        });
+        toast.error("Please fill in all required fields.");
         return;
       }
 
@@ -124,9 +69,9 @@ const Page: React.FC = () => {
       );
     } catch (error) {
       console.error("Unexpected error creating product:", error);
-      setNotification({
-        type: "error",
-        message: "An unexpected error occurred. Please try again.",
+      toast.error("An unexpected error occurred. Please try again.", {
+        position: "top-right",
+        autoClose: 5000,
       });
     }
   };
@@ -134,12 +79,7 @@ const Page: React.FC = () => {
   const handleFormCancel = () => {
     // Reset form state and navigate back
     resetApiState();
-    setNotification(null);
     router.push("/dashboard/products");
-  };
-
-  const closeNotification = () => {
-    setNotification(null);
   };
 
   return (
@@ -191,7 +131,6 @@ const Page: React.FC = () => {
             className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl"
           >
             <div className="flex items-center gap-3">
-              <FiXCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
               <div>
                 <h3 className="font-semibold text-red-800 dark:text-red-200">
                   Failed to Create Product
@@ -212,7 +151,6 @@ const Page: React.FC = () => {
             className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl"
           >
             <div className="flex items-center gap-3">
-              <FiCheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
               <div>
                 <h3 className="font-semibold text-green-800 dark:text-green-200">
                   Product Created Successfully!
@@ -239,15 +177,6 @@ const Page: React.FC = () => {
           />
         </motion.div>
       </div>
-
-      {/* Toast Notification */}
-      {notification && (
-        <Notification
-          type={notification.type}
-          message={notification.message}
-          onClose={closeNotification}
-        />
-      )}
     </div>
   );
 };

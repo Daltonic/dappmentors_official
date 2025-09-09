@@ -389,12 +389,16 @@ const ProductForm: React.FC<ProductFormProps> = ({
           "Instructor bio must be less than 500 characters";
       }
 
-      if (
-        formData.instructor.avatar &&
-        !isValidUrl(formData.instructor.avatar)
-      ) {
-        newErrors.instructor = newErrors.instructor || {};
-        newErrors.instructor.avatar = "Instructor avatar must be a valid URL";
+      if (formData.instructor?.avatar) {
+        // Allow emoji, valid URL, or empty string
+        if (
+          !isValidEmoji(formData.instructor.avatar) &&
+          !isValidUrl(formData.instructor.avatar)
+        ) {
+          newErrors.instructor = newErrors.instructor || {};
+          newErrors.instructor.avatar =
+            "Instructor avatar must be a valid emoji or URL";
+        }
       }
 
       // Optional: Validate credentials array items
@@ -469,6 +473,13 @@ const ProductForm: React.FC<ProductFormProps> = ({
     } catch {
       return false;
     }
+  };
+
+  const isValidEmoji = (string: string): boolean => {
+    // Regex to match common Unicode emojis
+    const emojiRegex =
+      /^[\p{Emoji}\p{Emoji_Presentation}\p{Emoji_Modifier}\p{Emoji_Component}\u{200D}\u{FE0F}]+$/u;
+    return emojiRegex.test(string);
   };
 
   const handleInputChange = (
@@ -783,7 +794,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
             instructor: {
               name: "",
               bio: "",
-              avatar: "",
+              avatar: "👨‍💻",
               credentials: [],
             },
             thumbnail: "",
@@ -1567,10 +1578,10 @@ const InstructorSection: React.FC<InstructorSectionProps> = ({
         {/* Instructor Avatar */}
         <div>
           <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-            Avatar URL
+            Avatar Icon
           </label>
           <input
-            type="url"
+            type="text"
             value={formData.instructor.avatar}
             onChange={(e) =>
               handleInputChange("instructor.avatar", e.target.value)
@@ -2154,11 +2165,11 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({
             ))}
           </select>
           <input
-            type="url"
+            type="text"
             value={newTestimonialAvatar}
             onChange={(e) => setNewTestimonialAvatar(e.target.value)}
             className="px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200/50 dark:border-gray-700/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF4081]/50 focus:border-transparent transition-all duration-300"
-            placeholder="Avatar URL (optional)"
+            placeholder="Emoji or Avatar URL (optional)"
           />
         </div>
         <button

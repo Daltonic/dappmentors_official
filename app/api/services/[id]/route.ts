@@ -9,11 +9,12 @@ import {
 } from "@/utils/interfaces";
 import { Collection, Filter, ObjectId } from "mongodb";
 import { NextRequest, NextResponse } from "next/server";
-import { generateSlug } from "@/heplers/products";
+import { generateSlug } from "@/heplers/global";
 import {
   validateAndNormalizeFAQs,
   validateAndNormalizeFeatures,
   validateAndNormalizePackages,
+  validateUpdateServiceData,
 } from "@/validations/services";
 
 type ServiceType =
@@ -32,7 +33,7 @@ interface ServiceDocument extends Omit<Service, "id"> {
   slug: string;
 }
 
-// GET - Get single service by ID or slug
+// GET - Get single service by ID or slug (PUBLIC ACCESS)
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -40,17 +41,6 @@ export async function GET(
   try {
     const resolvedParams = await params;
     const { id: param } = resolvedParams;
-
-    // Authentication check
-    const accessToken = request.cookies.get("access-token")?.value;
-    if (!accessToken) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const payload = await verifyAccessToken(accessToken);
-    if (!payload) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-    }
 
     const db = await connectToDatabase();
     const collection: Collection<ServiceDocument> = db.collection("services");
@@ -69,13 +59,42 @@ export async function GET(
       return NextResponse.json({ error: "Service not found" }, { status: 404 });
     }
 
-    // Check permissions - non-admin users can only view active services or their own
-    if (
-      payload.role !== "admin" &&
-      service.status !== "active" &&
-      service.createdBy !== payload.userId
-    ) {
-      return NextResponse.json({ error: "Service not found" }, { status: 404 });
+    // Check authentication to determine access level
+    const accessToken = request.cookies.get("access-token")?.value;
+    let payload = null;
+
+    if (accessToken) {
+      try {
+        payload = await verifyAccessToken(accessToken);
+      } catch (error) {
+        // Invalid token, but we'll continue with public access
+        console.warn("Invalid access token in GET request:", error);
+      }
+    }
+
+    // Public access: only show active services
+    // Authenticated users: can see their own services regardless of status
+    // Admins: can see all services
+    if (!payload) {
+      // Public access - only active services
+      if (service.status !== "active") {
+        return NextResponse.json(
+          { error: "Service not found" },
+          { status: 404 },
+        );
+      }
+    } else {
+      // Authenticated access - check permissions
+      if (
+        payload.role !== "admin" &&
+        service.status !== "active" &&
+        service.createdBy !== payload.userId
+      ) {
+        return NextResponse.json(
+          { error: "Service not found" },
+          { status: 404 },
+        );
+      }
     }
 
     // Transform for frontend
@@ -95,7 +114,7 @@ export async function GET(
   }
 }
 
-// PUT - Update service by ID or slug
+// PUT - Update service by ID or slug (REQUIRES AUTHENTICATION)
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -157,11 +176,12 @@ export async function PUT(
     }
 
     // Prepare update data
+    const now = new Date();
     const updateData: Partial<Omit<Service, "id">> = {
-      updatedAt: new Date(),
+      updatedAt: now,
     };
 
-    // Only update provided fields
+    // Define all allowed fields
     const allowedFields = [
       "title",
       "subtitle",
@@ -195,11 +215,10 @@ export async function PUT(
         }
 
         if (field === "price") {
-          // Handle both string and number prices
           updateData[field] =
             typeof value === "string"
               ? value.trim()
-              : parseFloat(value as string);
+              : parseFloat(String(value)) || 0;
         } else if (field === "type") {
           updateData[field] = value as ServiceType;
         } else if (field === "status") {
@@ -207,16 +226,26 @@ export async function PUT(
         } else if (field === "featured") {
           updateData[field] = !!value;
         } else if (
-          field === "tags" ||
-          field === "deliverables" ||
-          field === "technologies" ||
-          field === "blockchains"
+          ["tags", "deliverables", "technologies", "blockchains"].includes(
+            field,
+          )
         ) {
-          updateData[field] = Array.isArray(value) ? value : [];
-        } else if (field === "clients" || field === "totalReviews") {
-          updateData[field] = parseInt(value as string) || 0;
+          (updateData[field as keyof typeof updateData] as
+            | string[]
+            | undefined) = Array.isArray(value)
+            ? (value as string[]).map((item: string) => String(item).trim())
+            : [];
+        } else if (["clients", "totalReviews"].includes(field)) {
+          (updateData[field as keyof typeof updateData] as
+            | number[]
+            | undefined) = Array.isArray(value)
+            ? (value as number[]).map(
+                (item: number) => parseInt(String(item)) || 0,
+              )
+            : [];
+          // updateData[field] = parseInt(String(value)) || 0
         } else if (field === "rating") {
-          updateData[field] = parseFloat(value as string) || 0;
+          updateData[field] = parseFloat(String(value)) || 0;
         } else if (field === "features") {
           updateData[field] = validateAndNormalizeFeatures(
             value as ServiceFeature[],
@@ -288,7 +317,7 @@ export async function PUT(
   }
 }
 
-// DELETE - Delete service by ID or slug
+// DELETE - Delete service by ID or slug (REQUIRES AUTHENTICATION)
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -367,307 +396,4 @@ export async function DELETE(
       { status: 500 },
     );
   }
-}
-
-// Validation helper for updates
-function validateUpdateServiceData(data: Partial<Service>): string[] {
-  const errors: string[] = [];
-
-  // Title validation (if provided)
-  if (data.title !== undefined) {
-    if (typeof data.title !== "string" || data.title.trim().length < 3) {
-      errors.push("Title must be at least 3 characters long");
-    }
-    if (data.title.length > 100) {
-      errors.push("Title must be less than 100 characters");
-    }
-  }
-
-  // Subtitle validation (if provided)
-  if (data.subtitle !== undefined && data.subtitle.length > 150) {
-    errors.push("Subtitle must be less than 150 characters");
-  }
-
-  // Description validation (if provided)
-  if (data.description !== undefined) {
-    if (
-      typeof data.description !== "string" ||
-      data.description.trim().length < 10
-    ) {
-      errors.push("Description must be at least 10 characters long");
-    }
-    if (data.description.length > 1000) {
-      errors.push("Description must be less than 1000 characters");
-    }
-  }
-
-  // Type validation (if provided)
-  if (data.type !== undefined) {
-    const validTypes = [
-      "Education",
-      "Mentorship",
-      "Development",
-      "Writing",
-      "Hiring",
-      "Community",
-    ];
-    if (!validTypes.includes(data.type)) {
-      errors.push("Invalid service type");
-    }
-  }
-
-  // Price validation (if provided)
-  if (data.price !== undefined) {
-    if (typeof data.price === "number") {
-      if (isNaN(data.price) || data.price < 0) {
-        errors.push("Price must be a valid positive number");
-      }
-      if (data.price > 100000) {
-        errors.push("Price cannot exceed $100,000");
-      }
-    } else if (typeof data.price === "string") {
-      if (data.price.trim().length === 0) {
-        errors.push("Price cannot be empty");
-      }
-    } else {
-      errors.push("Price must be a number or string");
-    }
-  }
-
-  // Status validation (if provided)
-  if (data.status !== undefined) {
-    const validStatuses = ["active", "inactive", "coming-soon"];
-    if (!validStatuses.includes(data.status)) {
-      errors.push("Invalid status");
-    }
-  }
-
-  // Lead validation (if provided)
-  if (data.lead !== undefined) {
-    if (typeof data.lead !== "string" || data.lead.trim().length < 2) {
-      errors.push("Lead must be at least 2 characters long");
-    }
-    if (data.lead.length > 100) {
-      errors.push("Lead must be less than 100 characters");
-    }
-  }
-
-  // Duration validation (if provided)
-  if (data.duration !== undefined) {
-    if (typeof data.duration !== "string" || data.duration.trim().length < 2) {
-      errors.push("Duration must be at least 2 characters long");
-    }
-    if (data.duration.length > 100) {
-      errors.push("Duration must be less than 100 characters");
-    }
-  }
-
-  // Category validation (if provided)
-  if (data.category !== undefined) {
-    if (typeof data.category !== "string" || data.category.trim().length < 2) {
-      errors.push("Category must be at least 2 characters long");
-    }
-    if (data.category.length > 50) {
-      errors.push("Category must be less than 50 characters");
-    }
-  }
-
-  // Thumbnail validation (if provided)
-  if (data.thumbnail !== undefined && data.thumbnail.trim()) {
-    try {
-      new URL(data.thumbnail);
-    } catch {
-      errors.push("Thumbnail must be a valid URL");
-    }
-  }
-
-  // Tags validation (if provided)
-  if (data.tags !== undefined) {
-    if (!Array.isArray(data.tags)) {
-      errors.push("Tags must be an array");
-    } else {
-      if (data.tags.length > 10) {
-        errors.push("Maximum 10 tags allowed");
-      }
-      data.tags.forEach((tag, index) => {
-        if (typeof tag !== "string" || tag.trim().length === 0) {
-          errors.push(`Tag ${index + 1} must be a non-empty string`);
-        }
-        if (tag.length > 30) {
-          errors.push(`Tag ${index + 1} must be less than 30 characters`);
-        }
-      });
-    }
-  }
-
-  // Technologies validation (if provided)
-  if (data.technologies !== undefined) {
-    if (!Array.isArray(data.technologies)) {
-      errors.push("Technologies must be an array");
-    } else {
-      if (data.technologies.length > 20) {
-        errors.push("Maximum 20 technologies allowed");
-      }
-      data.technologies.forEach((tech, index) => {
-        if (typeof tech !== "string" || tech.trim().length === 0) {
-          errors.push(`Technology ${index + 1} must be a non-empty string`);
-        }
-        if (tech.length > 50) {
-          errors.push(
-            `Technology ${index + 1} must be less than 50 characters`,
-          );
-        }
-      });
-    }
-  }
-
-  // Blockchains validation (if provided)
-  if (data.blockchains !== undefined) {
-    if (!Array.isArray(data.blockchains)) {
-      errors.push("Blockchains must be an array");
-    } else {
-      if (data.blockchains.length > 15) {
-        errors.push("Maximum 15 blockchains allowed");
-      }
-      data.blockchains.forEach((blockchain, index) => {
-        if (typeof blockchain !== "string" || blockchain.trim().length === 0) {
-          errors.push(`Blockchain ${index + 1} must be a non-empty string`);
-        }
-        if (blockchain.length > 50) {
-          errors.push(
-            `Blockchain ${index + 1} must be less than 50 characters`,
-          );
-        }
-      });
-    }
-  }
-
-  // Deliverables validation (if provided)
-  if (data.deliverables !== undefined) {
-    if (!Array.isArray(data.deliverables)) {
-      errors.push("Deliverables must be an array");
-    } else {
-      if (data.deliverables.length > 20) {
-        errors.push("Maximum 20 deliverables allowed");
-      }
-      data.deliverables.forEach((deliverable, index) => {
-        if (
-          typeof deliverable !== "string" ||
-          deliverable.trim().length === 0
-        ) {
-          errors.push(`Deliverable ${index + 1} must be a non-empty string`);
-        }
-        if (deliverable.length > 200) {
-          errors.push(
-            `Deliverable ${index + 1} must be less than 200 characters`,
-          );
-        }
-      });
-    }
-  }
-
-  // Features validation (if provided)
-  if (data.features !== undefined) {
-    if (!Array.isArray(data.features)) {
-      errors.push("Features must be an array");
-    } else {
-      if (data.features.length > 10) {
-        errors.push("Maximum 10 features allowed");
-      }
-      data.features.forEach((feature, index) => {
-        if (!feature || typeof feature !== "object") {
-          errors.push(`Feature ${index + 1} must be an object`);
-          return;
-        }
-        if (
-          !feature.title ||
-          typeof feature.title !== "string" ||
-          feature.title.trim().length === 0
-        ) {
-          errors.push(`Feature ${index + 1} title is required`);
-        }
-        if (
-          !feature.description ||
-          typeof feature.description !== "string" ||
-          feature.description.trim().length === 0
-        ) {
-          errors.push(`Feature ${index + 1} description is required`);
-        }
-      });
-    }
-  }
-
-  // Packages validation (if provided)
-  if (data.packages !== undefined) {
-    if (!Array.isArray(data.packages)) {
-      errors.push("Packages must be an array");
-    } else {
-      if (data.packages.length > 5) {
-        errors.push("Maximum 5 packages allowed");
-      }
-      data.packages.forEach((pkg, index) => {
-        if (!pkg || typeof pkg !== "object") {
-          errors.push(`Package ${index + 1} must be an object`);
-          return;
-        }
-        if (
-          !pkg.name ||
-          typeof pkg.name !== "string" ||
-          pkg.name.trim().length === 0
-        ) {
-          errors.push(`Package ${index + 1} name is required`);
-        }
-        if (
-          !pkg.price ||
-          typeof pkg.price !== "string" ||
-          pkg.price.trim().length === 0
-        ) {
-          errors.push(`Package ${index + 1} price is required`);
-        }
-        if (
-          !pkg.duration ||
-          typeof pkg.duration !== "string" ||
-          pkg.duration.trim().length === 0
-        ) {
-          errors.push(`Package ${index + 1} duration is required`);
-        }
-        if (pkg.features && !Array.isArray(pkg.features)) {
-          errors.push(`Package ${index + 1} features must be an array`);
-        }
-      });
-    }
-  }
-
-  // FAQs validation (if provided)
-  if (data.faqs !== undefined) {
-    if (!Array.isArray(data.faqs)) {
-      errors.push("FAQs must be an array");
-    } else {
-      if (data.faqs.length > 10) {
-        errors.push("Maximum 10 FAQs allowed");
-      }
-      data.faqs.forEach((faq, index) => {
-        if (!faq || typeof faq !== "object") {
-          errors.push(`FAQ ${index + 1} must be an object`);
-          return;
-        }
-        if (
-          !faq.question ||
-          typeof faq.question !== "string" ||
-          faq.question.trim().length === 0
-        ) {
-          errors.push(`FAQ ${index + 1} question is required`);
-        }
-        if (
-          !faq.answer ||
-          typeof faq.answer !== "string" ||
-          faq.answer.trim().length === 0
-        ) {
-          errors.push(`FAQ ${index + 1} answer is required`);
-        }
-      });
-    }
-  }
-
-  return errors;
 }

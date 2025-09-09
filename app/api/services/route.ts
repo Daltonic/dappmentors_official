@@ -4,7 +4,7 @@ import { verifyAccessToken } from "@/lib/jwt";
 import { Service } from "@/utils/interfaces";
 import { Collection, Filter, ObjectId } from "mongodb";
 import { NextRequest, NextResponse } from "next/server";
-import { generateSlug } from "@/heplers/products";
+import { generateSlug } from "@/heplers/global";
 import {
   validateAndNormalizeFAQs,
   validateAndNormalizeFeatures,
@@ -28,20 +28,9 @@ interface ServiceDocument extends Omit<Service, "id"> {
   slug: string;
 }
 
-// GET - List all services with filtering and pagination
+// GET - List all services with filtering and pagination (PUBLIC ACCESS)
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
-    // Authentication check
-    const accessToken = request.cookies.get("access-token")?.value;
-    if (!accessToken) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const payload = await verifyAccessToken(accessToken);
-    if (!payload) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-    }
-
     const db = await connectToDatabase();
     const collection: Collection<ServiceDocument> = db.collection("services");
 
@@ -56,6 +45,19 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const featured = url.searchParams.get("featured");
     const sortBy = url.searchParams.get("sortBy") || "createdAt";
     const sortOrder = url.searchParams.get("sortOrder") || "desc";
+
+    // Check authentication to determine access level
+    const accessToken = request.cookies.get("access-token")?.value;
+    let payload = null;
+
+    if (accessToken) {
+      try {
+        payload = await verifyAccessToken(accessToken);
+      } catch (error) {
+        // Invalid token, but we'll continue with public access
+        console.warn("Invalid access token in GET request:", error);
+      }
+    }
 
     // Build filter query
     const filter: Filter<ServiceDocument> = {};
@@ -74,15 +76,23 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
 
     if (type) filter.type = type as ServiceType;
-    if (status) filter.status = status as ServiceStatus;
     if (category) filter.category = category;
     if (featured !== null && featured !== undefined) {
       filter.featured = featured === "true";
     }
 
-    // Non-admin users can only see active services (unless they're the creator)
-    if (payload.role !== "admin") {
-      filter.$or = [{ status: "active" }, { createdBy: payload.userId }];
+    // Apply access-based filtering
+    if (!payload) {
+      // Public access - only active services
+      filter.status = "active";
+    } else {
+      // Authenticated access
+      if (status) filter.status = status as ServiceStatus;
+
+      // Non-admin users can only see active services (unless they're the creator)
+      if (payload.role !== "admin") {
+        filter.$or = [{ status: "active" }, { createdBy: payload.userId }];
+      }
     }
 
     // Build sort object
@@ -105,7 +115,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           ...service,
           id: service._id.toString(),
           _id: undefined,
-          slug: undefined,
         }) as unknown as Service,
     );
 
@@ -123,7 +132,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       filters: {
         search,
         type,
-        status,
+        status: payload ? status : "active", // Only show applied status filter for authenticated users
         category,
         featured,
       },
@@ -137,7 +146,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }
 }
 
-// POST - Create new service
+// POST - Create new service (REQUIRES AUTHENTICATION)
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     // Authentication check

@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import { useRouter } from "next/navigation"; // Import useRouter for navigation
 import { FaEye, FaTrash, FaStar } from "react-icons/fa";
+import Link from "next/link";
 
 const ProductCard: React.FC<{
   product: Product;
@@ -178,12 +179,13 @@ const ProductCard: React.FC<{
           >
             Edit
           </button>
-          <button
+          <Link
+            href={`/products/${product.slug}`}
+            target="_blank"
             className="p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800 rounded-xl transition-colors"
-            onClick={() => router.push(`/products/${product.id}`)}
           >
             <FaEye className="w-5 h-5" />
-          </button>
+          </Link>
           <button
             className="p-2 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/30 rounded-xl transition-colors"
             onClick={handleDelete}

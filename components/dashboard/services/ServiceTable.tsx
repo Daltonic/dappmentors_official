@@ -14,6 +14,7 @@ import {
   FiChevronRight,
 } from "react-icons/fi";
 import { useDelete } from "@/contexts/DeleteContext";
+import Link from "next/link";
 
 // Props interface for ServiceTable
 interface ServiceTableProps {
@@ -74,11 +75,6 @@ const ServiceTable: React.FC<ServiceTableProps> = ({
   // Handle edit navigation
   const handleEditService = (serviceId: string) => {
     router.push(`/dashboard/services/${serviceId}`);
-  };
-
-  // Handle view navigation
-  const handleViewService = (serviceId: string) => {
-    router.push(`/services/${serviceId}`);
   };
 
   return (
@@ -267,13 +263,14 @@ const ServiceTable: React.FC<ServiceTableProps> = ({
                     >
                       <FiEdit className="w-4 h-4" />
                     </button>
-                    <button
-                      onClick={() => handleViewService(service.id)}
+                    <Link
+                      href={`/services/${service.slug}`}
+                      target="_blank"
                       className="p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800/50 rounded-lg transition-all duration-300 hover:scale-110"
                       title="View details"
                     >
                       <FiEye className="w-4 h-4" />
-                    </button>
+                    </Link>
                     <button
                       onClick={() => handleDeleteService(service.id)}
                       className="p-2 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/30 rounded-lg transition-all duration-300 hover:scale-110"

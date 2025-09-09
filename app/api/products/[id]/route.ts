@@ -1,9 +1,22 @@
 import { connectToDatabase } from "@/lib/mongodb";
 import { verifyAccessToken } from "@/lib/jwt";
-import { Product } from "@/utils/interfaces";
+import {
+  FAQs,
+  Product,
+  ProductFeature,
+  ProductModule,
+  ProductTestimonial,
+} from "@/utils/interfaces";
 import { Collection, Filter, ObjectId } from "mongodb";
 import { NextRequest, NextResponse } from "next/server";
-import { generateSlug } from "@/heplers/products";
+import { generateSlug } from "@/heplers/global";
+import {
+  validateAndNormalizeFAQs,
+  validateAndNormalizeFeatures,
+  validateAndNormalizeModules,
+  validateAndNormalizeTestimonials,
+  validateUpdateProductData,
+} from "@/validations/products";
 
 type ProductType = "Course" | "Bootcamp" | "eBook" | "Codebase";
 type ProductStatus = "published" | "draft" | "archived";
@@ -14,7 +27,7 @@ interface ProductDocument extends Omit<Product, "id"> {
   createdBy: string;
 }
 
-// GET - Get single product by ID or slug
+// GET - Get single product by ID or slug (PUBLIC ACCESS)
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -22,17 +35,6 @@ export async function GET(
   try {
     const resolvedParams = await params;
     const { id: param } = resolvedParams;
-
-    // Authentication check
-    const accessToken = request.cookies.get("access-token")?.value;
-    if (!accessToken) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const payload = await verifyAccessToken(accessToken);
-    if (!payload) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-    }
 
     const db = await connectToDatabase();
     const collection: Collection<ProductDocument> = db.collection("products");
@@ -51,13 +53,42 @@ export async function GET(
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
 
-    // Check permissions - non-admin users can only view published products or their own
-    if (
-      payload.role !== "admin" &&
-      product.status !== "published" &&
-      product.createdBy !== payload.userId
-    ) {
-      return NextResponse.json({ error: "Product not found" }, { status: 404 });
+    // Check authentication to determine access level
+    const accessToken = request.cookies.get("access-token")?.value;
+    let payload = null;
+
+    if (accessToken) {
+      try {
+        payload = await verifyAccessToken(accessToken);
+      } catch (error) {
+        // Invalid token, but we'll continue with public access
+        console.warn("Invalid access token in GET request:", error);
+      }
+    }
+
+    // Public access: only show published products
+    // Authenticated users: can see their own products regardless of status
+    // Admins: can see all products
+    if (!payload) {
+      // Public access - only published products
+      if (product.status !== "published") {
+        return NextResponse.json(
+          { error: "Product not found" },
+          { status: 404 },
+        );
+      }
+    } else {
+      // Authenticated access - check permissions
+      if (
+        payload.role !== "admin" &&
+        product.status !== "published" &&
+        product.createdBy !== payload.userId
+      ) {
+        return NextResponse.json(
+          { error: "Product not found" },
+          { status: 404 },
+        );
+      }
     }
 
     // Transform for frontend
@@ -77,7 +108,7 @@ export async function GET(
   }
 }
 
-// PUT - Update product by ID or slug
+// PUT - Update product by ID or slug (REQUIRES AUTHENTICATION)
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -139,41 +170,106 @@ export async function PUT(
     }
 
     // Prepare update data
+    const now = new Date();
     const updateData: Partial<Omit<Product, "id">> = {
-      updatedAt: new Date(),
+      updatedAt: now,
+      lastUpdated: now.toISOString(), // Ensure lastUpdated is set
     };
 
-    // Only update provided fields
+    // Define all allowed fields
     const allowedFields = [
       "title",
+      "subtitle",
       "description",
+      "longDescription",
       "type",
       "price",
+      "originalPrice",
+      "currency",
       "status",
       "category",
       "difficulty",
       "duration",
+      "level",
+      "language",
       "instructor",
       "featured",
-      "thumbnail",
+      "imageUrl",
+      "videoPreviewUrl",
+      "tags",
+      "technologies",
+      "features",
+      "modules",
+      "includes",
+      "testimonials",
+      "faqs",
+      "rating",
+      "totalReviews",
+      "studentsEnrolled",
     ];
 
     allowedFields.forEach((field) => {
       if (body[field] !== undefined) {
         let value: unknown = body[field];
-        if (typeof value === "string" && field !== "price") {
+
+        if (
+          typeof value === "string" &&
+          !["price", "originalPrice"].includes(field)
+        ) {
           value = value.trim();
         }
-        if (field === "price") {
-          updateData[field] = parseFloat(value as string);
+
+        if (field === "price" || field === "originalPrice") {
+          updateData[field] = parseFloat(String(value)) || 0;
         } else if (field === "type") {
           updateData[field] = value as ProductType;
         } else if (field === "status") {
           updateData[field] = value as ProductStatus;
-        } else if (field === "difficulty") {
+        } else if (field === "difficulty" || field === "level") {
           updateData[field] = value as ProductDifficulty;
         } else if (field === "featured") {
           updateData[field] = !!value;
+        } else if (field === "rating") {
+          updateData[field] = parseFloat(String(value)) || 0;
+        } else if (field === "totalReviews" || field === "studentsEnrolled") {
+          updateData[field] = parseInt(String(value)) || 0;
+        } else if (["tags", "technologies", "includes"].includes(field)) {
+          (updateData[field as keyof typeof updateData] as
+            | string[]
+            | undefined) = Array.isArray(value)
+            ? (value as string[]).map((item: string) => String(item).trim())
+            : [];
+        } else if (field === "features") {
+          updateData[field] = validateAndNormalizeFeatures(
+            value as ProductFeature[],
+          );
+        } else if (field === "modules") {
+          updateData[field] = validateAndNormalizeModules(
+            value as ProductModule[],
+          );
+        } else if (field === "testimonials") {
+          updateData[field] = validateAndNormalizeTestimonials(
+            value as ProductTestimonial[],
+          );
+        } else if (field === "faqs") {
+          updateData[field] = validateAndNormalizeFAQs(value as FAQs[]);
+        } else if (
+          field === "instructor" &&
+          typeof value === "object" &&
+          value !== null
+        ) {
+          updateData[field] = {
+            name: String((value as { name?: string }).name || "").trim(),
+            bio: String((value as { bio?: string }).bio || "").trim(),
+            avatar: String((value as { avatar?: string }).avatar || "").trim(),
+            credentials: Array.isArray(
+              (value as { credentials?: string[] }).credentials,
+            )
+              ? (value as { credentials: string[] }).credentials.map(
+                  (cred: string) => String(cred).trim(),
+                )
+              : [],
+          };
         } else {
           (updateData as Record<string, unknown>)[field] = value;
         }
@@ -235,7 +331,7 @@ export async function PUT(
   }
 }
 
-// DELETE - Delete product by ID or slug
+// DELETE - Delete product by ID or slug (REQUIRES AUTHENTICATION)
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -314,78 +410,4 @@ export async function DELETE(
       { status: 500 },
     );
   }
-}
-
-// Validation helper for updates
-function validateUpdateProductData(data: Partial<Product>): string[] {
-  const errors: string[] = [];
-
-  // Title validation (if provided)
-  if (data.title !== undefined) {
-    if (typeof data.title !== "string" || data.title.trim().length < 3) {
-      errors.push("Title must be at least 3 characters long");
-    }
-    if (data.title.length > 100) {
-      errors.push("Title must be less than 100 characters");
-    }
-  }
-
-  // Description validation (if provided)
-  if (data.description !== undefined) {
-    if (
-      typeof data.description !== "string" ||
-      data.description.trim().length < 10
-    ) {
-      errors.push("Description must be at least 10 characters long");
-    }
-    if (data.description.length > 500) {
-      errors.push("Description must be less than 500 characters");
-    }
-  }
-
-  // Type validation (if provided)
-  if (data.type !== undefined) {
-    const validTypes = ["Course", "Bootcamp", "eBook", "Codebase"];
-    if (!validTypes.includes(data.type)) {
-      errors.push("Invalid product type");
-    }
-  }
-
-  // Price validation (if provided)
-  if (data.price !== undefined) {
-    const price = parseFloat(String(data.price));
-    if (isNaN(price) || price < 0) {
-      errors.push("Price must be a valid positive number");
-    }
-    if (price > 10000) {
-      errors.push("Price cannot exceed $10,000");
-    }
-  }
-
-  // Status validation (if provided)
-  if (data.status !== undefined) {
-    const validStatuses = ["published", "draft", "archived"];
-    if (!validStatuses.includes(data.status)) {
-      errors.push("Invalid status");
-    }
-  }
-
-  // Difficulty validation (if provided)
-  if (data.difficulty !== undefined) {
-    const validDifficulties = ["Beginner", "Intermediate", "Advanced"];
-    if (!validDifficulties.includes(data.difficulty)) {
-      errors.push("Invalid difficulty level");
-    }
-  }
-
-  // Thumbnail validation (if provided)
-  if (data.imageUrl !== undefined && data.imageUrl.trim()) {
-    try {
-      new URL(data.imageUrl);
-    } catch {
-      errors.push("Thumbnail must be a valid URL");
-    }
-  }
-
-  return errors;
 }
