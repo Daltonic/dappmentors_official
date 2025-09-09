@@ -42,7 +42,10 @@ const StatsCards: React.FC<{ products: Product[] }> = ({ products }) => {
     {
       label: "Total Revenue",
       value: `$${products
-        .reduce((sum, p) => sum + p.price * p.enrollments, 0)
+        .reduce(
+          (sum, p) => sum + Number(p.price) * (p.studentsEnrolled || 0),
+          0,
+        )
         .toLocaleString()}`,
       color: "from-purple-500 to-purple-600",
       icon: <FaDollarSign className="text-white text-2xl" />,
@@ -172,8 +175,12 @@ const Page: React.FC = () => {
         const processedProducts: Product[] = response.data.products.map(
           (product) => ({
             ...product,
-            createdAt: new Date(product.createdAt),
-            updatedAt: new Date(product.updatedAt),
+            createdAt: product.createdAt
+              ? new Date(product.createdAt)
+              : new Date(),
+            updatedAt: product.updatedAt
+              ? new Date(product.updatedAt)
+              : new Date(),
           }),
         );
 
@@ -257,7 +264,9 @@ const Page: React.FC = () => {
       const matchesSearch =
         product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         product.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.instructor.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.instructor.name
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
         product.category.toLowerCase().includes(searchTerm.toLowerCase());
       return matchesSearch;
     });

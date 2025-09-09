@@ -19,23 +19,44 @@ export interface ProductsResponse {
     type: string;
     status: string;
     category: string;
-    difficulty: string;
     featured: string;
   };
 }
 
 export interface CreateProductData {
   title: string;
+  subtitle?: string;
   description: string;
+  longDescription?: string;
   type: Product["type"];
-  price: number;
+  price: number | string;
+  originalPrice?: number | string;
+  currency?: string;
   status?: Product["status"];
   category: string;
-  difficulty: Product["difficulty"];
+  difficulty: string;
   duration: string;
-  instructor: string;
+  level?: string;
+  language?: string;
+  instructor: {
+    name: string;
+    bio?: string;
+    avatar?: string;
+    credentials?: string[];
+  };
+  imageUrl?: string;
+  videoPreviewUrl?: string;
   featured?: boolean;
-  thumbnail?: string;
+  tags?: string[];
+  technologies?: string[];
+  includes?: string[];
+  rating?: number;
+  totalReviews?: number;
+  studentsEnrolled?: number;
+  features?: Product["features"];
+  modules?: Product["modules"];
+  testimonials?: Product["testimonials"];
+  faqs?: Product["faqs"];
 }
 
 export interface UpdateProductData extends Partial<CreateProductData> {
@@ -68,7 +89,6 @@ export const productApiService = {
     type?: string;
     status?: string;
     category?: string;
-    difficulty?: string;
     featured?: boolean;
     sortBy?: string;
     sortOrder?: "asc" | "desc";
@@ -86,9 +106,11 @@ export const productApiService = {
     return apiRequest<ProductsResponse>(url);
   },
 
-  // Get single product by ID
-  async getProduct(id: string): Promise<ApiResponse<{ product: Product }>> {
-    return apiRequest<{ product: Product }>(`${API_BASE_URL}/${id}`);
+  // Get single product by ID or slug
+  async getProduct(
+    idOrSlug: string,
+  ): Promise<ApiResponse<{ product: Product }>> {
+    return apiRequest<{ product: Product }>(`${API_BASE_URL}/${idOrSlug}`);
   },
 
   // Create new product
@@ -106,7 +128,7 @@ export const productApiService = {
 
   // Update existing product
   async updateProduct(
-    id: string,
+    idOrSlug: string,
     productData: UpdateProductData,
   ): Promise<
     ApiResponse<{
@@ -118,20 +140,20 @@ export const productApiService = {
     const updateData = { ...productData };
     delete updateData.id;
 
-    return apiRequest(`${API_BASE_URL}/${id}`, {
+    return apiRequest(`${API_BASE_URL}/${idOrSlug}`, {
       method: "PUT",
       body: JSON.stringify(updateData),
     });
   },
 
   // Delete product
-  async deleteProduct(id: string): Promise<
+  async deleteProduct(idOrSlug: string): Promise<
     ApiResponse<{
       message: string;
       deletedId: string;
     }>
   > {
-    return apiRequest(`${API_BASE_URL}/${id}`, {
+    return apiRequest(`${API_BASE_URL}/${idOrSlug}`, {
       method: "DELETE",
     });
   },
@@ -226,7 +248,6 @@ export const productApiService = {
       type?: string;
       status?: string;
       category?: string;
-      difficulty?: string;
     },
   ): Promise<ApiResponse<ProductsResponse>> {
     return this.getProducts({
@@ -261,9 +282,9 @@ export const productApiService = {
     });
   },
 
-  // Get products by instructor
-  async getProductsByInstructor(
-    instructor: string,
+  // Get products by category
+  async getProductsByCategory(
+    category: string,
     params?: {
       page?: number;
       limit?: number;
@@ -271,7 +292,33 @@ export const productApiService = {
     },
   ): Promise<ApiResponse<ProductsResponse>> {
     return this.getProducts({
-      search: instructor, // Assuming search includes instructor
+      category,
+      ...params,
+    });
+  },
+
+  // Get published products
+  async getPublishedProducts(params?: {
+    page?: number;
+    limit?: number;
+    type?: string;
+    category?: string;
+  }): Promise<ApiResponse<ProductsResponse>> {
+    return this.getProducts({
+      status: "published",
+      ...params,
+    });
+  },
+
+  // Get draft products (for admins or creators)
+  async getDraftProducts(params?: {
+    page?: number;
+    limit?: number;
+    type?: string;
+    category?: string;
+  }): Promise<ApiResponse<ProductsResponse>> {
+    return this.getProducts({
+      status: "draft",
       ...params,
     });
   },

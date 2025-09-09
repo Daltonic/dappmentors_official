@@ -1,11 +1,17 @@
 // /api/products/route.ts
-
 import { connectToDatabase } from "@/lib/mongodb";
 import { verifyAccessToken } from "@/lib/jwt";
 import { Product } from "@/utils/interfaces";
 import { Collection, Filter, ObjectId } from "mongodb";
 import { NextRequest, NextResponse } from "next/server";
 import { generateSlug } from "@/heplers/products";
+import {
+  validateAndNormalizeFeatures,
+  validateAndNormalizeModules,
+  validateAndNormalizeTestimonials,
+  validateAndNormalizeFAQs,
+  validateProductData,
+} from "@/validations/products";
 
 type ProductType = "Course" | "Bootcamp" | "eBook" | "Codebase";
 type ProductStatus = "published" | "draft" | "archived";
@@ -14,6 +20,7 @@ type ProductDifficulty = "Beginner" | "Intermediate" | "Advanced";
 interface ProductDocument extends Omit<Product, "id"> {
   _id: ObjectId;
   createdBy: string;
+  slug: string;
 }
 
 // GET - List all products with filtering and pagination
@@ -41,7 +48,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const type = url.searchParams.get("type") || "";
     const status = url.searchParams.get("status") || "";
     const category = url.searchParams.get("category") || "";
-    const difficulty = url.searchParams.get("difficulty") || "";
     const featured = url.searchParams.get("featured");
     const sortBy = url.searchParams.get("sortBy") || "createdAt";
     const sortOrder = url.searchParams.get("sortOrder") || "desc";
@@ -52,16 +58,19 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     if (search) {
       filter.$or = [
         { title: { $regex: search, $options: "i" } },
+        { subtitle: { $regex: search, $options: "i" } },
         { description: { $regex: search, $options: "i" } },
-        { instructor: { $regex: search, $options: "i" } },
+        { longDescription: { $regex: search, $options: "i" } },
         { slug: { $regex: search, $options: "i" } },
+        { tags: { $in: [new RegExp(search, "i")] } },
+        { technologies: { $in: [new RegExp(search, "i")] } },
+        { category: { $regex: search, $options: "i" } },
       ];
     }
 
     if (type) filter.type = type as ProductType;
     if (status) filter.status = status as ProductStatus;
     if (category) filter.category = category;
-    if (difficulty) filter.difficulty = difficulty as ProductDifficulty;
     if (featured !== null && featured !== undefined) {
       filter.featured = featured === "true";
     }
@@ -91,7 +100,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           ...product,
           id: product._id.toString(),
           _id: undefined,
-        }) as Product,
+          slug: undefined,
+        }) as unknown as Product,
     );
 
     const totalPages = Math.ceil(totalProducts / limit);
@@ -110,7 +120,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         type,
         status,
         category,
-        difficulty,
         featured,
       },
     });
@@ -162,9 +171,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       "category",
       "difficulty",
       "duration",
-      "instructor",
+      "instructor.name", // Specify instructor.name as required
     ];
-    const missingFields = requiredFields.filter((field) => !body[field]);
+    const missingFields = requiredFields.filter((field) => {
+      if (field === "instructor.name") {
+        return !body.instructor || !body.instructor.name;
+      }
+      return !body[field];
+    });
 
     if (missingFields.length > 0) {
       return NextResponse.json(
@@ -190,21 +204,56 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const productData: Omit<ProductDocument, "_id"> = {
       slug,
       title: body.title.trim(),
+      subtitle: body.subtitle?.trim() || "",
       description: body.description.trim(),
+      longDescription: body.longDescription?.trim() || "",
       type: body.type as ProductType,
-      price: parseFloat(body.price),
+      price: parseFloat(String(body.price)), // Ensure price is a number
+      originalPrice: body.originalPrice
+        ? parseFloat(String(body.originalPrice))
+        : undefined,
+      currency: body.currency || "USD",
       status: (body.status || "draft") as ProductStatus,
       category: body.category.trim(),
       difficulty: body.difficulty as ProductDifficulty,
       duration: body.duration.trim(),
-      enrollments: 0,
-      rating: 0,
-      totalReviews: 0,
-      instructor: body.instructor.trim(),
+      level: body.level || body.difficulty, // Fallback to difficulty
+      language: body.language || "English",
+      lastUpdated: now.toISOString(),
+      instructor: {
+        name: String(body.instructor.name || "").trim(),
+        bio: body.instructor.bio ? String(body.instructor.bio).trim() : "",
+        avatar: body.instructor.avatar
+          ? String(body.instructor.avatar).trim()
+          : "",
+        credentials: Array.isArray(body.instructor.credentials)
+          ? body.instructor.credentials.map((cred: string) =>
+              String(cred).trim(),
+            )
+          : [],
+      },
       createdAt: now,
       updatedAt: now,
-      featured: body.featured || false,
-      thumbnail: body.thumbnail?.trim() || "",
+      featured: Boolean(body.featured),
+      imageUrl: body.imageUrl?.trim() || body.thumbnail?.trim() || "",
+      enrollments: 0,
+      rating: parseFloat(String(body.rating)) || 0,
+      totalReviews: parseInt(String(body.totalReviews)) || 0,
+      studentsEnrolled: parseInt(String(body.studentsEnrolled)) || 0,
+      tags: Array.isArray(body.tags)
+        ? body.tags.map((tag: string) => String(tag).trim())
+        : [],
+      technologies: Array.isArray(body.technologies)
+        ? body.technologies.map((tech: string) => String(tech).trim())
+        : [],
+      features: validateAndNormalizeFeatures(body.features || []),
+      modules: validateAndNormalizeModules(body.modules || []),
+      includes: Array.isArray(body.includes)
+        ? body.includes.map((item: string) => String(item).trim())
+        : [],
+      testimonials: validateAndNormalizeTestimonials(body.testimonials || []),
+      faqs: validateAndNormalizeFAQs(body.faqs || []),
+      videoPreviewUrl: body.videoPreviewUrl?.trim() || "",
       createdBy: payload.userId,
     };
 
@@ -226,6 +275,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       ...createdProduct,
       id: createdProduct._id.toString(),
       _id: undefined,
+      slug: createdProduct.slug,
     } as Product;
 
     return NextResponse.json(
@@ -253,66 +303,4 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       { status: 500 },
     );
   }
-}
-
-// Validation helper function
-function validateProductData(data: Partial<Product>): string[] {
-  const errors: string[] = [];
-
-  // Title validation
-  if (typeof data.title !== "string" || data.title.trim().length < 3) {
-    errors.push("Title must be at least 3 characters long");
-  }
-  if (data.title && data.title.length > 100) {
-    errors.push("Title must be less than 100 characters");
-  }
-
-  // Description validation
-  if (
-    typeof data.description !== "string" ||
-    data.description.trim().length < 10
-  ) {
-    errors.push("Description must be at least 10 characters long");
-  }
-  if (data.description && data.description.length > 500) {
-    errors.push("Description must be less than 500 characters");
-  }
-
-  // Type validation
-  const validTypes = ["Course", "Bootcamp", "eBook", "Codebase"];
-  if (!validTypes.includes(data.type as string)) {
-    errors.push("Invalid product type");
-  }
-
-  // Price validation
-  const price = parseFloat(data.price as unknown as string);
-  if (isNaN(price) || price < 0) {
-    errors.push("Price must be a valid positive number");
-  }
-  if (price > 10000) {
-    errors.push("Price cannot exceed $10,000");
-  }
-
-  // Status validation
-  const validStatuses = ["published", "draft", "archived"];
-  if (data.status && !validStatuses.includes(data.status)) {
-    errors.push("Invalid status");
-  }
-
-  // Difficulty validation
-  const validDifficulties = ["Beginner", "Intermediate", "Advanced"];
-  if (!validDifficulties.includes(data.difficulty as string)) {
-    errors.push("Invalid difficulty level");
-  }
-
-  // Thumbnail validation
-  if (data.thumbnail && data.thumbnail.trim()) {
-    try {
-      new URL(data.thumbnail);
-    } catch {
-      errors.push("Thumbnail must be a valid URL");
-    }
-  }
-
-  return errors;
 }

@@ -1,8 +1,8 @@
-import { ProductStruct } from "@/utils/interfaces";
+import { Product } from "@/utils/interfaces";
 
 // Instructor Section
 interface InstructorProps {
-  instructor: ProductStruct["instructor"];
+  instructor: Product["instructor"];
 }
 
 const InstructorSection: React.FC<InstructorProps> = ({ instructor }) => {
@@ -24,7 +24,7 @@ const InstructorSection: React.FC<InstructorProps> = ({ instructor }) => {
               {instructor.name}
             </h3>
             <div className="space-y-2 mb-6">
-              {instructor.credentials.map((credential, index) => (
+              {(instructor.credentials || []).map((credential, index) => (
                 <div
                   key={index}
                   className="flex items-center gap-3 justify-center lg:justify-start"

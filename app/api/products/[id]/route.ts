@@ -286,7 +286,7 @@ export async function DELETE(
     }
 
     // Check if product has enrollments (prevent deletion of products with students)
-    if (existingProduct.enrollments > 0) {
+    if (existingProduct.enrollments && existingProduct.enrollments > 0) {
       return NextResponse.json(
         {
           error:
@@ -379,9 +379,9 @@ function validateUpdateProductData(data: Partial<Product>): string[] {
   }
 
   // Thumbnail validation (if provided)
-  if (data.thumbnail !== undefined && data.thumbnail.trim()) {
+  if (data.imageUrl !== undefined && data.imageUrl.trim()) {
     try {
-      new URL(data.thumbnail);
+      new URL(data.imageUrl);
     } catch {
       errors.push("Thumbnail must be a valid URL");
     }

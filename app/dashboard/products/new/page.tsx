@@ -115,7 +115,7 @@ const Page: React.FC = () => {
         duration: productData.duration,
         instructor: productData.instructor,
         featured: productData.featured || false,
-        thumbnail: productData.thumbnail || "",
+        thumbnail: productData.imageUrl || "",
       };
 
       // Execute the API call
@@ -238,26 +238,6 @@ const Page: React.FC = () => {
             className={`${isCreating ? "pointer-events-none opacity-50" : ""}`}
           />
         </motion.div>
-
-        {/* API Status Information */}
-        {process.env.NODE_ENV === "development" && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
-            className="mt-8 p-4 bg-gray-100 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700"
-          >
-            <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-2">
-              Development Info
-            </h4>
-            <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
-              <p>API Endpoint: POST /api/products</p>
-              <p>Loading State: {isCreating ? "Active" : "Inactive"}</p>
-              <p>Error State: {createError ? createError : "None"}</p>
-              <p>Success State: {createdProduct ? "Success" : "None"}</p>
-            </div>
-          </motion.div>
-        )}
       </div>
 
       {/* Toast Notification */}

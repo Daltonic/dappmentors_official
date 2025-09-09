@@ -1,8 +1,8 @@
-import { ProductStruct } from "@/utils/interfaces";
+import { Product } from "@/utils/interfaces";
 
 // Final CTA Section
 interface FinalCTAProps {
-  product: ProductStruct;
+  product: Product;
   onEnroll: () => void;
 }
 
@@ -15,8 +15,8 @@ const FinalCTASection: React.FC<FinalCTAProps> = ({ product, onEnroll }) => {
         </h2>
 
         <p className="text-xl text-white/90 mb-12 leading-relaxed">
-          Join {product.studentsEnrolled.toLocaleString()}+ students who are
-          already building the future with blockchain technology.
+          Join {(product.studentsEnrolled || 0).toLocaleString()}+ students who
+          are already building the future with blockchain technology.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-8">

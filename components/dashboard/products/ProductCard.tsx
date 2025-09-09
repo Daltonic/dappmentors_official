@@ -71,16 +71,14 @@ const ProductCard: React.FC<{
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="group relative bg-white/10 dark:bg-gray-900/80 backdrop-blur-sm rounded-3xl border border-gray-200/50 dark:border-gray-700/50 shadow-lg hover:shadow-2xl transition-all duration-700 overflow-hidden
-
-"
+      className="group relative bg-white/10 dark:bg-gray-900/80 backdrop-blur-sm rounded-3xl border border-gray-200/50 dark:border-gray-700/50 shadow-lg hover:shadow-2xl transition-all duration-700 overflow-hidden"
     >
       <div className="absolute inset-0 bg-gradient-to-br from-[#D2145A]/5 to-[#FF4081]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
       {/* Thumbnail */}
       <div className="relative h-48 overflow-hidden">
         <Image
-          src={product.thumbnail}
+          src={product.imageUrl || "/placeholder-image.svg"}
           alt={product.title}
           fill
           sizes="(max-width: 768px) 100vw, 400px"
@@ -122,7 +120,7 @@ const ProductCard: React.FC<{
               ${product.price}
             </div>
             <div className="text-xs text-gray-600 dark:text-gray-300">
-              {product.enrollments} enrolled
+              {product.studentsEnrolled || 0} enrolled
             </div>
           </div>
         </div>
@@ -158,7 +156,7 @@ const ProductCard: React.FC<{
               Instructor:
             </span>
             <span className="text-gray-700 dark:text-gray-300">
-              {product.instructor}
+              {product.instructor.name}
             </span>
           </div>
           <div className="flex items-center justify-between">
@@ -182,7 +180,7 @@ const ProductCard: React.FC<{
           </button>
           <button
             className="p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800 rounded-xl transition-colors"
-            onClick={() => router.push(`/dashboard/products/${product.id}`)}
+            onClick={() => router.push(`/products/${product.id}`)}
           >
             <FaEye className="w-5 h-5" />
           </button>

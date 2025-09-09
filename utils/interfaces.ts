@@ -1,13 +1,5 @@
 import { ObjectId } from "mongodb";
 
-export interface GlobalState {
-  darkMode: boolean;
-}
-
-export interface RootState {
-  globalStates: GlobalState;
-}
-
 export interface SearchResult {
   type: string;
   data: {
@@ -97,39 +89,48 @@ export interface ProductFeature {
   description: string;
 }
 
-export interface ProductStruct {
+export interface Product {
+  _id?: ObjectId;
   id: string;
-  type: "Course" | "Bootcamp" | "Ebook" | "Codebase";
   title: string;
-  subtitle: string;
   description: string;
-  longDescription: string;
-  price: number;
-  originalPrice?: number;
-  currency: string;
-  rating: number;
-  totalRatings: number;
-  studentsEnrolled: number;
+  longDescription?: string;
+  type: string;
+  price: number | string;
+  status?: string;
+  difficulty?: string;
+  level?: string;
   duration: string;
-  level: "Beginner" | "Intermediate" | "Advanced" | "All Levels";
-  language: string;
-  lastUpdated: string;
   instructor: {
     name: string;
-    bio: string;
-    avatar: string;
-    credentials: string[];
+    bio?: string; // Add bio
+    avatar?: string; // Add avatar
+    credentials?: string[]; // Add credentials
   };
-  features: ProductFeature[];
-  modules?: ProductModule[];
-  technologies?: string[];
-  includes: string[];
-  testimonials: ProductTestimonial[];
-  faqs: FAQs[];
+  imageUrl?: string;
   videoPreviewUrl?: string;
-  imageUrl: string;
+  tags?: string[];
+  technologies?: string[];
+  features?: ProductFeature[];
+  modules?: ProductModule[];
+  testimonials?: ProductTestimonial[];
+  faqs?: FAQs[];
+  subtitle?: string;
+  originalPrice?: number | string;
+  currency?: string;
   category: string;
-  tags: string[];
+  language?: string;
+  lastUpdated?: string;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  featured?: boolean;
+  enrollments?: number;
+  rating?: number;
+  totalReviews?: number;
+  studentsEnrolled?: number;
+  includes?: string[];
+  slug?: string;
+  createdBy?: string;
 }
 
 export interface DashboardStats {
@@ -182,27 +183,6 @@ export interface QuickAction {
   description: string;
   icon: React.ReactNode; // Changed from string to ReactNode for react-icons
   href: string;
-}
-
-export interface Product {
-  id: string;
-  title: string;
-  description: string;
-  type: "Course" | "Bootcamp" | "eBook" | "Codebase";
-  price: number;
-  status: "published" | "draft" | "archived";
-  category: string;
-  difficulty: "Beginner" | "Intermediate" | "Advanced";
-  duration: string;
-  enrollments: number;
-  rating: number;
-  totalReviews: number;
-  instructor: string;
-  createdAt: Date;
-  updatedAt: Date;
-  featured: boolean;
-  thumbnail: string;
-  slug: string;
 }
 
 export type Particle = {

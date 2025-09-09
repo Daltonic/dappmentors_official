@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import MarketingLayout from "@/components/layouts/MarketingLayout";
 import HeroSection from "@/components/shared/HeroSection";
 import Image from "next/image";
-import { ProductStruct } from "@/utils/interfaces";
+import { Product } from "@/utils/interfaces";
 import FeaturesSection from "@/components/products/details/FeaturesSection";
 import ProductContentSection from "@/components/products/details/ProductContentSection";
 import InstructorSection from "@/components/products/details/InstructorSection";
@@ -13,7 +13,7 @@ import FAQSection from "@/components/shared/FAQSection";
 import FinalCTASection from "@/components/products/details/FinalCTASection";
 
 interface PageClientProps {
-  product: ProductStruct;
+  product: Product;
 }
 
 const PageClient: React.FC<PageClientProps> = ({ product }) => {
@@ -23,12 +23,6 @@ const PageClient: React.FC<PageClientProps> = ({ product }) => {
     setIsEnrolling(true);
     // Simulate enrollment process
     await new Promise((resolve) => setTimeout(resolve, 2000));
-
-    // Here you would typically:
-    // 1. Process payment
-    // 2. Create user enrollment
-    // 3. Send confirmation email
-    // 4. Redirect to course dashboard
 
     console.log(`Enrolling in: ${product.title}`);
     alert(`Successfully enrolled in ${product.title}!`);
@@ -48,7 +42,7 @@ const PageClient: React.FC<PageClientProps> = ({ product }) => {
     instructor: {
       "@type": "Person",
       name: product.instructor.name,
-      description: product.instructor.bio,
+      description: product.instructor.bio || "", // Fallback for optional bio
     },
     offers: {
       "@type": "Offer",
@@ -58,8 +52,8 @@ const PageClient: React.FC<PageClientProps> = ({ product }) => {
     },
     aggregateRating: {
       "@type": "AggregateRating",
-      ratingValue: product.rating,
-      ratingCount: product.totalRatings,
+      ratingValue: product.rating || 0, // Fallback for optional rating
+      ratingCount: product.totalReviews,
     },
   };
 
@@ -80,7 +74,7 @@ const PageClient: React.FC<PageClientProps> = ({ product }) => {
         subtitle="Master Ethereum Development from Zero to Professional"
         rightContent={
           <Image
-            src={product.imageUrl}
+            src={product.imageUrl || "/placeholder-image.svg"} // Fallback for undefined imageUrl
             alt={product.title}
             width={1280}
             height={720}
@@ -97,19 +91,20 @@ const PageClient: React.FC<PageClientProps> = ({ product }) => {
                 {[...Array(5)].map((_, i) => (
                   <span
                     key={i}
-                    className={i < Math.floor(product.rating) ? "★" : "☆"}
+                    className={i < Math.floor(product.rating || 0) ? "★" : "☆"} // Fallback for rating
                   >
                     ★
                   </span>
                 ))}
               </div>
               <span className="text-gray-600 dark:text-gray-300 font-medium">
-                {product.rating} ({product.totalRatings.toLocaleString()}{" "}
-                reviews)
+                {/* {product.rating || 0} ({product.totalReviews.toLocaleString() || 0} reviews) */}
+                {product.rating || 0} (
+                {(product.totalReviews || 0).toLocaleString()} reviews)
               </span>
             </div>
             <div className="text-gray-600 dark:text-gray-300">
-              {product.studentsEnrolled.toLocaleString()} students
+              {(product.studentsEnrolled || 0).toLocaleString()} students
             </div>
             <div className="text-gray-600 dark:text-gray-300">
               {product.duration}
@@ -158,28 +153,27 @@ const PageClient: React.FC<PageClientProps> = ({ product }) => {
             </button>
           </div>
         </div>
-        {/* ... rest of your pricing/CTA content */}
       </HeroSection>
 
       {/* Features Section */}
-      <FeaturesSection features={product.features} />
+      <FeaturesSection features={product.features || []} />
 
       {/* Course Content Section */}
       <ProductContentSection
-        modules={product.modules}
-        includes={product.includes}
+        modules={product.modules || []} // Fallback for optional modules
+        includes={product.includes || []}
       />
 
       {/* Instructor Section */}
       <InstructorSection instructor={product.instructor} />
 
       {/* Testimonials Section */}
-      <TestimonialsSection testimonials={product.testimonials} />
+      <TestimonialsSection testimonials={product.testimonials || []} />
 
       {/* FAQ Section */}
       <FAQSection
         subtitle="Everything you need to know about this product"
-        faqs={product.faqs}
+        faqs={product.faqs || []}
       />
 
       {/* Final CTA Section */}

@@ -162,7 +162,7 @@ const ProductTable: React.FC<{
                 <td className="px-4 py-4">
                   <div className="flex items-center gap-3">
                     <Image
-                      src={product.thumbnail}
+                      src={product.imageUrl || "/placeholder-image.svg"} // Fallback to placeholder
                       alt={product.title}
                       width={48}
                       height={32}
@@ -174,7 +174,8 @@ const ProductTable: React.FC<{
                         {product.title}
                       </h4>
                       <p className="text-gray-600 dark:text-gray-300 text-xs line-clamp-1">
-                        {product.instructor} • {product.category}
+                        {product.instructor?.name || "Unknown Instructor"} •{" "}
+                        {product.category}
                       </p>
                       {product.featured && (
                         <span className="inline-block bg-yellow-100 text-yellow-800 text-xs font-semibold px-2 py-0.5 rounded-full mt-1">
@@ -215,7 +216,7 @@ const ProductTable: React.FC<{
                 <td className="px-4 py-4">
                   <div className="text-sm">
                     <span className="font-semibold text-gray-900 dark:text-white">
-                      {product.enrollments.toLocaleString()}
+                      {(product.enrollments || 0).toLocaleString()}
                     </span>
                     <p className="text-gray-500 dark:text-gray-400 text-xs">
                       students
@@ -235,7 +236,9 @@ const ProductTable: React.FC<{
                 </td>
                 <td className="px-4 py-4">
                   <div className="text-sm text-gray-600 dark:text-gray-300">
-                    {new Date(product.updatedAt).toLocaleDateString()}
+                    {new Date(
+                      product.updatedAt || Date.now(),
+                    ).toLocaleDateString()}
                   </div>
                 </td>
                 <td className="px-4 py-4">

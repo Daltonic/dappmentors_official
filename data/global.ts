@@ -1,7 +1,7 @@
 import {
   PostProp,
+  Product,
   ProductProp,
-  ProductStruct,
   Service,
   User,
 } from "@/utils/interfaces";
@@ -230,157 +230,131 @@ export const postx: PostProp[] = [
   },
 ];
 
-export const sampleProduct: ProductStruct = {
-  id: "solidity-masterclass",
-  type: "Course",
-  title: "Complete Solidity Smart Contract Development Masterclass",
-  subtitle: "Master Ethereum Development from Zero to Professional",
+export const sampleProduct: Product = {
+  id: "blockchain-ai-integration",
+  title: "Mastering Blockchain and AI Integration",
+  subtitle: "Build Intelligent Decentralized Applications",
   description:
-    "Learn to build production-ready smart contracts and dApps with Solidity, covering security best practices, gas optimization, and real-world project development.",
+    "Learn to combine blockchain and AI to create secure, smart dApps with real-world applications.",
   longDescription:
-    "This comprehensive masterclass takes you from absolute beginner to professional Solidity developer. You'll master smart contract development, security patterns, gas optimization techniques, and build real-world decentralized applications. The course includes hands-on projects, code reviews, and direct access to our community of developers.",
-  price: 299,
-  originalPrice: 499,
+    "This comprehensive course dives deep into the integration of blockchain technology and artificial intelligence. You'll explore how to leverage smart contracts with machine learning models to build decentralized applications (dApps) that are secure, scalable, and intelligent. Through hands-on projects, you'll master tools like Solidity, TensorFlow, and Chainlink, and learn to deploy AI-driven smart contracts on Ethereum. The course covers practical use cases such as decentralized finance (DeFi), predictive analytics on-chain, and secure data sharing. Perfect for developers looking to stay ahead in the Web3 and AI revolution.",
+  type: "Course",
+  price: "199.99",
+  originalPrice: "249.99",
   currency: "USD",
-  rating: 4.9,
-  totalRatings: 1247,
-  studentsEnrolled: 5420,
-  duration: "40+ hours",
-  level: "All Levels",
+  category: "Blockchain",
+  difficulty: "Intermediate",
+  level: "Intermediate",
+  duration: "8 weeks",
   language: "English",
-  lastUpdated: "January 2025",
   instructor: {
-    name: "Darlington Gospel",
-    bio: "Senior Blockchain Developer with 8+ years of experience in Solidity, Rust, and DeFi protocols.",
-    avatar: "👨‍💻",
+    name: "Dr. Emily Carter",
+    bio: "PhD in Computer Science with 10+ years in blockchain and AI research. Lead developer at Web3 Innovate.",
+    avatar:
+      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&h=200&q=80",
     credentials: [
-      "Senior Blockchain Developer",
-      "Smart Contract Auditor",
-      "DeFi Protocol Architect",
+      "PhD in Computer Science",
+      "Certified Blockchain Developer",
+      "AI Research Fellow at MIT",
     ],
   },
+  imageUrl:
+    "https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400&q=80",
+  videoPreviewUrl: "https://www.pexels.com/video/8557642/download/",
+  featured: true,
+  status: "published",
+  tags: ["Blockchain, AI, Web3, Smart Contracts, Machine Learning"],
+  technologies: ["Solidity, TensorFlow, Chainlink, Ethereum, Python"],
+  includes: [
+    "Access to course materials",
+    "Downloadable code samples",
+    "Certificate of completion",
+    "1-year access to updates",
+    "Community Discord access",
+  ],
+  rating: 4.8,
+  totalReviews: 120,
+  studentsEnrolled: 1500,
   features: [
     {
-      icon: "🚀",
-      title: "Production-Ready Skills",
-      description:
-        "Learn industry-standard practices used by top DeFi protocols",
+      icon: "📚",
+      title: "Hands-On Projects",
+      description: "Build real-world dApps integrating AI and blockchain.",
     },
     {
-      icon: "🔒",
-      title: "Security-First Approach",
-      description:
-        "Master smart contract security patterns and common vulnerabilities",
+      icon: "🤝",
+      title: "Expert Support",
+      description: "Get guidance from industry-leading instructors.",
     },
     {
-      icon: "⚡",
-      title: "Gas Optimization",
-      description:
-        "Techniques to minimize transaction costs and improve efficiency",
-    },
-    {
-      icon: "🛠️",
-      title: "Real-World Projects",
-      description: "Build 5+ complete dApps including DeFi, NFTs, and DAOs",
+      icon: "💻",
+      title: "Interactive Labs",
+      description: "Practice with live coding environments.",
     },
   ],
   modules: [
     {
-      title: "Solidity Fundamentals",
-      duration: "8 hours",
-      lessons: 15,
-      description:
-        "Master the basics of Solidity syntax, data types, and contract structure",
+      title: "Introduction to Blockchain and AI",
+      duration: "2 hours",
+      lessons: 5,
+      description: "Understand the basics of blockchain and AI integration.",
     },
     {
-      title: "Advanced Smart Contracts",
-      duration: "12 hours",
-      lessons: 22,
-      description:
-        "Dive deep into inheritance, libraries, and advanced patterns",
+      title: "Smart Contracts with Solidity",
+      duration: "3 hours",
+      lessons: 8,
+      description: "Learn to write and deploy smart contracts on Ethereum.",
     },
     {
-      title: "Security & Best Practices",
-      duration: "10 hours",
-      lessons: 18,
-      description: "Learn security vulnerabilities and how to prevent them",
+      title: "AI Model Integration",
+      duration: "4 hours",
+      lessons: 10,
+      description: "Integrate machine learning models with blockchain.",
     },
     {
-      title: "DeFi Development",
-      duration: "15 hours",
-      lessons: 25,
-      description: "Build decentralized finance applications and protocols",
+      title: "Building Decentralized Applications",
+      duration: "5 hours",
+      lessons: 12,
+      description: "Develop full-stack dApps with AI capabilities.",
     },
-  ],
-  technologies: [
-    "Solidity",
-    "Hardhat",
-    "OpenZeppelin",
-    "React",
-    "Web3.js",
-    "MetaMask",
-  ],
-  includes: [
-    "40+ hours of video content",
-    "5 real-world projects",
-    "Smart contract templates",
-    "Security audit checklist",
-    "Lifetime access",
-    "Certificate of completion",
-    "Private Discord community",
-    "Code reviews & feedback",
   ],
   testimonials: [
     {
-      name: "Sarah Chen",
-      role: "DeFi Developer at Compound",
+      name: "Michael Lee",
+      role: "Software Engineer",
       rating: 5,
       comment:
-        "This course transformed my understanding of Solidity. The security modules alone are worth the price!",
-      avatar: "👩‍💻",
+        "This course transformed my career! I built my first AI-powered dApp.",
+      avatar:
+        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&h=200&q=80",
     },
     {
-      name: "Marcus Johnson",
-      role: "Blockchain Consultant",
-      rating: 5,
+      name: "Sarah Johnson",
+      role: "Data Scientist",
+      rating: 4,
       comment:
-        "Excellent practical approach. I landed my first smart contract job after completing this course.",
-      avatar: "👨‍💼",
-    },
-    {
-      name: "Elena Rodriguez",
-      role: "Full Stack Developer",
-      rating: 5,
-      comment:
-        "Clear explanations, great projects, and fantastic community support. Highly recommended!",
-      avatar: "👩‍🔬",
+        "Great content, though I wish there were more advanced AI topics.",
+      avatar:
+        "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&h=200&q=80",
     },
   ],
   faqs: [
     {
       question: "Do I need prior blockchain experience?",
       answer:
-        "No! This course starts from the absolute basics and gradually builds up to advanced concepts. We cover everything you need to know.",
+        "Basic programming knowledge is recommended, but we cover blockchain fundamentals in the first module.",
     },
     {
-      question: "What if I get stuck on a concept?",
+      question: "What tools will I learn?",
       answer:
-        "You'll have access to our private Discord community where you can ask questions and get help from instructors and fellow students.",
+        "You'll master Solidity, TensorFlow, Chainlink, and Ethereum development tools.",
     },
     {
-      question: "How long do I have access to the course?",
+      question: "Is there a certificate provided?",
       answer:
-        "You get lifetime access to all course materials, including future updates and new content additions.",
-    },
-    {
-      question: "Is there a money-back guarantee?",
-      answer:
-        "Yes! We offer a 30-day money-back guarantee if you're not satisfied with the course content.",
+        "Yes, you'll receive a certificate of completion upon finishing the course.",
     },
   ],
-  imageUrl: "/assets/images/products/solana.jpg",
-  category: "Smart Contracts",
-  tags: ["Solidity", "Ethereum", "DeFi", "Security", "Best Practices"],
 };
 
 export const dashboardPages = [
