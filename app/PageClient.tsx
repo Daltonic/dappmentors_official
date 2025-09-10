@@ -9,10 +9,16 @@ import CommunityStatsSection from "@/components/shared/CommunityStatsSection";
 import CTASection from "@/components/shared/CTASection";
 import HeroSection from "@/components/shared/HeroSection";
 import WhyChooseSection from "@/components/shared/WhyChooseSection";
+import { Product } from "@/utils/interfaces";
 import React from "react";
 
+// Define props interface
+interface PageClientProps {
+  products: Product[];
+}
+
 // Client Component for Home Page
-const PageClient = () => {
+const PageClient: React.FC<PageClientProps> = ({ products }) => {
   return (
     <MarketingLayout>
       <HeroSection
@@ -46,7 +52,7 @@ const PageClient = () => {
         </div>
       </HeroSection>
       <WhyChooseSection />
-      <FeaturedProductsSection />
+      <FeaturedProductsSection products={products} />
       <ServicesSection />
       <FeaturedContentSection />
       <CommunityStatsSection />

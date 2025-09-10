@@ -1,21 +1,23 @@
 "use client";
 
-import { products as productx } from "@/data/global";
 import ProductCard from "../shared/ProductCard";
+import { Product } from "@/utils/interfaces";
 import { useState } from "react";
 
-// Premium Courses Section
-const CoursesSection = () => {
+interface CoursesSectionProps {
+  products: Product[];
+}
+
+const CoursesSection = ({ products }: CoursesSectionProps) => {
   const [visibleCourses, setVisibleCourses] = useState(3); // Start with 3 courses
   const coursesPerLoad = 3; // Number of courses to load each time
-  const products = productx
-    .filter((product) => product.type === "Course")
-    .slice(0, visibleCourses);
-  const totalCourses = products.length; // Total number of courses
+  const courses = products;
+  const totalCourses = courses.length; // Total number of courses
+  const displayedCourses = courses.slice(0, visibleCourses);
   const hasMoreCourses = visibleCourses < totalCourses; // Check if more courses can be loaded
 
   const handleLoadMore = () => {
-    setVisibleCourses((prev) => Math.min(prev + coursesPerLoad, totalCourses)); // Load more, up to total
+    setVisibleCourses((prev) => Math.min(prev + coursesPerLoad, totalCourses));
   };
 
   return (
@@ -40,12 +42,11 @@ const CoursesSection = () => {
         </div>
 
         <div className="grid lg:grid-cols-3 gap-8">
-          {products.map((course, index) => (
-            <ProductCard product={course} key={index} />
+          {displayedCourses.map((course) => (
+            <ProductCard product={course} key={course.id} />
           ))}
         </div>
 
-        {/* Call to Action */}
         {hasMoreCourses && (
           <div className="text-center mt-16">
             <button

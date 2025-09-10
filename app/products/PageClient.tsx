@@ -8,9 +8,13 @@ import EBooksSection from "@/components/products/EBookSection";
 import CTASection from "@/components/shared/CTASection";
 import HeroSection from "@/components/shared/HeroSection";
 import WhyChooseSection from "@/components/shared/WhyChooseSection";
+import { Product } from "@/utils/interfaces";
 
-// Client Component for Products Page
-const PageClient = () => {
+interface PageClientProps {
+  products: Product[];
+}
+
+const PageClient = ({ products }: PageClientProps) => {
   return (
     <MarketingLayout>
       <HeroSection
@@ -20,10 +24,18 @@ const PageClient = () => {
         subtitle="From beginner to pro — get access to the best Web3 courses, codebases, and eBooks to fast-track your success."
       />
 
-      <CoursesSection />
-      <BootcampsSection />
-      <CodebasesSection />
-      <EBooksSection />
+      <CoursesSection
+        products={products.filter((product) => product.type === "Course")}
+      />
+      <BootcampsSection
+        products={products.filter((product) => product.type === "Bootcamp")}
+      />
+      <CodebasesSection
+        products={products.filter((product) => product.type === "Codebase")}
+      />
+      <EBooksSection
+        products={products.filter((product) => product.type === "EBook")}
+      />
       <WhyChooseSection />
 
       <CTASection

@@ -1,9 +1,14 @@
-import { products } from "@/data/global";
-import ProductCard from "../shared/ProductCard";
+"use client";
 
-// Bootcamps Section
-const BootcampsSection = () => {
-  const bootcamps = products.filter((product) => product.type === "Bootcamp");
+import ProductCard from "../shared/ProductCard";
+import { Product } from "@/utils/interfaces";
+
+interface BootcampsSectionProps {
+  products: Product[];
+}
+
+const BootcampsSection = ({ products }: BootcampsSectionProps) => {
+  const bootcamps = products;
 
   return (
     <section className="py-20 bg-gradient-to-br from-gray-50 to-purple-50 dark:from-[#1A1A1A] dark:to-purple-900/10">
@@ -19,8 +24,8 @@ const BootcampsSection = () => {
         </div>
 
         <div className="grid lg:grid-cols-3 gap-8">
-          {bootcamps.map((bootcamp, index) => (
-            <ProductCard product={bootcamp} key={index} />
+          {bootcamps.map((bootcamp) => (
+            <ProductCard product={bootcamp} key={bootcamp.id} />
           ))}
         </div>
       </div>

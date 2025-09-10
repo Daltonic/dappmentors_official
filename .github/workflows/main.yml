@@ -52,6 +52,8 @@ jobs:
             SMTP_PASS=${{ secrets.SMTP_PASS }}
             SMTP_FROM=${{ secrets.SMTP_FROM }}
             NEXT_PUBLIC_APP_URL=${{ secrets.NEXT_PUBLIC_APP_URL }}
+            CLEAR_EXISTING=true
+            NUM_PRODUCTS=100
             EOF
 
   deploy_with_compose:

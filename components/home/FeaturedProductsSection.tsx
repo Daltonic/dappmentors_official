@@ -6,10 +6,16 @@ import "swiper/css/navigation";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Pagination, Navigation } from "swiper/modules";
 import { SkeletonTheme } from "react-loading-skeleton";
-import { products } from "@/data/global";
+import { Product } from "@/utils/interfaces";
 import ProductCard from "../shared/ProductCard";
 
-const FeaturedProductsSection = () => {
+interface FeaturedProductsSectionProps {
+  products: Product[];
+}
+
+const FeaturedProductsSection: React.FC<FeaturedProductsSectionProps> = ({
+  products,
+}) => {
   const [loading, setLoading] = useState(true);
   const shouldAutoScroll = products.length > 3;
 
