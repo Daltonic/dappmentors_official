@@ -267,12 +267,6 @@ export type ServiceType =
   | "Professional"
   | "Writing";
 
-export interface ServiceFeature {
-  icon: string;
-  title: string;
-  description: string;
-}
-
 export interface Package {
   name: string;
   price: string;

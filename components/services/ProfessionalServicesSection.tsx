@@ -4,12 +4,10 @@ import ServiceCard from "../shared/ServiceCard";
 
 interface ProfessionalServicesSectionProps {
   services: Service[];
-  onGetQuote: (service: Service) => void;
 }
 
 const ProfessionalServicesSection = ({
   services,
-  onGetQuote,
 }: ProfessionalServicesSectionProps) => {
   return (
     <section className="py-20 bg-white dark:bg-[#0A0A0A]">
@@ -34,11 +32,7 @@ const ProfessionalServicesSection = ({
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {services.map((service, index) => (
-            <ServiceCard
-              key={index}
-              service={service}
-              onGetQuote={onGetQuote}
-            />
+            <ServiceCard key={index} service={service} />
           ))}
         </div>
       </div>

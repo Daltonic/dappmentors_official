@@ -9,16 +9,17 @@ import CommunityStatsSection from "@/components/shared/CommunityStatsSection";
 import CTASection from "@/components/shared/CTASection";
 import HeroSection from "@/components/shared/HeroSection";
 import WhyChooseSection from "@/components/shared/WhyChooseSection";
-import { Product } from "@/utils/interfaces";
+import { Product, Service } from "@/utils/interfaces";
 import React from "react";
 
 // Define props interface
 interface PageClientProps {
   products: Product[];
+  services: Service[];
 }
 
 // Client Component for Home Page
-const PageClient: React.FC<PageClientProps> = ({ products }) => {
+const PageClient: React.FC<PageClientProps> = ({ products, services }) => {
   return (
     <MarketingLayout>
       <HeroSection
@@ -53,7 +54,9 @@ const PageClient: React.FC<PageClientProps> = ({ products }) => {
       </HeroSection>
       <WhyChooseSection />
       <FeaturedProductsSection products={products} />
-      <ServicesSection />
+      <ServicesSection
+        services={services.filter((service) => service.type === "Professional")}
+      />
       <FeaturedContentSection />
       <CommunityStatsSection />
       <RecentBlogsSection />

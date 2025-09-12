@@ -5,27 +5,17 @@ import DeveloperHiringSection from "@/components/services/DeveloperHiringSection
 import EducationSection from "@/components/services/EducationSection";
 import MentorshipSection from "@/components/services/MentorshipSection";
 import ProfessionalServicesSection from "@/components/services/ProfessionalServicesSection";
-import QuoteModal from "@/components/services/QuoteModal";
 import TechnicalWritingSection from "@/components/services/TechnicalWritingSection";
 import CTASection from "@/components/shared/CTASection";
 import HeroSection from "@/components/shared/HeroSection";
 import WhyChooseSection from "@/components/shared/WhyChooseSection";
 import { Service } from "@/utils/interfaces";
-import React, { useState } from "react";
 
 interface PageClientProps {
   services: Service[];
 }
 
 const PageClient = ({ services }: PageClientProps) => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedService, setSelectedService] = useState<Service | null>(null);
-
-  const handleGetQuote = (service: Service) => {
-    setSelectedService(service);
-    setIsModalOpen(true);
-  };
-
   const educationServices = services.filter(
     (service) => service.type === "Education",
   );
@@ -50,26 +40,11 @@ const PageClient = ({ services }: PageClientProps) => {
         highlightText="Web3 Journey"
         subtitle="From hands-on education to professional development, we provide the tools, expertise, and support to bring your Web3 vision to life."
       />
-      <EducationSection
-        services={educationServices}
-        onGetQuote={handleGetQuote}
-      />
-      <MentorshipSection
-        services={mentorshipServices}
-        onGetQuote={handleGetQuote}
-      />
-      <ProfessionalServicesSection
-        services={professionalServices}
-        onGetQuote={handleGetQuote}
-      />
-      <TechnicalWritingSection
-        services={writingServices}
-        onGetQuote={handleGetQuote}
-      />
-      <DeveloperHiringSection
-        services={hiringServices}
-        onGetQuote={handleGetQuote}
-      />
+      <EducationSection services={educationServices} />
+      <MentorshipSection services={mentorshipServices} />
+      <ProfessionalServicesSection services={professionalServices} />
+      <TechnicalWritingSection services={writingServices} />
+      <DeveloperHiringSection services={hiringServices} />
       <WhyChooseSection />
       <CTASection
         title="Ready to Start Your Web3 Journey?"
@@ -81,11 +56,6 @@ const PageClient = ({ services }: PageClientProps) => {
         gradientTo="to-purple-900"
         darkGradientFrom="dark:from-black"
         darkGradientTo="dark:to-purple-900"
-      />
-      <QuoteModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        service={selectedService}
       />
     </MarketingLayout>
   );

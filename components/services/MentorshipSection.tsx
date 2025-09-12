@@ -1,16 +1,19 @@
 // Mentorship Section
+import { useQuote } from "@/contexts/QuoteContext";
 import { Service } from "@/utils/interfaces";
 
 interface MentorshipSectionProps {
   services: Service[];
-  onGetQuote: (service: Service) => void;
 }
 
-const MentorshipSection = ({
-  services,
-  onGetQuote,
-}: MentorshipSectionProps) => {
-  const service = services[0]; // Assuming one primary mentorship service
+const MentorshipSection = ({ services }: MentorshipSectionProps) => {
+  const service = services[0];
+
+  const { showQuoteModal } = useQuote();
+
+  const handleGetQuote = (service: Service) => {
+    showQuoteModal(service);
+  };
 
   if (!service) {
     return null; // Or render a fallback
@@ -107,7 +110,7 @@ const MentorshipSection = ({
               </div>
 
               <button
-                onClick={() => onGetQuote(service)}
+                onClick={() => handleGetQuote(service)}
                 className="w-full mt-8 bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white py-4 px-6 rounded-xl font-bold text-lg hover:scale-105 transition-all duration-300"
               >
                 Get Quote

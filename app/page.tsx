@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import PageClient from "./PageClient";
-import { Product } from "@/utils/interfaces";
+import { Product, Service } from "@/utils/interfaces";
 
 // Define the expected API response type
 interface ProductsResponse {
@@ -9,6 +9,24 @@ interface ProductsResponse {
     currentPage: number;
     totalPages: number;
     totalProducts: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  };
+  filters: {
+    search: string;
+    type: string;
+    status: string;
+    category: string;
+    featured: string;
+  };
+}
+
+interface ServicesResponse {
+  services: Service[];
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalServices: number;
     hasNextPage: boolean;
     hasPrevPage: boolean;
   };
@@ -86,17 +104,17 @@ export const metadata: Metadata = {
 // Force dynamic rendering to avoid static prerender errors during build
 export const dynamic = "force-dynamic";
 
-// Server component that fetches featured products
 export default async function Page() {
   const BASE_URL =
     process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000";
 
+  // Fetch products
   console.log(
     `Fetching featured products from ${BASE_URL}/api/products?status=published&featured=true`,
   );
-
+  let products: Product[] = [];
   try {
-    const response = await fetch(
+    const productsResponse = await fetch(
       `${BASE_URL}/api/products?status=published&featured=true`,
       {
         method: "GET",
@@ -107,17 +125,45 @@ export default async function Page() {
       },
     );
 
-    if (!response.ok) {
-      console.error(`API request failed: ${response.status}`);
-      return <PageClient products={[]} />;
+    if (productsResponse.ok) {
+      const data: ProductsResponse = await productsResponse.json();
+      products = data.products || [];
+    } else {
+      console.error(`Products API request failed: ${productsResponse.status}`);
     }
-
-    const data: ProductsResponse = await response.json();
-    const products: Product[] = data.products || [];
-
-    return <PageClient products={products} />;
   } catch (error) {
     console.error("Failed to fetch featured products:", error);
-    return <PageClient products={[]} />;
   }
+
+  // Fetch services
+  console.log(
+    `Fetching services data from ${BASE_URL}/api/services?status=active&featured=true&limit=100`,
+  );
+  let services: Service[] = [];
+  try {
+    const servicesResponse = await fetch(
+      `${BASE_URL}/api/services?status=active&featured=true&limit=100`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        cache: "no-store",
+      },
+    );
+
+    if (servicesResponse.ok) {
+      const data: ServicesResponse = await servicesResponse.json();
+      // Map API services to match ServicesSection's Service type
+      services = data.services || [];
+    } else {
+      console.error(`Services API request failed: ${servicesResponse.status}`);
+    }
+  } catch (error) {
+    console.error("Failed to fetch services:", error);
+  }
+
+  // Use fetched services if available, otherwise fallback to static
+
+  return <PageClient products={products} services={services} />;
 }

@@ -4,13 +4,9 @@ import ServiceCard from "../shared/ServiceCard";
 
 interface DeveloperHiringSectionProps {
   services: Service[];
-  onGetQuote: (service: Service) => void;
 }
 
-const DeveloperHiringSection = ({
-  services,
-  onGetQuote,
-}: DeveloperHiringSectionProps) => {
+const DeveloperHiringSection = ({ services }: DeveloperHiringSectionProps) => {
   return (
     <section className="py-20 bg-white dark:bg-[#0A0A0A]">
       <div className="max-w-7xl mx-auto px-4">
@@ -26,11 +22,7 @@ const DeveloperHiringSection = ({
 
         <div className="grid lg:grid-cols-3 gap-8 mb-16">
           {services.map((service, index) => (
-            <ServiceCard
-              key={index}
-              service={service}
-              onGetQuote={onGetQuote}
-            />
+            <ServiceCard key={index} service={service} />
           ))}
         </div>
       </div>

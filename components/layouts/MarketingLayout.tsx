@@ -3,6 +3,7 @@ import { usePathname } from "next/navigation";
 import Header from "../shared/Header";
 import Footer from "../shared/Footer";
 import DevelopmentMode from "../shared/DevelopmentMode";
+import { QuoteProvider } from "@/contexts/QuoteContext";
 const MarketingLayout: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
@@ -17,7 +18,7 @@ const MarketingLayout: React.FC<{ children: React.ReactNode }> = ({
       {!shouldHideHeader && <Header />}
       <DevelopmentMode />
       <div className="h-16" />
-      {children}
+      <QuoteProvider>{children}</QuoteProvider>
       {!shouldHideFooter && <Footer />}
     </div>
   );

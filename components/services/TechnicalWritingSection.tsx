@@ -4,12 +4,10 @@ import ServiceCard from "../shared/ServiceCard";
 
 interface TechnicalWritingSectionProps {
   services: Service[];
-  onGetQuote: (service: Service) => void;
 }
 
 const TechnicalWritingSection = ({
   services,
-  onGetQuote,
 }: TechnicalWritingSectionProps) => {
   return (
     <section className="py-20 bg-gradient-to-r from-[#D2145A] to-[#FF4081] relative overflow-hidden">
@@ -28,12 +26,7 @@ const TechnicalWritingSection = ({
 
         <div className="grid lg:grid-cols-3 gap-8">
           {services.map((service, index) => (
-            <ServiceCard
-              key={index}
-              service={service}
-              onGetQuote={onGetQuote}
-              transparent
-            />
+            <ServiceCard key={index} service={service} transparent />
           ))}
         </div>
       </div>

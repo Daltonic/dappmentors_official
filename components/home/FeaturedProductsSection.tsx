@@ -159,10 +159,10 @@ const FeaturedProductsSection: React.FC<FeaturedProductsSectionProps> = ({
                     {/* Navigation Arrows */}
                     {shouldAutoScroll && (
                       <div className="flex items-center gap-4">
-                        <button className="desktop-prev w-12 h-12 rounded-full bg-white dark:bg-gray-700 border-2 border-[#D2145A] flex items-center justify-center hover:bg-[#D2145A] hover:text-white transition-all duration-300 shadow-lg">
+                        <button className="desktop-prev w-12 h-12 rounded-full bg-transparent dark:from-[#D2145A] to-[#FF4081] border-2 border-[#D2145A] flex items-center justify-center hover:bg-[#D2145A] hover:text-white transition-all duration-300 shadow-lg">
                           <FiChevronLeft className="w-5 h-5 text-[#D2145A] hover:text-white" />
                         </button>
-                        <button className="desktop-next w-12 h-12 rounded-full bg-white dark:bg-gray-700 border-2 border-[#D2145A] flex items-center justify-center hover:bg-[#D2145A] hover:text-white transition-all duration-300 shadow-lg">
+                        <button className="desktop-next w-12 h-12 rounded-full bg-transparent dark:from-[#D2145A] to-[#FF4081] border-2 border-[#D2145A] flex items-center justify-center hover:bg-[#D2145A] hover:text-white transition-all duration-300 shadow-lg">
                           <FiChevronRight className="w-5 h-5 text-[#D2145A] hover:text-white" />
                         </button>
                       </div>
