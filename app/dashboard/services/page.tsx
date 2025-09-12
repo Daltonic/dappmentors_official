@@ -94,15 +94,8 @@ const ServiceGrid: React.FC<{
   services: Service[];
   selectedServices: Set<string>;
   onToggle: (id: string) => void;
-  getTypeColor: (type: Service["type"]) => string;
   getStatusColor: (status: Service["status"]) => string;
-}> = ({
-  services,
-  selectedServices,
-  onToggle,
-  getTypeColor,
-  getStatusColor,
-}) => (
+}> = ({ services, selectedServices, onToggle, getStatusColor }) => (
   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
     {services.map((service) => (
       <ServiceCard
@@ -110,7 +103,6 @@ const ServiceGrid: React.FC<{
         service={service}
         selectedServices={selectedServices}
         toggleServiceSelection={onToggle}
-        getTypeColor={getTypeColor}
         getStatusColor={getStatusColor}
       />
     ))}
@@ -135,12 +127,11 @@ const Page: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   // UI state
-  const [selectedTab, setSelectedTab] = useState<"all" | Service["type"]>(
-    "all",
-  );
   const [statusFilter, setStatusFilter] = useState<"all" | Service["status"]>(
     "all",
   );
+  const [typeFilter, setTypeFilter] = useState<"all" | Service["type"]>("all");
+
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedServices, setSelectedServices] = useState<Set<string>>(
     new Set(),
@@ -182,15 +173,14 @@ const Page: React.FC = () => {
       const response = await serviceApiService.getServices({
         limit: 100,
         status: statusFilter === "all" ? undefined : statusFilter,
-        type: selectedTab === "all" ? undefined : selectedTab,
       });
 
       if (apiUtils.isSuccess(response)) {
         const processedServices: Service[] = response.data.services.map(
           (service) => ({
-            ...service, // Keep existing properties
-            createdAt: new Date(service.createdAt), // Convert to Date object
-            updatedAt: new Date(service.updatedAt), // Convert to Date object
+            ...service,
+            createdAt: new Date(service.createdAt),
+            updatedAt: new Date(service.updatedAt),
           }),
         );
 
@@ -210,9 +200,9 @@ const Page: React.FC = () => {
     } finally {
       setDataLoading(false);
     }
-  }, [authState.isAuthorized, statusFilter, selectedTab, addNotification]);
+  }, [authState.isAuthorized, statusFilter, addNotification]);
 
-  // Fetch services when auth state changes or filters change
+  // Fetch services when auth state or status filter changes
   useEffect(() => {
     if (authState.isAuthorized === true) {
       fetchServices();
@@ -271,17 +261,14 @@ const Page: React.FC = () => {
 
   // Filter services client-side (for search)
   const filteredServices = useMemo(() => {
-    return services.filter((service) => {
-      const matchesSearch =
+    return services.filter(
+      (service) =>
         service.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         service.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        service.lead.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        service.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        service.tags.some((tag) =>
-          tag.toLowerCase().includes(searchTerm.toLowerCase()),
-        );
-      return matchesSearch;
-    });
+        service.features.some((feature) =>
+          feature.toLowerCase().includes(searchTerm.toLowerCase()),
+        ),
+    );
   }, [services, searchTerm]);
 
   // Sort services
@@ -338,25 +325,6 @@ const Page: React.FC = () => {
       setSelectedServices(new Set());
     } else {
       setSelectedServices(new Set(sortedServices.map((service) => service.id)));
-    }
-  };
-
-  const getTypeColor = (type: Service["type"]) => {
-    switch (type) {
-      case "Education":
-        return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300";
-      case "Mentorship":
-        return "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300";
-      case "Development":
-        return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300";
-      case "Writing":
-        return "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300";
-      case "Hiring":
-        return "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300";
-      case "Community":
-        return "bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-300";
-      default:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300";
     }
   };
 
@@ -448,22 +416,26 @@ const Page: React.FC = () => {
       <div className="max-w-7xl mx-auto">
         <DashboardHeader
           title="Services Management"
-          subtitle="Manage your educational, mentorship, development, and community services"
+          subtitle="Manage your services"
           buttonText="Create Service"
           location="/dashboard/services/new"
           buttonIcon={<FaBriefcase size={18} />}
         />
         <StatsCards services={services} />
         <Controls
-          selectedTab={selectedTab}
-          setSelectedTab={setSelectedTab}
           statusFilter={statusFilter}
           setStatusFilter={setStatusFilter}
+          typeFilter={typeFilter}
+          setTypeFilter={setTypeFilter}
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
           viewMode={viewMode}
           setViewMode={setViewMode}
           selectedServices={selectedServices}
+          onServicesUpdate={setServices}
+          onBulkStatusChange={() => fetchServices()}
+          onBulkFeaturedChange={() => fetchServices()}
+          onBulkDelete={() => fetchServices()}
         />
 
         {dataLoading ? (
@@ -491,7 +463,6 @@ const Page: React.FC = () => {
             services={sortedServices}
             selectedServices={selectedServices}
             onToggle={toggleServiceSelection}
-            getTypeColor={getTypeColor}
             getStatusColor={getStatusColor}
           />
         ) : (
@@ -502,7 +473,6 @@ const Page: React.FC = () => {
             toggleAllServices={toggleAllServices}
             handleSort={handleSort}
             sortConfig={sortConfig}
-            getTypeColor={getTypeColor}
             getStatusColor={getStatusColor}
           />
         )}

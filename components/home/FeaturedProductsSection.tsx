@@ -8,6 +8,9 @@ import { Autoplay, Pagination, Navigation } from "swiper/modules";
 import { SkeletonTheme } from "react-loading-skeleton";
 import { Product } from "@/utils/interfaces";
 import ProductCard from "../shared/ProductCard";
+// Import react-icons
+import { FiChevronLeft, FiChevronRight, FiArrowRight } from "react-icons/fi";
+import Link from "next/link";
 
 interface FeaturedProductsSectionProps {
   products: Product[];
@@ -157,34 +160,10 @@ const FeaturedProductsSection: React.FC<FeaturedProductsSectionProps> = ({
                     {shouldAutoScroll && (
                       <div className="flex items-center gap-4">
                         <button className="desktop-prev w-12 h-12 rounded-full bg-white dark:bg-gray-700 border-2 border-[#D2145A] flex items-center justify-center hover:bg-[#D2145A] hover:text-white transition-all duration-300 shadow-lg">
-                          <svg
-                            className="w-5 h-5 text-[#D2145A] hover:text-white"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M15 19l-7-7 7-7"
-                            />
-                          </svg>
+                          <FiChevronLeft className="w-5 h-5 text-[#D2145A] hover:text-white" />
                         </button>
                         <button className="desktop-next w-12 h-12 rounded-full bg-white dark:bg-gray-700 border-2 border-[#D2145A] flex items-center justify-center hover:bg-[#D2145A] hover:text-white transition-all duration-300 shadow-lg">
-                          <svg
-                            className="w-5 h-5 text-[#D2145A] hover:text-white"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M9 5l7 7-7 7"
-                            />
-                          </svg>
+                          <FiChevronRight className="w-5 h-5 text-[#D2145A] hover:text-white" />
                         </button>
                       </div>
                     )}
@@ -236,25 +215,16 @@ const FeaturedProductsSection: React.FC<FeaturedProductsSectionProps> = ({
 
         {/* Call to Action */}
         <div className="text-center mt-16">
-          <button className="group relative bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white px-10 py-4 rounded-2xl font-semibold text-base transition-all duration-500 hover:scale-105 hover:shadow-2xl overflow-hidden">
+          <Link
+            href="/products"
+            className="group relative bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white px-10 py-4 rounded-2xl font-semibold text-base transition-all duration-500 hover:scale-105 hover:shadow-2xl overflow-hidden inline-block"
+          >
             <span className="relative z-10 flex items-center gap-2">
               View All Products
-              <svg
-                className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M17 8l4 4m0 0l-4 4m4-4H3"
-                />
-              </svg>
+              <FiArrowRight className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" />
             </span>
             <div className="absolute inset-0 bg-white/20 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
-          </button>
+          </Link>
         </div>
       </div>
     </section>

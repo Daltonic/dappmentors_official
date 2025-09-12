@@ -12,7 +12,6 @@ interface ServiceCardProps {
   service: Service;
   selectedServices: Set<string>;
   toggleServiceSelection: (serviceId: string) => void;
-  getTypeColor: (type: Service["type"]) => string;
   getStatusColor: (status: Service["status"]) => string;
   onServiceUpdate?: (service: Service) => void;
   onServiceDelete?: (serviceId: string) => void;
@@ -22,7 +21,6 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
   service,
   selectedServices,
   toggleServiceSelection,
-  getTypeColor,
   getStatusColor,
   onServiceDelete,
 }) => {
@@ -92,13 +90,8 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
 
       {/* Content Section */}
       <div className="p-6 relative z-10">
-        {/* Header: Type Badge and Price */}
-        <div className="flex items-center justify-between mb-4">
-          <span
-            className={`text-xs font-semibold px-2 py-1 rounded-full ${getTypeColor(service.type)}`}
-          >
-            {service.type}
-          </span>
+        {/* Header: Price */}
+        <div className="flex items-center justify-end mb-4">
           <div className="text-right">
             <div className="text-2xl font-bold text-gray-900 dark:text-white">
               {typeof service.price === "number"
@@ -119,58 +112,8 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
           {service.description}
         </p>
 
-        {/* Tags */}
-        <div className="flex flex-wrap gap-1 mb-4">
-          {service.tags.slice(0, 3).map((tag, index) => (
-            <span
-              key={index}
-              className="text-xs bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-2 py-1 rounded-full"
-            >
-              {tag}
-            </span>
-          ))}
-          {service.tags.length > 3 && (
-            <span className="text-xs text-gray-500 dark:text-gray-400">
-              +{service.tags.length - 3} more
-            </span>
-          )}
-        </div>
-
         {/* Service Details */}
         <div className="space-y-2 mb-4 text-sm">
-          <div className="flex items-center justify-between">
-            <span className="text-gray-500 dark:text-gray-400">Duration:</span>
-            <span className="text-gray-700 dark:text-gray-300 font-medium">
-              {service.duration}
-            </span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-gray-500 dark:text-gray-400">Lead:</span>
-            <span className="text-gray-700 dark:text-gray-300 font-medium">
-              {service.lead}
-            </span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-gray-500 dark:text-gray-400">Category:</span>
-            <span className="text-gray-700 dark:text-gray-300 font-medium">
-              {service.category}
-            </span>
-          </div>
-          {service.rating > 0 && (
-            <div className="flex items-center justify-between">
-              <span className="text-gray-500 dark:text-gray-400">Rating:</span>
-              <div className="flex items-center gap-1">
-                <span className="text-yellow-500">★</span>
-                <span className="text-gray-700 dark:text-gray-300 font-medium">
-                  {service.rating}
-                </span>
-                <span className="text-xs text-gray-500 dark:text-gray-400">
-                  ({service.totalReviews} review
-                  {service.totalReviews !== 1 ? "s" : ""})
-                </span>
-              </div>
-            </div>
-          )}
           <div className="flex items-center justify-between">
             <span className="text-gray-500 dark:text-gray-400">Updated:</span>
             <span className="text-gray-700 dark:text-gray-300 font-medium text-xs">

@@ -1,9 +1,18 @@
-// /api/services/bulk/route.ts
+// Updated /api/services/bulk/route.ts
 import { connectToDatabase } from "@/lib/mongodb";
 import { verifyAccessToken } from "@/lib/jwt";
-import { Service } from "@/utils/interfaces";
+import { FAQs, Package, Service, ServiceType } from "@/utils/interfaces";
 import { Collection, Filter, ObjectId } from "mongodb";
 import { NextRequest, NextResponse } from "next/server";
+import {
+  validateAndNormalizeFAQs,
+  validateAndNormalizeFeatures,
+  validateAndNormalizePackages,
+  validateUpdateServiceData,
+} from "@/validations/services";
+import { generateSlug } from "@/heplers/global";
+
+type ServiceStatus = "active" | "inactive" | "coming-soon";
 
 interface ServiceDocument extends Omit<Service, "id"> {
   _id: ObjectId;
@@ -111,25 +120,6 @@ export async function PATCH(request: NextRequest): Promise<NextResponse> {
         );
         break;
 
-      case "bulk-category-change":
-        if (!updateData?.category) {
-          return NextResponse.json(
-            { error: "category is required for bulk category change" },
-            { status: 400 },
-          );
-        }
-
-        updateResult = await collection.updateMany(
-          { _id: { $in: objectIds } },
-          {
-            $set: {
-              category: updateData.category,
-              updatedAt: now,
-            },
-          },
-        );
-        break;
-
       case "bulk-type-change":
         if (!updateData?.type) {
           return NextResponse.json(
@@ -139,13 +129,12 @@ export async function PATCH(request: NextRequest): Promise<NextResponse> {
         }
 
         // Validate type
-        const validTypes = [
+        const validTypes: ServiceType[] = [
+          "Hiring",
           "Education",
           "Mentorship",
-          "Development",
+          "Professional",
           "Writing",
-          "Hiring",
-          "Community",
         ];
         if (!validTypes.includes(updateData.type)) {
           return NextResponse.json(
@@ -163,6 +152,100 @@ export async function PATCH(request: NextRequest): Promise<NextResponse> {
             },
           },
         );
+        break;
+
+      case "bulk-update":
+        // Validate update data using validateUpdateServiceData
+        const validationErrors = validateUpdateServiceData(updateData);
+        if (validationErrors.length > 0) {
+          return NextResponse.json(
+            { error: `Validation errors: ${validationErrors.join(", ")}` },
+            { status: 400 },
+          );
+        }
+
+        // Prepare update data
+        const updateFields: Partial<Omit<Service, "id">> = {
+          updatedAt: now,
+        };
+
+        // Define allowed fields for bulk update
+        const allowedFields = [
+          "title",
+          "description",
+          "type",
+          "price",
+          "status",
+          "featured",
+          "thumbnail",
+          "features",
+          "packages",
+          "faqs",
+          "icon",
+          "clients",
+        ];
+
+        allowedFields.forEach((field) => {
+          if (updateData[field] !== undefined) {
+            let value: unknown = updateData[field];
+
+            if (typeof value === "string" && field !== "price") {
+              value = value.trim();
+            }
+
+            if (field === "price") {
+              updateFields[field] =
+                typeof value === "string"
+                  ? value.trim()
+                  : parseFloat(String(value)) || 0;
+            } else if (field === "type") {
+              updateFields[field] = value as ServiceType;
+            } else if (field === "status") {
+              updateFields[field] = value as ServiceStatus;
+            } else if (field === "featured") {
+              updateFields[field] = !!value;
+            } else if (field === "clients") {
+              updateFields[field] = parseInt(String(value)) || 0;
+            } else if (field === "features") {
+              updateFields[field] = validateAndNormalizeFeatures(
+                value as string[],
+              );
+            } else if (field === "packages") {
+              updateFields[field] = validateAndNormalizePackages(
+                value as Package[],
+              );
+            } else if (field === "faqs") {
+              updateFields[field] = validateAndNormalizeFAQs(value as FAQs[]);
+            } else {
+              (updateFields as Record<string, unknown>)[field] = value;
+            }
+          }
+        });
+
+        // If title is updated, regenerate slugs for each service
+        if (updateData.title) {
+          const services = await collection
+            .find({ _id: { $in: objectIds } })
+            .toArray();
+          const bulkOps = services.map((service) => ({
+            updateOne: {
+              filter: { _id: service._id },
+              update: {
+                $set: {
+                  ...updateFields,
+                  slug: generateSlug(updateData.title, service._id.toString()),
+                },
+              },
+            },
+          }));
+
+          updateResult = await collection.bulkWrite(bulkOps);
+        } else {
+          updateResult = await collection.updateMany(
+            { _id: { $in: objectIds } },
+            { $set: updateFields },
+          );
+        }
         break;
 
       case "bulk-delete":
@@ -234,10 +317,10 @@ export async function PATCH(request: NextRequest): Promise<NextResponse> {
           return `Successfully updated status for ${updateResult!.modifiedCount} services to ${updateData.status}`;
         case "bulk-featured-toggle":
           return `Successfully ${updateData.featured ? "featured" : "unfeatured"} ${updateResult!.modifiedCount} services`;
-        case "bulk-category-change":
-          return `Successfully updated category for ${updateResult!.modifiedCount} services to ${updateData.category}`;
         case "bulk-type-change":
           return `Successfully updated type for ${updateResult!.modifiedCount} services to ${updateData.type}`;
+        case "bulk-update":
+          return `Successfully updated ${updateResult!.modifiedCount} services`;
         default:
           return `Successfully updated ${updateResult!.modifiedCount} services`;
       }

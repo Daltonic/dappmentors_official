@@ -258,16 +258,22 @@ export interface PasswordData {
   confirmPassword: string;
 }
 
+export type ServiceType =
+  | "Hiring"
+  | "Education"
+  | "Mentorship"
+  | "Professional"
+  | "Writing";
+
 export interface ServiceFeature {
   icon: string;
   title: string;
   description: string;
 }
 
-export interface ServicePackage {
+export interface Package {
   name: string;
   price: string;
-  duration: string;
   features: string[];
   popular?: boolean;
 }
@@ -276,33 +282,18 @@ export interface Service {
   _id?: ObjectId;
   id: string;
   title: string;
-  subtitle: string;
   description: string;
-  type:
-    | "Education"
-    | "Mentorship"
-    | "Development"
-    | "Writing"
-    | "Hiring"
-    | "Community";
-  category: string;
   price: number | string;
   status: "active" | "inactive" | "coming-soon";
-  duration: string;
-  clients: number;
-  rating: number;
-  totalReviews: number;
-  lead: string;
   createdAt: Date;
   updatedAt: Date;
   featured: boolean;
   thumbnail: string;
-  tags: string[];
-  deliverables: string[];
   slug: string;
-  technologies: string[];
-  blockchains: string[];
-  features: ServiceFeature[];
-  packages: ServicePackage[];
+  features: string[];
   faqs: FAQs[];
+  icon: string;
+  clients: number;
+  packages: Package[];
+  type: ServiceType;
 }

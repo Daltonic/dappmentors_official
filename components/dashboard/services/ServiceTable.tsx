@@ -24,7 +24,6 @@ interface ServiceTableProps {
   toggleAllServices: () => void;
   handleSort: (key: keyof Service) => void;
   sortConfig: { key: keyof Service; direction: "asc" | "desc" } | null;
-  getTypeColor: (type: Service["type"]) => string;
   getStatusColor: (status: Service["status"]) => string;
   onServiceUpdate?: (service: Service) => void;
   onServiceDelete?: (serviceId: string) => void;
@@ -54,7 +53,6 @@ const ServiceTable: React.FC<ServiceTableProps> = ({
   toggleAllServices,
   handleSort,
   sortConfig,
-  getTypeColor,
   getStatusColor,
   onServiceDelete,
 }) => {
@@ -105,15 +103,6 @@ const ServiceTable: React.FC<ServiceTableProps> = ({
               </th>
               <th
                 className="text-left px-4 py-4 font-semibold text-gray-700 dark:text-gray-300 cursor-pointer hover:text-[#D2145A] transition-colors min-w-[100px]"
-                onClick={() => handleSort("type")}
-              >
-                <div className="flex items-center gap-2">
-                  Type
-                  <SortIcon column="type" sortConfig={sortConfig} />
-                </div>
-              </th>
-              <th
-                className="text-left px-4 py-4 font-semibold text-gray-700 dark:text-gray-300 cursor-pointer hover:text-[#D2145A] transition-colors min-w-[100px]"
                 onClick={() => handleSort("status")}
               >
                 <div className="flex items-center gap-2">
@@ -139,11 +128,23 @@ const ServiceTable: React.FC<ServiceTableProps> = ({
                   <SortIcon column="clients" sortConfig={sortConfig} />
                 </div>
               </th>
-              <th className="text-left px-4 py-4 font-semibold text-gray-700 dark:text-gray-300 min-w-[100px]">
-                Rating
+              <th
+                className="text-left px-4 py-4 font-semibold text-gray-700 dark:text-gray-300 cursor-pointer hover:text-[#D2145A] transition-colors min-w-[120px]"
+                onClick={() => handleSort("type")} // Add sort for type
+              >
+                <div className="flex items-center gap-2">
+                  Type
+                  <SortIcon column="type" sortConfig={sortConfig} />
+                </div>
               </th>
-              <th className="text-left px-4 py-4 font-semibold text-gray-700 dark:text-gray-300 min-w-[120px]">
-                Updated
+              <th
+                className="text-left px-4 py-4 font-semibold text-gray-700 dark:text-gray-300 cursor-pointer hover:text-[#D2145A] transition-colors min-w-[120px]"
+                onClick={() => handleSort("updatedAt")}
+              >
+                <div className="flex items-center gap-2">
+                  Updated
+                  <SortIcon column="updatedAt" sortConfig={sortConfig} />
+                </div>
               </th>
               <th className="text-right px-4 py-4 font-semibold text-gray-700 dark:text-gray-300 min-w-[120px]">
                 Actions
@@ -181,9 +182,6 @@ const ServiceTable: React.FC<ServiceTableProps> = ({
                       <h4 className="font-semibold text-gray-900 dark:text-white text-sm mb-1 line-clamp-1">
                         {service.title}
                       </h4>
-                      <p className="text-gray-600 dark:text-gray-300 text-xs line-clamp-1">
-                        {service.lead} • {service.category}
-                      </p>
                       {service.featured && (
                         <span className="inline-block bg-yellow-100 text-yellow-800 text-xs font-semibold px-2 py-0.5 rounded-full mt-1">
                           Featured
@@ -191,13 +189,6 @@ const ServiceTable: React.FC<ServiceTableProps> = ({
                       )}
                     </div>
                   </div>
-                </td>
-                <td className="px-4 py-4">
-                  <span
-                    className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${getTypeColor(service.type)}`}
-                  >
-                    {service.type}
-                  </span>
                 </td>
                 <td className="px-4 py-4">
                   <span
@@ -233,21 +224,9 @@ const ServiceTable: React.FC<ServiceTableProps> = ({
                   </div>
                 </td>
                 <td className="px-4 py-4">
-                  {service.rating > 0 ? (
-                    <div className="flex items-center gap-1">
-                      <span className="text-yellow-500">★</span>
-                      <span className="text-sm font-semibold text-gray-900 dark:text-white">
-                        {service.rating}
-                      </span>
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
-                        ({service.totalReviews})
-                      </span>
-                    </div>
-                  ) : (
-                    <span className="text-sm text-gray-500 dark:text-gray-400">
-                      No ratings
-                    </span>
-                  )}
+                  <span className="text-sm text-gray-600 dark:text-gray-300">
+                    {service.type} {/* Display type */}
+                  </span>
                 </td>
                 <td className="px-4 py-4">
                   <div className="text-sm text-gray-600 dark:text-gray-300">

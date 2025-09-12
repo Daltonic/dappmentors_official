@@ -1,36 +1,51 @@
 // Technical Writing Section
-const TechnicalWritingSection = () => {
-  const writingServices = [
+import { Service } from "@/utils/interfaces";
+import ServiceCard from "../shared/ServiceCard";
+
+interface TechnicalWritingSectionProps {
+  onGetQuote: (service: Service) => void;
+}
+
+const TechnicalWritingSection = ({
+  onGetQuote,
+}: TechnicalWritingSectionProps) => {
+  const writingServices: Partial<Service>[] = [
     {
       title: "Technical Articles & Blogs",
       description:
         "Engaging, informative content on Web3 topics, including tutorials, thought leadership pieces, and project case studies.",
       icon: "📝",
-      platforms: ["Medium", "Dev.to", "Your Blog", "Technical Publications"],
+      features: ["Medium", "Dev.to", "Your Blog", "Technical Publications"],
+      price: "Custom",
+      type: "Writing",
     },
     {
       title: "Documentation",
       description:
         "Clear, user-friendly documentation for your dApps, smart contracts, or developer tools to enhance usability and adoption.",
       icon: "📖",
-      platforms: [
+      features: [
         "API Docs",
         "User Guides",
         "Developer Docs",
         "Integration Guides",
       ],
+      price: "Custom",
+      type: "Writing",
     },
     {
       title: "Whitepapers & Pitch Decks",
       description:
         "Craft compelling whitepapers and pitch decks to showcase your Web3 project to investors and stakeholders.",
       icon: "📊",
-      platforms: [
+      features: [
         "Investor Decks",
         "Technical Papers",
         "Project Overviews",
         "Token Economics",
       ],
+      price: "Custom",
+      type: "Writing",
     },
   ];
 
@@ -51,42 +66,13 @@ const TechnicalWritingSection = () => {
 
         <div className="grid lg:grid-cols-3 gap-8">
           {writingServices.map((service, index) => (
-            <div
+            <ServiceCard
               key={index}
-              className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 border border-white/20 hover:bg-white/20 transition-all duration-500 group"
-            >
-              <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center text-3xl mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-                {service.icon}
-              </div>
-
-              <h3 className="text-2xl font-bold text-white mb-4">
-                {service.title}
-              </h3>
-
-              <p className="text-white/80 mb-6 leading-relaxed">
-                {service.description}
-              </p>
-
-              <div className="space-y-2">
-                {service.platforms.map((platform, idx) => (
-                  <div key={idx} className="flex items-center gap-3">
-                    <div className="w-2 h-2 bg-white/60 rounded-full"></div>
-                    <span className="text-white/70 text-sm">{platform}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
+              service={service as Service}
+              onGetQuote={onGetQuote}
+              transparent
+            />
           ))}
-        </div>
-
-        <div className="text-center mt-12">
-          <p className="text-white/90 text-lg mb-6">
-            <strong>Request a Quote:</strong> Reach out via
-            contact@dappmentors.org to discuss your content needs.
-          </p>
-          <button className="bg-white text-[#D2145A] px-10 py-4 rounded-2xl font-bold text-lg hover:bg-gray-100 transition-all duration-300 hover:scale-105">
-            Get Content Quote
-          </button>
         </div>
       </div>
     </section>

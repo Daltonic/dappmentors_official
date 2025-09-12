@@ -16,35 +16,23 @@ export interface ServicesResponse {
   };
   filters: {
     search: string;
-    type: string;
     status: string;
-    category: string;
     featured: string;
   };
 }
 
 export interface CreateServiceData {
   title: string;
-  subtitle?: string;
   description: string;
-  type: Service["type"];
   price: number | string;
   status?: Service["status"];
-  category: string;
-  duration: string;
-  lead: string;
   featured?: boolean;
   thumbnail?: string;
-  tags?: string[];
-  deliverables?: string[];
-  technologies?: string[];
-  blockchains?: string[];
   clients?: number;
-  rating?: number;
-  totalReviews?: number;
   features?: Service["features"];
   packages?: Service["packages"];
   faqs?: Service["faqs"];
+  icon: string;
 }
 
 export interface UpdateServiceData extends Partial<CreateServiceData> {
@@ -74,9 +62,7 @@ export const serviceApiService = {
     page?: number;
     limit?: number;
     search?: string;
-    type?: string;
     status?: string;
-    category?: string;
     featured?: boolean;
     sortBy?: string;
     sortOrder?: "asc" | "desc";
@@ -184,36 +170,6 @@ export const serviceApiService = {
     });
   },
 
-  // Bulk category update
-  async bulkUpdateCategory(
-    serviceIds: string[],
-    category: string,
-  ): Promise<ApiResponse<BulkServiceUpdateResponse>> {
-    return apiRequest<BulkServiceUpdateResponse>(`${API_BASE_URL}/bulk`, {
-      method: "PATCH",
-      body: JSON.stringify({
-        action: "bulk-category-change",
-        serviceIds,
-        updateData: { category },
-      }),
-    });
-  },
-
-  // Bulk type update
-  async bulkUpdateType(
-    serviceIds: string[],
-    type: Service["type"],
-  ): Promise<ApiResponse<BulkServiceUpdateResponse>> {
-    return apiRequest<BulkServiceUpdateResponse>(`${API_BASE_URL}/bulk`, {
-      method: "PATCH",
-      body: JSON.stringify({
-        action: "bulk-type-change",
-        serviceIds,
-        updateData: { type },
-      }),
-    });
-  },
-
   // Bulk delete services
   async bulkDeleteServices(
     serviceIds: string[],
@@ -231,9 +187,7 @@ export const serviceApiService = {
   async searchServices(
     searchTerm: string,
     filters?: {
-      type?: string;
       status?: string;
-      category?: string;
     },
   ): Promise<ApiResponse<ServicesResponse>> {
     return this.getServices({
@@ -253,42 +207,10 @@ export const serviceApiService = {
     });
   },
 
-  // Get services by type
-  async getServicesByType(
-    type: Service["type"],
-    params?: {
-      page?: number;
-      limit?: number;
-      status?: string;
-    },
-  ): Promise<ApiResponse<ServicesResponse>> {
-    return this.getServices({
-      type,
-      ...params,
-    });
-  },
-
-  // Get services by category
-  async getServicesByCategory(
-    category: string,
-    params?: {
-      page?: number;
-      limit?: number;
-      status?: string;
-    },
-  ): Promise<ApiResponse<ServicesResponse>> {
-    return this.getServices({
-      category,
-      ...params,
-    });
-  },
-
   // Get services with active status
   async getActiveServices(params?: {
     page?: number;
     limit?: number;
-    type?: string;
-    category?: string;
   }): Promise<ApiResponse<ServicesResponse>> {
     return this.getServices({
       status: "active",

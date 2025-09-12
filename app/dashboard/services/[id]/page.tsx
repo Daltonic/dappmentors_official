@@ -1,12 +1,13 @@
+// Updated page component (dashboard/services/[id]/page.tsx)
 "use client";
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Service } from "@/utils/interfaces";
-import ServiceForm from "@/components/dashboard/services/ServiceForm";
 import { use } from "react";
 import { toast } from "react-toastify";
+import ServiceForm from "@/components/dashboard/services/ServiceForm";
 
 const Page = ({ params }: { params: Promise<{ id: string }> }) => {
   const router = useRouter();
@@ -42,15 +43,18 @@ const Page = ({ params }: { params: Promise<{ id: string }> }) => {
 
   const handleFormSubmit = async (serviceData: Partial<Service>) => {
     try {
+      console.log(
+        serviceData.title,
+        serviceData.description,
+        serviceData.type,
+        serviceData.price,
+      );
       // Mock validation
       if (
         !serviceData.title ||
         !serviceData.description ||
         !serviceData.type ||
-        !serviceData.price ||
-        !serviceData.category ||
-        !serviceData.duration ||
-        !serviceData.lead
+        !serviceData.price
       ) {
         toast.error("Please fill in all required fields.");
         return;

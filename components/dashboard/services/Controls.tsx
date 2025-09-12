@@ -1,4 +1,6 @@
-import { Service } from "@/utils/interfaces";
+"use client";
+
+import { Service, ServiceType } from "@/utils/interfaces";
 import { useEffect, useRef, useState } from "react";
 import {
   FaSearch,
@@ -8,8 +10,6 @@ import {
   FaStar,
   FaSpinner,
   FaTrash,
-  FaLayerGroup,
-  FaExchangeAlt,
 } from "react-icons/fa";
 import { motion } from "framer-motion";
 import { useApiState } from "@/services/api.services";
@@ -24,61 +24,47 @@ import { toast } from "react-toastify";
 interface ServicesControlsProps {
   searchTerm: string;
   setSearchTerm: React.Dispatch<React.SetStateAction<string>>;
-  selectedTab: "all" | Service["type"];
-  setSelectedTab: React.Dispatch<React.SetStateAction<"all" | Service["type"]>>;
   statusFilter: "all" | Service["status"];
   setStatusFilter: React.Dispatch<
     React.SetStateAction<"all" | Service["status"]>
   >;
+  typeFilter: "all" | ServiceType; // New type filter
+  setTypeFilter: React.Dispatch<React.SetStateAction<"all" | ServiceType>>; // New setTypeFilter
   viewMode: "grid" | "table";
   setViewMode: React.Dispatch<React.SetStateAction<"grid" | "table">>;
   selectedServices: Set<string>;
-  uniqueCategories?: string[];
-  categoryFilter?: "all" | string;
-  setCategoryFilter?: React.Dispatch<React.SetStateAction<"all" | string>>;
   onBulkStatusChange?: (
     serviceIds: string[],
     newStatus: Service["status"],
   ) => void;
   onBulkFeaturedChange?: (serviceIds: string[], featured: boolean) => void;
-  onBulkCategoryChange?: (serviceIds: string[], category: string) => void;
-  onBulkTypeChange?: (serviceIds: string[], type: Service["type"]) => void;
   onBulkDelete?: (serviceIds: string[]) => void;
-  onServicesUpdate?: (services: Service[]) => void; // Callback to update parent component's service list
+  onServicesUpdate?: (services: Service[]) => void;
 }
 
 // Services Controls Component
 const ServicesControls: React.FC<ServicesControlsProps> = ({
   searchTerm,
   setSearchTerm,
-  selectedTab,
-  setSelectedTab,
   statusFilter,
   setStatusFilter,
+  typeFilter,
+  setTypeFilter, // New prop
   viewMode,
   setViewMode,
   selectedServices,
-  uniqueCategories = [],
-  categoryFilter = "all",
-  setCategoryFilter,
   onBulkStatusChange,
   onBulkFeaturedChange,
-  onBulkCategoryChange,
-  onBulkTypeChange,
   onBulkDelete,
   onServicesUpdate,
 }) => {
   const [isStatusMenuOpen, setIsStatusMenuOpen] = useState(false);
   const [isFeaturedMenuOpen, setIsFeaturedMenuOpen] = useState(false);
-  const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
-  const [isTypeMenuOpen, setIsTypeMenuOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
 
   // API states for different bulk operations
   const statusApi = useApiState<BulkServiceUpdateResponse>();
   const featuredApi = useApiState<BulkServiceUpdateResponse>();
-  const categoryApi = useApiState<BulkServiceUpdateResponse>();
-  const typeApi = useApiState<BulkServiceUpdateResponse>();
   const deleteApi = useApiState<BulkServiceDeleteResponse>();
 
   // Refs for dropdown menus
@@ -86,25 +72,8 @@ const ServicesControls: React.FC<ServicesControlsProps> = ({
   const statusButtonRef = useRef<HTMLButtonElement>(null);
   const featuredMenuRef = useRef<HTMLDivElement>(null);
   const featuredButtonRef = useRef<HTMLButtonElement>(null);
-  const categoryMenuRef = useRef<HTMLDivElement>(null);
-  const categoryButtonRef = useRef<HTMLButtonElement>(null);
-  const typeMenuRef = useRef<HTMLDivElement>(null);
-  const typeButtonRef = useRef<HTMLButtonElement>(null);
   const deleteMenuRef = useRef<HTMLDivElement>(null);
   const deleteButtonRef = useRef<HTMLButtonElement>(null);
-
-  // Service types available
-  const serviceTypes: Service["type"][] = [
-    "Education",
-    "Mentorship",
-    "Development",
-    "Writing",
-    "Hiring",
-    "Community",
-  ];
-
-  // Tab options with "all" included
-  const tabOptions = ["all", ...serviceTypes] as const;
 
   // Define available status change actions for bulk operations
   const getBulkStatusActions = () => {
@@ -125,26 +94,8 @@ const ServicesControls: React.FC<ServicesControlsProps> = ({
     { label: "Remove Featured", featured: false },
   ];
 
-  // Define available category change actions
-  const getBulkCategoryActions = () => {
-    return uniqueCategories.map((category) => ({
-      label: `Set to ${category}`,
-      category: category,
-    }));
-  };
-
-  // Define available type change actions
-  const getBulkTypeActions = () => {
-    return serviceTypes.map((type) => ({
-      label: `Set to ${type}`,
-      type: type,
-    }));
-  };
-
   const statusActions = getBulkStatusActions();
   const featuredActions = getBulkFeaturedActions();
-  const categoryActions = getBulkCategoryActions();
-  const typeActions = getBulkTypeActions();
 
   // Handle bulk status change with API integration
   const handleBulkStatusChange = async (newStatus: Service["status"]) => {
@@ -167,7 +118,7 @@ const ServicesControls: React.FC<ServicesControlsProps> = ({
           onServicesUpdate(data.services);
         }
 
-        // Call the original callback if provided (for backward compatibility)
+        // Call the original callback if provided
         if (onBulkStatusChange) {
           onBulkStatusChange(selectedServiceIds, newStatus);
         }
@@ -207,7 +158,7 @@ const ServicesControls: React.FC<ServicesControlsProps> = ({
           onServicesUpdate(data.services);
         }
 
-        // Call the original callback if provided (for backward compatibility)
+        // Call the original callback if provided
         if (onBulkFeaturedChange) {
           onBulkFeaturedChange(selectedServiceIds, featured);
         }
@@ -219,83 +170,6 @@ const ServicesControls: React.FC<ServicesControlsProps> = ({
       (errorMessage) => {
         toast.error(errorMessage);
         console.error("Bulk featured change failed:", errorMessage);
-      },
-    );
-  };
-
-  // Handle bulk category change with API integration
-  const handleBulkCategoryChange = async (newCategory: string) => {
-    const selectedServiceIds = Array.from(selectedServices);
-
-    if (selectedServiceIds.length === 0) {
-      toast.error("No services selected");
-      return;
-    }
-
-    setIsCategoryMenuOpen(false);
-
-    await categoryApi.execute(
-      () =>
-        serviceApiService.bulkUpdateCategory(selectedServiceIds, newCategory),
-      (data) => {
-        toast.success(
-          data.message || "Service categories updated successfully",
-        );
-
-        // Update the parent component with new service data
-        if (data.services && onServicesUpdate) {
-          onServicesUpdate(data.services);
-        }
-
-        // Call the original callback if provided (for backward compatibility)
-        if (onBulkCategoryChange) {
-          onBulkCategoryChange(selectedServiceIds, newCategory);
-        }
-
-        console.log(
-          `Successfully changed category for ${selectedServiceIds.length} services to ${newCategory}`,
-        );
-      },
-      (errorMessage) => {
-        toast.error(errorMessage);
-        console.error("Bulk category change failed:", errorMessage);
-      },
-    );
-  };
-
-  // Handle bulk type change with API integration
-  const handleBulkTypeChange = async (newType: Service["type"]) => {
-    const selectedServiceIds = Array.from(selectedServices);
-
-    if (selectedServiceIds.length === 0) {
-      toast.error("No services selected");
-      return;
-    }
-
-    setIsTypeMenuOpen(false);
-
-    await typeApi.execute(
-      () => serviceApiService.bulkUpdateType(selectedServiceIds, newType),
-      (data) => {
-        toast.success(data.message || "Service types updated successfully");
-
-        // Update the parent component with new service data
-        if (data.services && onServicesUpdate) {
-          onServicesUpdate(data.services);
-        }
-
-        // Call the original callback if provided (for backward compatibility)
-        if (onBulkTypeChange) {
-          onBulkTypeChange(selectedServiceIds, newType);
-        }
-
-        console.log(
-          `Successfully changed type for ${selectedServiceIds.length} services to ${newType}`,
-        );
-      },
-      (errorMessage) => {
-        toast.error(errorMessage);
-        console.error("Bulk type change failed:", errorMessage);
       },
     );
   };
@@ -353,26 +227,6 @@ const ServicesControls: React.FC<ServicesControlsProps> = ({
         setIsFeaturedMenuOpen(false);
       }
 
-      // Category menu
-      if (
-        categoryMenuRef.current &&
-        !categoryMenuRef.current.contains(event.target as Node) &&
-        categoryButtonRef.current &&
-        !categoryButtonRef.current.contains(event.target as Node)
-      ) {
-        setIsCategoryMenuOpen(false);
-      }
-
-      // Type menu
-      if (
-        typeMenuRef.current &&
-        !typeMenuRef.current.contains(event.target as Node) &&
-        typeButtonRef.current &&
-        !typeButtonRef.current.contains(event.target as Node)
-      ) {
-        setIsTypeMenuOpen(false);
-      }
-
       // Delete menu
       if (
         deleteMenuRef.current &&
@@ -411,54 +265,35 @@ const ServicesControls: React.FC<ServicesControlsProps> = ({
 
         {/* Filters */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-          {/* Type Filter (Tabs) */}
-          <div className="flex flex-wrap gap-2">
-            {tabOptions.map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setSelectedTab(tab)}
-                className={`px-3 py-1 sm:px-4 sm:py-2 rounded-xl font-semibold transition-all duration-300 capitalize text-xs sm:text-sm ${
-                  selectedTab === tab
-                    ? "bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white shadow-lg"
-                    : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gradient-to-r hover:from-[#D2145A]/10 hover:to-[#FF4081]/10"
-                }`}
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
+          {/* Status Filter */}
+          <select
+            value={statusFilter}
+            onChange={(e) =>
+              setStatusFilter(e.target.value as "all" | Service["status"])
+            }
+            className="px-3 py-1 sm:px-4 sm:py-2 bg-gray-100 dark:bg-gray-800 border border-gray-200/50 dark:border-gray-700/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF4081]/50 text-xs sm:text-sm"
+          >
+            <option value="all">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+            <option value="coming-soon">Coming Soon</option>
+          </select>
 
-          <div className="flex flex-wrap gap-2">
-            {/* Status Filter */}
-            <select
-              value={statusFilter}
-              onChange={(e) =>
-                setStatusFilter(e.target.value as "all" | Service["status"])
-              }
-              className="px-3 py-1 sm:px-4 sm:py-2 bg-gray-100 dark:bg-gray-800 border border-gray-200/50 dark:border-gray-700/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF4081]/50 text-xs sm:text-sm"
-            >
-              <option value="all">All Status</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-              <option value="coming-soon">Coming Soon</option>
-            </select>
-
-            {/* Category Filter (if categories are available) */}
-            {setCategoryFilter && uniqueCategories.length > 0 && (
-              <select
-                value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value)}
-                className="px-3 py-1 sm:px-4 sm:py-2 bg-gray-100 dark:bg-gray-800 border border-gray-200/50 dark:border-gray-700/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF4081]/50 text-xs sm:text-sm"
-              >
-                <option value="all">All Categories</option>
-                {uniqueCategories.map((category) => (
-                  <option key={category} value={category}>
-                    {category}
-                  </option>
-                ))}
-              </select>
-            )}
-          </div>
+          {/* Type Filter */}
+          <select
+            value={typeFilter}
+            onChange={(e) =>
+              setTypeFilter(e.target.value as "all" | ServiceType)
+            }
+            className="px-3 py-1 sm:px-4 sm:py-2 bg-gray-100 dark:bg-gray-800 border border-gray-200/50 dark:border-gray-700/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF4081]/50 text-xs sm:text-sm"
+          >
+            <option value="all">All Types</option>
+            <option value="Hiring">Hiring</option>
+            <option value="Education">Education</option>
+            <option value="Mentorship">Mentorship</option>
+            <option value="Professional">Professional</option>
+            <option value="Writing">Writing</option>
+          </select>
 
           {/* View Mode Toggle */}
           <div className="flex bg-gray-100 dark:bg-gray-800 rounded-xl p-1">
@@ -572,103 +407,6 @@ const ServicesControls: React.FC<ServicesControlsProps> = ({
                     <button
                       key={action.featured.toString()}
                       onClick={() => handleBulkFeaturedChange(action.featured)}
-                      className="w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-left"
-                    >
-                      {action.label}
-                    </button>
-                  ))}
-                </motion.div>
-              )}
-            </div>
-
-            {/* Category Change Dropdown (if categories available) */}
-            {uniqueCategories.length > 0 && (
-              <div className="relative">
-                <button
-                  ref={categoryButtonRef}
-                  disabled={categoryApi.loading}
-                  className={`bg-gradient-to-r from-purple-900/30 to-purple-900/60 text-white py-2 px-4 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center justify-center gap-2 min-w-[150px] ${
-                    categoryApi.loading
-                      ? "opacity-75 cursor-not-allowed"
-                      : "hover:scale-105"
-                  }`}
-                  onClick={() =>
-                    !categoryApi.loading &&
-                    setIsCategoryMenuOpen(!isCategoryMenuOpen)
-                  }
-                >
-                  {categoryApi.loading ? (
-                    <FaSpinner className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <FaLayerGroup className="w-4 h-4" />
-                  )}
-                  Category ({selectedServices.size})
-                </button>
-
-                {isCategoryMenuOpen && !categoryApi.loading && (
-                  <motion.div
-                    ref={categoryMenuRef}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 10 }}
-                    className="absolute z-20 left-0 right-0 bottom-full mb-2 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 overflow-hidden min-w-[200px]"
-                  >
-                    {categoryActions.length > 0 ? (
-                      categoryActions.map((action) => (
-                        <button
-                          key={action.category}
-                          onClick={() =>
-                            handleBulkCategoryChange(action.category)
-                          }
-                          className="w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-left"
-                        >
-                          {action.label}
-                        </button>
-                      ))
-                    ) : (
-                      <div className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">
-                        No categories available
-                      </div>
-                    )}
-                  </motion.div>
-                )}
-              </div>
-            )}
-
-            {/* Type Change Dropdown */}
-            <div className="relative">
-              <button
-                ref={typeButtonRef}
-                disabled={typeApi.loading}
-                className={`bg-gradient-to-r from-green-900/30 to-green-900/60 text-white py-2 px-4 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center justify-center gap-2 min-w-[130px] ${
-                  typeApi.loading
-                    ? "opacity-75 cursor-not-allowed"
-                    : "hover:scale-105"
-                }`}
-                onClick={() =>
-                  !typeApi.loading && setIsTypeMenuOpen(!isTypeMenuOpen)
-                }
-              >
-                {typeApi.loading ? (
-                  <FaSpinner className="w-4 h-4 animate-spin" />
-                ) : (
-                  <FaExchangeAlt className="w-4 h-4" />
-                )}
-                Type ({selectedServices.size})
-              </button>
-
-              {isTypeMenuOpen && !typeApi.loading && (
-                <motion.div
-                  ref={typeMenuRef}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                  className="absolute z-20 left-0 right-0 bottom-full mb-2 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 overflow-hidden min-w-[200px]"
-                >
-                  {typeActions.map((action) => (
-                    <button
-                      key={action.type}
-                      onClick={() => handleBulkTypeChange(action.type)}
                       className="w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-left"
                     >
                       {action.label}

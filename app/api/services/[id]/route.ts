@@ -1,12 +1,7 @@
-// /api/services/[id]/route.ts
+// Updated /api/services/[id]/route.ts
 import { connectToDatabase } from "@/lib/mongodb";
 import { verifyAccessToken } from "@/lib/jwt";
-import {
-  FAQs,
-  Service,
-  ServiceFeature,
-  ServicePackage,
-} from "@/utils/interfaces";
+import { FAQs, Package, Service, ServiceType } from "@/utils/interfaces";
 import { Collection, Filter, ObjectId } from "mongodb";
 import { NextRequest, NextResponse } from "next/server";
 import { generateSlug } from "@/heplers/global";
@@ -16,14 +11,6 @@ import {
   validateAndNormalizePackages,
   validateUpdateServiceData,
 } from "@/validations/services";
-
-type ServiceType =
-  | "Education"
-  | "Mentorship"
-  | "Development"
-  | "Writing"
-  | "Hiring"
-  | "Community";
 
 type ServiceStatus = "active" | "inactive" | "coming-soon";
 
@@ -166,8 +153,9 @@ export async function PUT(
 
     const body = await request.json();
 
-    // Validate data if provided
+    // Validate data using updated validation function
     const validationErrors = validateUpdateServiceData(body);
+
     if (validationErrors.length > 0) {
       return NextResponse.json(
         { error: `Validation errors: ${validationErrors.join(", ")}` },
@@ -181,29 +169,20 @@ export async function PUT(
       updatedAt: now,
     };
 
-    // Define all allowed fields
+    // Define all allowed fields (removed fields no longer in Service interface)
     const allowedFields = [
       "title",
-      "subtitle",
       "description",
       "type",
       "price",
       "status",
-      "category",
-      "duration",
-      "lead",
       "featured",
       "thumbnail",
-      "tags",
-      "deliverables",
-      "technologies",
-      "blockchains",
-      "clients",
-      "rating",
-      "totalReviews",
       "features",
       "packages",
       "faqs",
+      "icon",
+      "clients",
     ];
 
     allowedFields.forEach((field) => {
@@ -225,35 +204,12 @@ export async function PUT(
           updateData[field] = value as ServiceStatus;
         } else if (field === "featured") {
           updateData[field] = !!value;
-        } else if (
-          ["tags", "deliverables", "technologies", "blockchains"].includes(
-            field,
-          )
-        ) {
-          (updateData[field as keyof typeof updateData] as
-            | string[]
-            | undefined) = Array.isArray(value)
-            ? (value as string[]).map((item: string) => String(item).trim())
-            : [];
-        } else if (["clients", "totalReviews"].includes(field)) {
-          (updateData[field as keyof typeof updateData] as
-            | number[]
-            | undefined) = Array.isArray(value)
-            ? (value as number[]).map(
-                (item: number) => parseInt(String(item)) || 0,
-              )
-            : [];
-          // updateData[field] = parseInt(String(value)) || 0
-        } else if (field === "rating") {
-          updateData[field] = parseFloat(String(value)) || 0;
+        } else if (field === "clients") {
+          updateData[field] = parseInt(String(value)) || 0;
         } else if (field === "features") {
-          updateData[field] = validateAndNormalizeFeatures(
-            value as ServiceFeature[],
-          );
+          updateData[field] = validateAndNormalizeFeatures(value as string[]);
         } else if (field === "packages") {
-          updateData[field] = validateAndNormalizePackages(
-            value as ServicePackage[],
-          );
+          updateData[field] = validateAndNormalizePackages(value as Package[]);
         } else if (field === "faqs") {
           updateData[field] = validateAndNormalizeFAQs(value as FAQs[]);
         } else {
@@ -299,6 +255,7 @@ export async function PUT(
     });
   } catch (error) {
     console.error("PUT /api/services/[id] error:", error);
+    console.log(error);
 
     // Handle specific MongoDB errors
     if (error instanceof Error) {

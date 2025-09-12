@@ -6,7 +6,7 @@ const DevelopmentMode = () => {
         shadow-md fixed top-[80px] lg:top-[90px] left-0 right-0 z-50 opacity-100"
       >
         <p className="text-sm md:text-base font-medium">
-          🚧 Site Under Development - Stay tuned for updates! 🚧
+          🚧 Site Under Maintenance - Stay tuned for updates! 🚧
         </p>
       </div>
       <div className="h-10"></div> {/* Spacer to prevent content overlap */}

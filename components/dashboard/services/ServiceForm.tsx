@@ -1,32 +1,22 @@
+// Updated components/dashboard/services/ServiceForm.tsx
 "use client";
 
-import {
-  FAQs,
-  Service,
-  ServiceFeature,
-  ServicePackage,
-} from "@/utils/interfaces";
+import { FAQs, Service, Package, ServiceType } from "@/utils/interfaces";
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import {
   FiSave,
   FiDollarSign,
-  FiClock,
   FiUser,
-  FiTag,
-  FiBook,
   FiStar,
   FiImage,
   FiFileText,
-  FiGlobe,
-  FiUsers,
-  FiEdit,
-  FiPackage,
   FiHelpCircle,
   FiPlus,
   FiMinus,
   FiArrowLeft,
   FiArrowRight,
+  FiSettings,
 } from "react-icons/fi";
 import {
   serviceApiService,
@@ -45,71 +35,52 @@ interface ServiceFormProps {
 
 interface FormData {
   title: string;
-  subtitle: string;
   description: string;
-  type: Service["type"];
   price: string;
-  category: string;
-  duration: string;
-  lead: string;
-  thumbnail: string;
   featured: boolean;
   status: Service["status"];
-  tags: string;
-  deliverables: string[];
-  technologies: string;
-  blockchains: string;
-  clients: string;
-  rating: string;
-  totalReviews: string;
-  features: ServiceFeature[];
-  packages: ServicePackage[];
+  thumbnail: string;
+  features: string[];
   faqs: FAQs[];
+  icon: string;
+  clients: string;
+  packages: Package[];
+  type: ServiceType;
 }
 
 interface FormErrors {
   title?: string;
-  subtitle?: string;
   description?: string;
   price?: string;
-  category?: string;
-  duration?: string;
-  lead?: string;
   thumbnail?: string;
-  deliverables?: string;
-  technologies?: string;
-  blockchains?: string;
   features?: string;
-  packages?: string;
   faqs?: string;
+  icon?: string;
+  clients?: string;
+  packages?: string;
   submit?: string;
+  type?: string;
 }
 
-type ServiceType =
-  | "Education"
-  | "Mentorship"
-  | "Development"
-  | "Writing"
-  | "Hiring"
-  | "Community";
-
-interface CategoryOptions {
-  Education: string[];
-  Mentorship: string[];
-  Development: string[];
-  Writing: string[];
-  Hiring: string[];
-  Community: string[];
-}
-
-interface DurationSuggestions {
-  Education: string[];
-  Mentorship: string[];
-  Development: string[];
-  Writing: string[];
-  Hiring: string[];
-  Community: string[];
-}
+// Default icons for different service types
+const DEFAULT_ICONS = [
+  "💼",
+  "🎨",
+  "📱",
+  "💻",
+  "🚀",
+  "⚡",
+  "🔧",
+  "📊",
+  "🎯",
+  "🌟",
+  "🔥",
+  "💡",
+  "🎪",
+  "🎭",
+  "🎬",
+  "📝",
+];
 
 const ServiceForm: React.FC<ServiceFormProps> = ({
   service = null,
@@ -123,147 +94,60 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
 
   const [formData, setFormData] = useState<FormData>({
     title: "",
-    subtitle: "",
     description: "",
-    type: "Development",
     price: "",
-    category: "",
-    duration: "",
-    lead: "",
-    thumbnail: "",
     featured: false,
     status: "active",
-    tags: "",
-    deliverables: [],
-    technologies: "",
-    blockchains: "",
-    clients: "0",
-    rating: "0",
-    totalReviews: "0",
+    thumbnail: "",
     features: [],
-    packages: [],
     faqs: [],
+    icon: DEFAULT_ICONS[0],
+    clients: "0",
+    packages: [],
+    type: "Education", // Default type
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showImagePreview, setShowImagePreview] = useState(false);
-  const [newDeliverable, setNewDeliverable] = useState("");
-  const [newFeatureIcon, setNewFeatureIcon] = useState("");
-  const [newFeatureTitle, setNewFeatureTitle] = useState("");
-  const [newFeatureDescription, setNewFeatureDescription] = useState("");
-  const [newPackageName, setNewPackageName] = useState("");
-  const [newPackagePrice, setNewPackagePrice] = useState("");
-  const [newPackageDuration, setNewPackageDuration] = useState("");
-  const [newPackageFeatures, setNewPackageFeatures] = useState("");
-  const [newPackagePopular, setNewPackagePopular] = useState(false);
+  const [newFeature, setNewFeature] = useState("");
   const [newQuestion, setNewQuestion] = useState("");
   const [newAnswer, setNewAnswer] = useState("");
-
-  // Categories based on service types
-  const categoryOptions: CategoryOptions = {
-    Education: [
-      "Online Learning",
-      "Events",
-      "Workshops",
-      "Certifications",
-      "Tutorials",
-    ],
-    Mentorship: [
-      "Personal Development",
-      "Career Guidance",
-      "Code Review",
-      "Project Support",
-    ],
-    Development: [
-      "Blockchain Development",
-      "Web Development",
-      "Smart Contracts",
-      "dApp Development",
-      "Full-Stack",
-    ],
-    Writing: [
-      "Content Creation",
-      "Technical Writing",
-      "Documentation",
-      "Whitepapers",
-      "Blogs",
-    ],
-    Hiring: [
-      "Recruitment",
-      "Talent Search",
-      "Screening",
-      "Placement",
-      "HR Services",
-    ],
-    Community: [
-      "Networking",
-      "Discord Access",
-      "Events",
-      "Support Groups",
-      "Forums",
-    ],
-  };
-
-  // Duration suggestions based on service type
-  const durationSuggestions: DurationSuggestions = {
-    Education: ["Monthly subscription", "1-3 days", "4-6 weeks", "Ongoing"],
-    Mentorship: ["1 hour sessions", "Weekly", "Monthly", "Ongoing"],
-    Development: ["4-8 weeks", "8-16 weeks", "Custom", "Ongoing"],
-    Writing: ["1-4 weeks", "Per project", "Ongoing"],
-    Hiring: ["2-6 weeks", "Per hire", "Ongoing"],
-    Community: ["Ongoing", "Lifetime", "Monthly"],
-  };
+  const [newPackageName, setNewPackageName] = useState("");
+  const [newPackagePrice, setNewPackagePrice] = useState("");
+  const [newPackageFeatures, setNewPackageFeatures] = useState("");
 
   // Initialize form data based on service prop
   useEffect(() => {
     if (service) {
       setFormData({
         title: service.title,
-        subtitle: service.subtitle || "",
         description: service.description,
-        type: service.type,
         price: service.price.toString(),
-        category: service.category,
-        duration: service.duration,
-        lead: service.lead,
-        thumbnail: service.thumbnail || "",
         featured: service.featured,
         status: service.status,
-        tags: (service.tags || []).join(", "),
-        deliverables: service.deliverables || [],
-        technologies: (service.technologies || []).join(", "),
-        blockchains: (service.blockchains || []).join(", "),
-        clients: (service.clients || 0).toString(),
-        rating: (service.rating || 0).toString(),
-        totalReviews: (service.totalReviews || 0).toString(),
+        thumbnail: service.thumbnail || "",
         features: service.features || [],
-        packages: service.packages || [],
         faqs: service.faqs || [],
+        icon: service.icon || DEFAULT_ICONS[0],
+        clients: service.clients.toString() || "0",
+        packages: service.packages || [],
+        type: service.type || "Education", // Set type from service or default
       });
     } else {
       setFormData({
         title: "",
-        subtitle: "",
         description: "",
-        type: "Development",
         price: "",
-        category: "",
-        duration: "",
-        lead: "",
-        thumbnail: "",
         featured: false,
         status: "active",
-        tags: "",
-        deliverables: [],
-        technologies: "",
-        blockchains: "",
-        clients: "0",
-        rating: "0",
-        totalReviews: "0",
+        thumbnail: "",
         features: [],
-        packages: [],
         faqs: [],
+        icon: DEFAULT_ICONS[0],
+        clients: "0",
+        packages: [],
+        type: "Education", // Default type
       });
     }
     setErrors({});
@@ -273,17 +157,13 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
     const newErrors: FormErrors = {};
 
     if (step === 1) {
-      // Step 1: Basic Information and Description
+      // Step 1: Basic Information
       if (!formData.title.trim()) {
         newErrors.title = "Title is required";
       } else if (formData.title.length < 3) {
         newErrors.title = "Title must be at least 3 characters";
       } else if (formData.title.length > 100) {
         newErrors.title = "Title must be less than 100 characters";
-      }
-
-      if (formData.subtitle && formData.subtitle.length > 150) {
-        newErrors.subtitle = "Subtitle must be less than 150 characters";
       }
 
       if (!formData.description.trim()) {
@@ -293,55 +173,22 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
       } else if (formData.description.length > 1000) {
         newErrors.description = "Description must be less than 1000 characters";
       }
-    } else if (step === 2) {
-      // Step 2: Pricing, Category, and Technical Details
+
+      if (!formData.icon.trim()) {
+        newErrors.icon = "Icon is required";
+      }
+
       if (!formData.price.trim()) {
         newErrors.price = "Price is required";
       }
 
-      if (!formData.category.trim()) {
-        newErrors.category = "Category is required";
-      } else if (formData.category.length > 50) {
-        newErrors.category = "Category must be less than 50 characters";
+      if (!formData.type) {
+        newErrors.type = "Service type is required"; // Validate type
       }
-
-      if (!formData.duration.trim()) {
-        newErrors.duration = "Duration is required";
-      } else if (formData.duration.length > 100) {
-        newErrors.duration = "Duration must be less than 100 characters";
-      }
-
-      if (!formData.lead.trim()) {
-        newErrors.lead = "Lead is required";
-      } else if (formData.lead.length < 2) {
-        newErrors.lead = "Lead must be at least 2 characters";
-      } else if (formData.lead.length > 100) {
-        newErrors.lead = "Lead must be less than 100 characters";
-      }
-
-      const techArray = formData.technologies
-        .split(",")
-        .map((t) => t.trim())
-        .filter(Boolean);
-      if (techArray.length > 20) {
-        newErrors.technologies = "Maximum 20 technologies allowed";
-      }
-
-      const blockchainArray = formData.blockchains
-        .split(",")
-        .map((b) => b.trim())
-        .filter(Boolean);
-      if (blockchainArray.length > 15) {
-        newErrors.blockchains = "Maximum 15 blockchains allowed";
-      }
-    } else if (step === 3) {
-      // Step 3: Features, Packages, Deliverables, and Media
-      if (formData.thumbnail && !isValidUrl(formData.thumbnail)) {
-        newErrors.thumbnail = "Please enter a valid URL";
-      }
-
-      if (formData.deliverables.length > 20) {
-        newErrors.deliverables = "Maximum 20 deliverables allowed";
+    } else if (step === 2) {
+      // Step 2: Features, Packages, and Client Info
+      if (formData.clients && isNaN(parseInt(formData.clients))) {
+        newErrors.clients = "Clients must be a number";
       }
 
       if (formData.features.length > 10) {
@@ -350,6 +197,11 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
 
       if (formData.packages.length > 5) {
         newErrors.packages = "Maximum 5 packages allowed";
+      }
+    } else if (step === 3) {
+      // Step 3: FAQs, Media, and Settings
+      if (formData.thumbnail && !isValidUrl(formData.thumbnail)) {
+        newErrors.thumbnail = "Please enter a valid URL";
       }
 
       if (formData.faqs.length > 10) {
@@ -372,13 +224,7 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
 
   const handleInputChange = (
     field: keyof FormData,
-    value:
-      | string
-      | boolean
-      | string[]
-      | ServiceFeature[]
-      | ServicePackage[]
-      | FAQs[],
+    value: string | boolean | string[] | FAQs[] | Package[],
   ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field as keyof FormErrors]) {
@@ -386,43 +232,13 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
     }
   };
 
-  const addDeliverable = () => {
-    if (newDeliverable.trim() && formData.deliverables.length < 20) {
-      setFormData((prev) => ({
-        ...prev,
-        deliverables: [...prev.deliverables, newDeliverable.trim()],
-      }));
-      setNewDeliverable("");
-    }
-  };
-
-  const removeDeliverable = (index: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      deliverables: prev.deliverables.filter((_, i) => i !== index),
-    }));
-  };
-
   const addFeature = () => {
-    if (
-      newFeatureTitle.trim() &&
-      newFeatureDescription.trim() &&
-      formData.features.length < 10
-    ) {
+    if (newFeature.trim() && formData.features.length < 10) {
       setFormData((prev) => ({
         ...prev,
-        features: [
-          ...prev.features,
-          {
-            icon: newFeatureIcon.trim() || "📦",
-            title: newFeatureTitle.trim(),
-            description: newFeatureDescription.trim(),
-          },
-        ],
+        features: [...prev.features, newFeature.trim()],
       }));
-      setNewFeatureIcon("");
-      setNewFeatureTitle("");
-      setNewFeatureDescription("");
+      setNewFeature("");
     }
   };
 
@@ -430,45 +246,6 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
     setFormData((prev) => ({
       ...prev,
       features: prev.features.filter((_, i) => i !== index),
-    }));
-  };
-
-  const addPackage = () => {
-    if (
-      newPackageName.trim() &&
-      newPackagePrice.trim() &&
-      newPackageDuration.trim() &&
-      formData.packages.length < 5
-    ) {
-      const features = newPackageFeatures
-        .split(",")
-        .map((f) => f.trim())
-        .filter(Boolean);
-      setFormData((prev) => ({
-        ...prev,
-        packages: [
-          ...prev.packages,
-          {
-            name: newPackageName.trim(),
-            price: newPackagePrice.trim(),
-            duration: newPackageDuration.trim(),
-            features,
-            popular: newPackagePopular,
-          },
-        ],
-      }));
-      setNewPackageName("");
-      setNewPackagePrice("");
-      setNewPackageDuration("");
-      setNewPackageFeatures("");
-      setNewPackagePopular(false);
-    }
-  };
-
-  const removePackage = (index: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      packages: prev.packages.filter((_, i) => i !== index),
     }));
   };
 
@@ -496,6 +273,43 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
     }));
   };
 
+  const addPackage = () => {
+    if (
+      newPackageName.trim() &&
+      newPackagePrice.trim() &&
+      formData.packages.length < 5
+    ) {
+      const featuresArray = newPackageFeatures
+        .split(",")
+        .map((f) => f.trim())
+        .filter(Boolean);
+      const packagePrice = isNaN(parseFloat(newPackagePrice))
+        ? newPackagePrice.trim()
+        : parseFloat(newPackagePrice);
+      setFormData((prev) => ({
+        ...prev,
+        packages: [
+          ...prev.packages,
+          {
+            name: newPackageName.trim(),
+            price: String(packagePrice),
+            features: featuresArray,
+          },
+        ],
+      }));
+      setNewPackageName("");
+      setNewPackagePrice("");
+      setNewPackageFeatures("");
+    }
+  };
+
+  const removePackage = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      packages: prev.packages.filter((_, i) => i !== index),
+    }));
+  };
+
   const handleNext = (e: React.MouseEvent) => {
     e.preventDefault();
     if (validateStep(currentStep)) {
@@ -520,37 +334,19 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
     try {
       const serviceData = {
         title: formData.title.trim(),
-        subtitle: formData.subtitle.trim(),
         description: formData.description.trim(),
-        type: formData.type,
         price: isNaN(parseFloat(formData.price))
           ? formData.price.trim()
           : parseFloat(formData.price),
-        category: formData.category.trim(),
-        duration: formData.duration.trim(),
-        lead: formData.lead.trim(),
-        thumbnail: formData.thumbnail.trim(),
         featured: formData.featured,
         status: formData.status,
-        tags: formData.tags
-          .split(",")
-          .map((tag) => tag.trim())
-          .filter(Boolean),
-        deliverables: formData.deliverables,
-        technologies: formData.technologies
-          .split(",")
-          .map((t) => t.trim())
-          .filter(Boolean),
-        blockchains: formData.blockchains
-          .split(",")
-          .map((t) => t.trim())
-          .filter(Boolean),
-        clients: parseInt(formData.clients) || 0,
-        rating: parseFloat(formData.rating) || 0,
-        totalReviews: parseInt(formData.totalReviews) || 0,
+        thumbnail: formData.thumbnail.trim(),
         features: formData.features,
-        packages: formData.packages,
         faqs: formData.faqs,
+        icon: formData.icon.trim(),
+        clients: parseInt(formData.clients) || 0,
+        packages: formData.packages,
+        type: formData.type,
       };
 
       let response;
@@ -578,26 +374,17 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
         if (!isEditMode) {
           setFormData({
             title: "",
-            subtitle: "",
             description: "",
-            type: "Development",
             price: "",
-            category: "",
-            duration: "",
-            lead: "",
-            thumbnail: "",
             featured: false,
             status: "active",
-            tags: "",
-            deliverables: [],
-            technologies: "",
-            blockchains: "",
-            clients: "0",
-            rating: "0",
-            totalReviews: "0",
+            thumbnail: "",
             features: [],
-            packages: [],
             faqs: [],
+            icon: DEFAULT_ICONS[0],
+            clients: "0",
+            packages: [],
+            type: "Education", // Default type
           });
           setCurrentStep(1); // Reset to first step
         }
@@ -617,44 +404,6 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
     }
   };
 
-  const getTypeIcon = (type: ServiceType): React.ReactElement => {
-    switch (type) {
-      case "Education":
-        return <FiBook className="w-5 h-5" />;
-      case "Mentorship":
-        return <FiUsers className="w-5 h-5" />;
-      case "Development":
-        return <FiPackage className="w-5 h-5" />;
-      case "Writing":
-        return <FiEdit className="w-5 h-5" />;
-      case "Hiring":
-        return <FiUser className="w-5 h-5" />;
-      case "Community":
-        return <FiGlobe className="w-5 h-5" />;
-      default:
-        return <FiHelpCircle className="w-5 h-5" />;
-    }
-  };
-
-  const getTypeColor = (type: ServiceType): string => {
-    switch (type) {
-      case "Education":
-        return "from-blue-500 to-blue-600";
-      case "Mentorship":
-        return "from-purple-500 to-purple-600";
-      case "Development":
-        return "from-green-500 to-green-600";
-      case "Writing":
-        return "from-orange-500 to-orange-600";
-      case "Hiring":
-        return "from-indigo-500 to-indigo-600";
-      case "Community":
-        return "from-pink-500 to-pink-600";
-      default:
-        return "from-gray-500 to-gray-600";
-    }
-  };
-
   return (
     <div
       className={`bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-3xl border border-gray-200/50 dark:border-gray-700/50 shadow-2xl ${className}`}
@@ -663,9 +412,9 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
       <div className="p-8 border-b border-gray-200/50 dark:border-gray-700/50">
         <div className="flex items-center gap-3">
           <div
-            className={`p-3 bg-gradient-to-r ${getTypeColor(formData.type)} rounded-xl text-white`}
+            className={`p-3 bg-gradient-to-r from-[#D2145A] to-[#FF4081] rounded-xl text-white`}
           >
-            {getTypeIcon(formData.type)}
+            <FiFileText className="w-5 h-5" />
           </div>
           <div>
             <h2 className="text-2xl font-cambo font-normal text-gray-900 dark:text-white">
@@ -685,17 +434,17 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
             <span
               className={`text-sm ${currentStep === 1 ? "text-[#D2145A] font-semibold" : "text-gray-500"}`}
             >
-              Basic Info
+              Basic Info & Pricing
             </span>
             <span
               className={`text-sm ${currentStep === 2 ? "text-[#D2145A] font-semibold" : "text-gray-500"}`}
             >
-              Pricing & Tech
+              Features & Packages
             </span>
             <span
               className={`text-sm ${currentStep === 3 ? "text-[#D2145A] font-semibold" : "text-gray-500"}`}
             >
-              Features & Media
+              FAQs & Media
             </span>
           </div>
           <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
@@ -725,10 +474,9 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
                 formData={formData}
                 handleInputChange={handleInputChange}
                 errors={errors}
-                getTypeIcon={getTypeIcon}
-                getTypeColor={getTypeColor}
+                defaultIcons={DEFAULT_ICONS}
               />
-              <DescriptionSection
+              <PricingSection
                 formData={formData}
                 handleInputChange={handleInputChange}
                 errors={errors}
@@ -737,35 +485,15 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
           )}
           {currentStep === 2 && (
             <>
-              <PricingDetailsSection
-                formData={formData}
-                handleInputChange={handleInputChange}
-                errors={errors}
-                durationSuggestions={durationSuggestions}
-              />
-              <CategoryLeadSection
-                formData={formData}
-                handleInputChange={handleInputChange}
-                errors={errors}
-                categoryOptions={categoryOptions}
-              />
-              <TechStackSection
+              <ClientInfoSection
                 formData={formData}
                 handleInputChange={handleInputChange}
                 errors={errors}
               />
-            </>
-          )}
-          {currentStep === 3 && (
-            <>
               <FeaturesSectionForm
                 formData={formData}
-                newFeatureIcon={newFeatureIcon}
-                setNewFeatureIcon={setNewFeatureIcon}
-                newFeatureTitle={newFeatureTitle}
-                setNewFeatureTitle={setNewFeatureTitle}
-                newFeatureDescription={newFeatureDescription}
-                setNewFeatureDescription={setNewFeatureDescription}
+                newFeature={newFeature}
+                setNewFeature={setNewFeature}
                 addFeature={addFeature}
                 removeFeature={removeFeature}
                 errors={errors}
@@ -776,24 +504,16 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
                 setNewPackageName={setNewPackageName}
                 newPackagePrice={newPackagePrice}
                 setNewPackagePrice={setNewPackagePrice}
-                newPackageDuration={newPackageDuration}
-                setNewPackageDuration={setNewPackageDuration}
                 newPackageFeatures={newPackageFeatures}
                 setNewPackageFeatures={setNewPackageFeatures}
-                newPackagePopular={newPackagePopular}
-                setNewPackagePopular={setNewPackagePopular}
                 addPackage={addPackage}
                 removePackage={removePackage}
                 errors={errors}
               />
-              <DeliverablesSection
-                formData={formData}
-                errors={errors}
-                newDeliverable={newDeliverable}
-                setNewDeliverable={setNewDeliverable}
-                addDeliverable={addDeliverable}
-                removeDeliverable={removeDeliverable}
-              />
+            </>
+          )}
+          {currentStep === 3 && (
+            <>
               <FAQsSection
                 formData={formData}
                 newQuestion={newQuestion}
@@ -883,25 +603,17 @@ interface BasicInformationSectionProps {
   formData: FormData;
   handleInputChange: (
     field: keyof FormData,
-    value:
-      | string
-      | boolean
-      | string[]
-      | ServiceFeature[]
-      | ServicePackage[]
-      | FAQs[],
-  ) => void;
+    value: string | boolean | string[] | FAQs[] | Package[] | ServiceType,
+  ) => void; // Update handleInputChange type
   errors: FormErrors;
-  getTypeIcon: (type: ServiceType) => React.ReactElement;
-  getTypeColor: (type: ServiceType) => string;
+  defaultIcons: string[];
 }
 
 const BasicInformationSection: React.FC<BasicInformationSectionProps> = ({
   formData,
   handleInputChange,
   errors,
-  getTypeIcon,
-  getTypeColor,
+  defaultIcons,
 }) => {
   return (
     <div>
@@ -910,7 +622,7 @@ const BasicInformationSection: React.FC<BasicInformationSectionProps> = ({
         Basic Information
       </h3>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="space-y-6">
         {/* Title */}
         <div>
           <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
@@ -934,174 +646,124 @@ const BasicInformationSection: React.FC<BasicInformationSectionProps> = ({
           )}
         </div>
 
-        {/* Subtitle */}
+        {/* Description */}
         <div>
           <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-            Subtitle
+            Description *
           </label>
-          <input
-            type="text"
-            value={formData.subtitle}
-            onChange={(e) => handleInputChange("subtitle", e.target.value)}
-            className={`w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF4081]/50 focus:border-transparent transition-all duration-300 ${
-              errors.subtitle
+          <textarea
+            rows={4}
+            value={formData.description}
+            onChange={(e) => handleInputChange("description", e.target.value)}
+            className={`w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF4081]/50 focus:border-transparent transition-all duration-300 resize-none ${
+              errors.description
                 ? "border-red-300 dark:border-red-600"
                 : "border-gray-200/50 dark:border-gray-700/50"
             }`}
-            placeholder="Enter a subtitle for your service"
+            placeholder="Describe what clients will receive from this service"
           />
-          {errors.subtitle && (
-            <p className="mt-2 text-sm text-red-600 dark:text-red-400">
-              {errors.subtitle}
+          <div className="flex justify-between items-center mt-2">
+            {errors.description ? (
+              <p className="text-sm text-red-600 dark:text-red-400">
+                {errors.description}
+              </p>
+            ) : (
+              <div />
+            )}
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              {formData.description.length}/1000
             </p>
-          )}
-        </div>
-
-        {/* Type */}
-        <div className="lg:col-span-2">
-          <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-            Service Type *
-          </label>
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
-            {(
-              [
-                "Education",
-                "Mentorship",
-                "Development",
-                "Writing",
-                "Hiring",
-                "Community",
-              ] as ServiceType[]
-            ).map((type, index) => (
-              <motion.button
-                key={type}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                type="button"
-                onClick={() => {
-                  handleInputChange("type", type);
-                  handleInputChange("category", ""); // Reset category when type changes
-                }}
-                className={`p-3 rounded-xl border-2 transition-all duration-300 flex items-center justify-center gap-2 text-sm font-medium ${
-                  formData.type === type
-                    ? `bg-gradient-to-r ${getTypeColor(type)} text-white border-transparent shadow-lg`
-                    : "bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
-                }`}
-              >
-                {getTypeIcon(type)}
-                {type}
-              </motion.button>
-            ))}
           </div>
         </div>
 
-        {/* Status */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-            Status *
-          </label>
-          <select
-            value={formData.status}
-            onChange={(e) =>
-              handleInputChange("status", e.target.value as Service["status"])
-            }
-            className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200/50 dark:border-gray-700/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF4081]/50 focus:border-transparent transition-all duration-300"
-          >
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-            <option value="coming-soon">Coming Soon</option>
-          </select>
+        {/* Icon & Status & Type */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Icon Selection */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Icon *
+            </label>
+            <div className="space-y-3">
+              <input
+                type="text"
+                value={formData.icon}
+                onChange={(e) => handleInputChange("icon", e.target.value)}
+                className={`w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF4081]/50 focus:border-transparent transition-all duration-300 ${
+                  errors.icon
+                    ? "border-red-300 dark:border-red-600"
+                    : "border-gray-200/50 dark:border-gray-700/50"
+                }`}
+                placeholder="Enter custom icon or select from below"
+              />
+              <div className="grid grid-cols-8 gap-2">
+                {defaultIcons.map((icon, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => handleInputChange("icon", icon)}
+                    className={`p-2 text-lg border rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
+                      formData.icon === icon
+                        ? "border-[#D2145A] bg-[#D2145A]/10"
+                        : "border-gray-200 dark:border-gray-600"
+                    }`}
+                  >
+                    {icon}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {errors.icon && (
+              <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+                {errors.icon}
+              </p>
+            )}
+          </div>
+
+          {/* Status */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Status *
+            </label>
+            <select
+              value={formData.status}
+              onChange={(e) =>
+                handleInputChange("status", e.target.value as Service["status"])
+              }
+              className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200/50 dark:border-gray-700/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF4081]/50 focus:border-transparent transition-all duration-300"
+            >
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+              <option value="coming-soon">Coming Soon</option>
+            </select>
+          </div>
         </div>
       </div>
     </div>
   );
 };
 
-interface DescriptionSectionProps {
+interface PricingSectionProps {
   formData: FormData;
   handleInputChange: (
     field: keyof FormData,
-    value:
-      | string
-      | boolean
-      | string[]
-      | ServiceFeature[]
-      | ServicePackage[]
-      | FAQs[],
+    value: string | boolean | string[] | FAQs[] | Package[],
   ) => void;
   errors: FormErrors;
 }
 
-const DescriptionSection: React.FC<DescriptionSectionProps> = ({
+const PricingSection: React.FC<PricingSectionProps> = ({
   formData,
   handleInputChange,
   errors,
-}) => {
-  return (
-    <div>
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-        <FiFileText className="w-5 h-5 text-[#D2145A]" />
-        Description
-      </h3>
-      <textarea
-        rows={4}
-        value={formData.description}
-        onChange={(e) => handleInputChange("description", e.target.value)}
-        className={`w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF4081]/50 focus:border-transparent transition-all duration-300 resize-none ${
-          errors.description
-            ? "border-red-300 dark:border-red-600"
-            : "border-gray-200/50 dark:border-gray-700/50"
-        }`}
-        placeholder="Describe what clients will receive from this service"
-      />
-      <div className="flex justify-between items-center mt-2">
-        {errors.description ? (
-          <p className="text-sm text-red-600 dark:text-red-400">
-            {errors.description}
-          </p>
-        ) : (
-          <div />
-        )}
-        <p className="text-xs text-gray-500 dark:text-gray-400">
-          {formData.description.length}/1000
-        </p>
-      </div>
-    </div>
-  );
-};
-
-interface PricingDetailsSectionProps {
-  formData: FormData;
-  handleInputChange: (
-    field: keyof FormData,
-    value:
-      | string
-      | boolean
-      | string[]
-      | ServiceFeature[]
-      | ServicePackage[]
-      | FAQs[],
-  ) => void;
-  errors: FormErrors;
-  durationSuggestions: DurationSuggestions;
-}
-
-const PricingDetailsSection: React.FC<PricingDetailsSectionProps> = ({
-  formData,
-  handleInputChange,
-  errors,
-  durationSuggestions,
 }) => {
   return (
     <div>
       <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
         <FiDollarSign className="w-5 h-5 text-[#D2145A]" />
-        Pricing & Details
+        Pricing
       </h3>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {/* Price */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div>
           <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
             <FiDollarSign className="inline w-4 h-4 mr-1" />
@@ -1125,140 +787,27 @@ const PricingDetailsSection: React.FC<PricingDetailsSectionProps> = ({
           )}
         </div>
 
-        {/* Duration */}
+        {/* Service Type */}
         <div>
           <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-            <FiClock className="inline w-4 h-4 mr-1" />
-            Duration *
+            Type *
           </label>
-          <div className="relative">
-            <input
-              type="text"
-              value={formData.duration}
-              onChange={(e) => handleInputChange("duration", e.target.value)}
-              className={`w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF4081]/50 focus:border-transparent transition-all duration-300 ${
-                errors.duration
-                  ? "border-red-300 dark:border-red-600"
-                  : "border-gray-200/50 dark:border-gray-700/50"
-              }`}
-              placeholder="e.g. 4-8 weeks"
-              list="duration-suggestions"
-            />
-            <datalist id="duration-suggestions">
-              {durationSuggestions[formData.type].map((suggestion: string) => (
-                <option key={suggestion} value={suggestion} />
-              ))}
-            </datalist>
-          </div>
-          {errors.duration && (
-            <p className="mt-2 text-sm text-red-600 dark:text-red-400">
-              {errors.duration}
-            </p>
-          )}
-        </div>
-
-        {/* Tags */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-            <FiTag className="inline w-4 h-4 mr-1" />
-            Tags (comma-separated)
-          </label>
-          <input
-            type="text"
-            value={formData.tags}
-            onChange={(e) => handleInputChange("tags", e.target.value)}
+          <select
+            value={formData.type}
+            onChange={(e) =>
+              handleInputChange("type", e.target.value as ServiceType)
+            }
             className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200/50 dark:border-gray-700/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF4081]/50 focus:border-transparent transition-all duration-300"
-            placeholder="e.g. Solidity, Security, Multi-chain"
-          />
-          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-            Maximum 10 tags allowed
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-interface CategoryLeadSectionProps {
-  formData: FormData;
-  handleInputChange: (
-    field: keyof FormData,
-    value:
-      | string
-      | boolean
-      | string[]
-      | ServiceFeature[]
-      | ServicePackage[]
-      | FAQs[],
-  ) => void;
-  errors: FormErrors;
-  categoryOptions: CategoryOptions;
-}
-
-const CategoryLeadSection: React.FC<CategoryLeadSectionProps> = ({
-  formData,
-  handleInputChange,
-  errors,
-  categoryOptions,
-}) => {
-  return (
-    <div>
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-        <FiTag className="w-5 h-5 text-[#D2145A]" />
-        Category & Lead
-      </h3>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Category */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-            Category *
-          </label>
-          <div className="relative">
-            <select
-              value={formData.category}
-              onChange={(e) => handleInputChange("category", e.target.value)}
-              className={`w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF4081]/50 focus:border-transparent transition-all duration-300 ${
-                errors.category
-                  ? "border-red-300 dark:border-red-600"
-                  : "border-gray-200/50 dark:border-gray-700/50"
-              }`}
-            >
-              <option value="">Select a category</option>
-              {categoryOptions[formData.type].map((category: string) => (
-                <option key={category} value={category}>
-                  {category}
-                </option>
-              ))}
-            </select>
-          </div>
-          {errors.category && (
+          >
+            <option value="Hiring">Hiring</option>
+            <option value="Education">Education</option>
+            <option value="Mentorship">Mentorship</option>
+            <option value="Professional">Professional</option>
+            <option value="Writing">Writing</option>
+          </select>
+          {errors.type && (
             <p className="mt-2 text-sm text-red-600 dark:text-red-400">
-              {errors.category}
-            </p>
-          )}
-        </div>
-
-        {/* Lead */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-            <FiUser className="inline w-4 h-4 mr-1" />
-            Lead/Team *
-          </label>
-          <input
-            type="text"
-            value={formData.lead}
-            onChange={(e) => handleInputChange("lead", e.target.value)}
-            className={`w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF4081]/50 focus:border-transparent transition-all duration-300 ${
-              errors.lead
-                ? "border-red-300 dark:border-red-600"
-                : "border-gray-200/50 dark:border-gray-700/50"
-            }`}
-            placeholder="Enter lead or team name"
-          />
-          {errors.lead && (
-            <p className="mt-2 text-sm text-red-600 dark:text-red-400">
-              {errors.lead}
+              {errors.type}
             </p>
           )}
         </div>
@@ -1267,22 +816,16 @@ const CategoryLeadSection: React.FC<CategoryLeadSectionProps> = ({
   );
 };
 
-interface TechStackSectionProps {
+interface ClientInfoSectionProps {
   formData: FormData;
   handleInputChange: (
     field: keyof FormData,
-    value:
-      | string
-      | boolean
-      | string[]
-      | ServiceFeature[]
-      | ServicePackage[]
-      | FAQs[],
+    value: string | boolean | string[] | FAQs[] | Package[],
   ) => void;
   errors: FormErrors;
 }
 
-const TechStackSection: React.FC<TechStackSectionProps> = ({
+const ClientInfoSection: React.FC<ClientInfoSectionProps> = ({
   formData,
   handleInputChange,
   errors,
@@ -1290,59 +833,32 @@ const TechStackSection: React.FC<TechStackSectionProps> = ({
   return (
     <div>
       <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-        <FiGlobe className="w-5 h-5 text-[#D2145A]" />
-        Technology Stack
+        <FiUser className="w-5 h-5 text-[#D2145A]" />
+        Client Information
       </h3>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-            Technologies (comma-separated)
-          </label>
-          <input
-            type="text"
-            value={formData.technologies}
-            onChange={(e) => handleInputChange("technologies", e.target.value)}
-            className={`w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF4081]/50 focus:border-transparent transition-all duration-300 ${
-              errors.technologies
-                ? "border-red-300 dark:border-red-600"
-                : "border-gray-200/50 dark:border-gray-700/50"
-            }`}
-            placeholder="e.g. Solidity, Hardhat, OpenZeppelin"
-          />
-          {errors.technologies && (
-            <p className="mt-2 text-sm text-red-600 dark:text-red-400">
-              {errors.technologies}
-            </p>
-          )}
-          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-            Maximum 20 technologies allowed
+      <div>
+        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+          <FiUser className="inline w-4 h-4 mr-1" />
+          Clients Served
+        </label>
+        <input
+          type="number"
+          value={formData.clients}
+          onChange={(e) => handleInputChange("clients", e.target.value)}
+          className={`w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF4081]/50 focus:border-transparent transition-all duration-300 ${
+            errors.clients
+              ? "border-red-300 dark:border-red-600"
+              : "border-gray-200/50 dark:border-gray-700/50"
+          }`}
+          placeholder="e.g. 100"
+          min="0"
+        />
+        {errors.clients && (
+          <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+            {errors.clients}
           </p>
-        </div>
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-            Blockchains (comma-separated)
-          </label>
-          <input
-            type="text"
-            value={formData.blockchains}
-            onChange={(e) => handleInputChange("blockchains", e.target.value)}
-            className={`w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF4081]/50 focus:border-transparent transition-all duration-300 ${
-              errors.blockchains
-                ? "border-red-300 dark:border-red-600"
-                : "border-gray-200/50 dark:border-gray-700/50"
-            }`}
-            placeholder="e.g. Ethereum, Polygon, Binance Smart Chain"
-          />
-          {errors.blockchains && (
-            <p className="mt-2 text-sm text-red-600 dark:text-red-400">
-              {errors.blockchains}
-            </p>
-          )}
-          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-            Maximum 15 blockchains allowed
-          </p>
-        </div>
+        )}
       </div>
     </div>
   );
@@ -1350,12 +866,8 @@ const TechStackSection: React.FC<TechStackSectionProps> = ({
 
 interface FeaturesSectionFormProps {
   formData: FormData;
-  newFeatureIcon: string;
-  setNewFeatureIcon: (value: string) => void;
-  newFeatureTitle: string;
-  setNewFeatureTitle: (value: string) => void;
-  newFeatureDescription: string;
-  setNewFeatureDescription: (value: string) => void;
+  newFeature: string;
+  setNewFeature: (value: string) => void;
   addFeature: () => void;
   removeFeature: (index: number) => void;
   errors: FormErrors;
@@ -1363,12 +875,8 @@ interface FeaturesSectionFormProps {
 
 const FeaturesSectionForm: React.FC<FeaturesSectionFormProps> = ({
   formData,
-  newFeatureIcon,
-  setNewFeatureIcon,
-  newFeatureTitle,
-  setNewFeatureTitle,
-  newFeatureDescription,
-  setNewFeatureDescription,
+  newFeature,
+  setNewFeature,
   addFeature,
   removeFeature,
   errors,
@@ -1381,41 +889,30 @@ const FeaturesSectionForm: React.FC<FeaturesSectionFormProps> = ({
       </h3>
 
       <div className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="flex gap-3">
           <input
             type="text"
-            value={newFeatureIcon}
-            onChange={(e) => setNewFeatureIcon(e.target.value)}
-            className="px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200/50 dark:border-gray-700/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF4081]/50 focus:border-transparent transition-all duration-300"
-            placeholder="Icon (e.g. 📦)"
+            value={newFeature}
+            onChange={(e) => setNewFeature(e.target.value)}
+            className="flex-1 px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200/50 dark:border-gray-700/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF4081]/50 focus:border-transparent transition-all duration-300"
+            placeholder="Add a feature (e.g. Solidity & Rust)"
+            onKeyPress={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                addFeature();
+              }
+            }}
           />
-          <input
-            type="text"
-            value={newFeatureTitle}
-            onChange={(e) => setNewFeatureTitle(e.target.value)}
-            className="px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200/50 dark:border-gray-700/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF4081]/50 focus:border-transparent transition-all duration-300"
-            placeholder="Feature title"
-          />
-          <input
-            type="text"
-            value={newFeatureDescription}
-            onChange={(e) => setNewFeatureDescription(e.target.value)}
-            className="px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200/50 dark:border-gray-700/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF4081]/50 focus:border-transparent transition-all duration-300"
-            placeholder="Feature description"
-          />
+          <button
+            type="button"
+            onClick={addFeature}
+            disabled={!newFeature.trim() || formData.features.length >= 10}
+            className="px-4 py-3 bg-[#D2145A] text-white rounded-xl hover:bg-[#D2145A]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <FiPlus className="w-5 h-5" />
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={addFeature}
-          disabled={
-            !newFeatureTitle.trim() ||
-            !newFeatureDescription.trim() ||
-            formData.features.length >= 10
-          }
-          className="px-4 py-3 bg-[#D2145A] text-white rounded-xl hover:bg-[#D2145A]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <FiPlus className="w-5 h-5 inline mr-2" /> Add Feature
-        </button>
+
         {errors.features && (
           <p className="text-sm text-red-600 dark:text-red-400">
             {errors.features}
@@ -1437,15 +934,9 @@ const FeaturesSectionForm: React.FC<FeaturesSectionFormProps> = ({
                   layout
                   className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200/50 dark:border-gray-700/50"
                 >
-                  <span className="text-xl">{feature.icon}</span>
-                  <div className="flex-1">
-                    <div className="font-medium text-gray-700 dark:text-gray-300">
-                      {feature.title}
-                    </div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400">
-                      {feature.description}
-                    </div>
-                  </div>
+                  <span className="flex-1 text-gray-700 dark:text-gray-300">
+                    {feature}
+                  </span>
                   <button
                     type="button"
                     onClick={() => removeFeature(index)}
@@ -1469,12 +960,8 @@ interface PackagesSectionProps {
   setNewPackageName: (value: string) => void;
   newPackagePrice: string;
   setNewPackagePrice: (value: string) => void;
-  newPackageDuration: string;
-  setNewPackageDuration: (value: string) => void;
   newPackageFeatures: string;
   setNewPackageFeatures: (value: string) => void;
-  newPackagePopular: boolean;
-  setNewPackagePopular: (value: boolean) => void;
   addPackage: () => void;
   removePackage: (index: number) => void;
   errors: FormErrors;
@@ -1486,12 +973,8 @@ const PackagesSection: React.FC<PackagesSectionProps> = ({
   setNewPackageName,
   newPackagePrice,
   setNewPackagePrice,
-  newPackageDuration,
-  setNewPackageDuration,
   newPackageFeatures,
   setNewPackageFeatures,
-  newPackagePopular,
-  setNewPackagePopular,
   addPackage,
   removePackage,
   errors,
@@ -1499,51 +982,31 @@ const PackagesSection: React.FC<PackagesSectionProps> = ({
   return (
     <div>
       <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-        <FiPackage className="w-5 h-5 text-[#D2145A]" />
+        <FiDollarSign className="w-5 h-5 text-[#D2145A]" />
         Packages
       </h3>
 
       <div className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 gap-3">
           <input
             type="text"
             value={newPackageName}
             onChange={(e) => setNewPackageName(e.target.value)}
             className="px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200/50 dark:border-gray-700/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF4081]/50 focus:border-transparent transition-all duration-300"
-            placeholder="Package name"
+            placeholder="Package Name (e.g. Basic)"
           />
           <input
             type="text"
             value={newPackagePrice}
             onChange={(e) => setNewPackagePrice(e.target.value)}
             className="px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200/50 dark:border-gray-700/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF4081]/50 focus:border-transparent transition-all duration-300"
-            placeholder="Price"
+            placeholder="Price (e.g. 99 or Custom)"
           />
-          <input
-            type="text"
-            value={newPackageDuration}
-            onChange={(e) => setNewPackageDuration(e.target.value)}
-            className="px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200/50 dark:border-gray-700/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF4081]/50 focus:border-transparent transition-all duration-300"
-            placeholder="Duration"
-          />
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={newPackagePopular}
-              onChange={(e) => setNewPackagePopular(e.target.checked)}
-              className="w-5 h-5 text-[#D2145A] bg-gray-100 border-gray-300 rounded focus:ring-[#D2145A] focus:ring-2"
-            />
-            <label className="text-sm text-gray-700 dark:text-gray-300">
-              Popular
-            </label>
-          </div>
-        </div>
-        <div className="lg:col-span-4">
           <input
             type="text"
             value={newPackageFeatures}
             onChange={(e) => setNewPackageFeatures(e.target.value)}
-            className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200/50 dark:border-gray-700/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF4081]/50 focus:border-transparent transition-all duration-300"
+            className="px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200/50 dark:border-gray-700/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF4081]/50 focus:border-transparent transition-all duration-300"
             placeholder="Features (comma-separated)"
           />
         </div>
@@ -1553,7 +1016,6 @@ const PackagesSection: React.FC<PackagesSectionProps> = ({
           disabled={
             !newPackageName.trim() ||
             !newPackagePrice.trim() ||
-            !newPackageDuration.trim() ||
             formData.packages.length >= 5
           }
           className="px-4 py-3 bg-[#D2145A] text-white rounded-xl hover:bg-[#D2145A]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -1582,120 +1044,16 @@ const PackagesSection: React.FC<PackagesSectionProps> = ({
                   className="flex items-start gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200/50 dark:border-gray-700/50"
                 >
                   <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h4 className="font-medium text-gray-700 dark:text-gray-300">
-                        {pkg.name}
-                      </h4>
-                      {pkg.popular && (
-                        <span className="px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 text-xs rounded-full">
-                          Popular
-                        </span>
-                      )}
+                    <div className="font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      {pkg.name} - {pkg.price}
                     </div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400">
-                      Price: {pkg.price} • Duration: {pkg.duration}
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      Features: {pkg.features.join(", ")}
                     </div>
-                    {pkg.features.length > 0 && (
-                      <div className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-                        Features: {pkg.features.join(", ")}
-                      </div>
-                    )}
                   </div>
                   <button
                     type="button"
                     onClick={() => removePackage(index)}
-                    className="p-1 text-red-500 hover:text-red-700 transition-colors"
-                  >
-                    <FiMinus className="w-4 h-4" />
-                  </button>
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-interface DeliverablesSectionProps {
-  formData: FormData;
-  errors: FormErrors;
-  newDeliverable: string;
-  setNewDeliverable: (value: string) => void;
-  addDeliverable: () => void;
-  removeDeliverable: (index: number) => void;
-}
-
-const DeliverablesSection: React.FC<DeliverablesSectionProps> = ({
-  formData,
-  errors,
-  newDeliverable,
-  setNewDeliverable,
-  addDeliverable,
-  removeDeliverable,
-}) => {
-  return (
-    <div>
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-        <FiPackage className="w-5 h-5 text-[#D2145A]" />
-        Deliverables
-      </h3>
-
-      <div className="space-y-4">
-        <div className="flex gap-3">
-          <input
-            type="text"
-            value={newDeliverable}
-            onChange={(e) => setNewDeliverable(e.target.value)}
-            className="flex-1 px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200/50 dark:border-gray-700/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF4081]/50 focus:border-transparent transition-all duration-300"
-            placeholder="Add a deliverable (e.g. Complete source code)"
-            onKeyPress={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                addDeliverable();
-              }
-            }}
-          />
-          <button
-            type="button"
-            onClick={addDeliverable}
-            disabled={
-              !newDeliverable.trim() || formData.deliverables.length >= 20
-            }
-            className="px-4 py-3 bg-[#D2145A] text-white rounded-xl hover:bg-[#D2145A]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <FiPlus className="w-5 h-5" />
-          </button>
-        </div>
-
-        {errors.deliverables && (
-          <p className="text-sm text-red-600 dark:text-red-400">
-            {errors.deliverables}
-          </p>
-        )}
-
-        {formData.deliverables.length > 0 && (
-          <div className="space-y-2">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              {formData.deliverables.length}/20 deliverables
-            </p>
-            <AnimatePresence>
-              {formData.deliverables.map((deliverable, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  layout
-                  className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200/50 dark:border-gray-700/50"
-                >
-                  <span className="flex-1 text-gray-700 dark:text-gray-300">
-                    {deliverable}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => removeDeliverable(index)}
                     className="p-1 text-red-500 hover:text-red-700 transition-colors"
                   >
                     <FiMinus className="w-4 h-4" />
@@ -1817,13 +1175,7 @@ interface MediaSettingsSectionProps {
   formData: FormData;
   handleInputChange: (
     field: keyof FormData,
-    value:
-      | string
-      | boolean
-      | string[]
-      | ServiceFeature[]
-      | ServicePackage[]
-      | FAQs[],
+    value: string | boolean | string[] | FAQs[] | Package[],
   ) => void;
   errors: FormErrors;
   showImagePreview: boolean;
@@ -1838,14 +1190,14 @@ const MediaSettingsSection: React.FC<MediaSettingsSectionProps> = ({
   setShowImagePreview,
 }) => {
   return (
-    <div>
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-        <FiImage className="w-5 h-5 text-[#D2145A]" />
-        Media & Settings
-      </h3>
+    <div className="space-y-6">
+      {/* Thumbnail Section */}
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+          <FiImage className="w-5 h-5 text-[#D2145A]" />
+          Media
+        </h3>
 
-      <div className="space-y-6">
-        {/* Thumbnail */}
         <div>
           <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
             Thumbnail URL
@@ -1900,6 +1252,14 @@ const MediaSettingsSection: React.FC<MediaSettingsSectionProps> = ({
             )}
           </AnimatePresence>
         </div>
+      </div>
+
+      {/* Settings Section */}
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+          <FiSettings className="w-5 h-5 text-[#D2145A]" />
+          Settings
+        </h3>
 
         {/* Featured Toggle */}
         <div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200/50 dark:border-gray-700/50">

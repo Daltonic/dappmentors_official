@@ -22,11 +22,7 @@ const Page: React.FC = () => {
       if (
         !serviceData.title ||
         !serviceData.description ||
-        !serviceData.type ||
-        !serviceData.price ||
-        !serviceData.category ||
-        !serviceData.duration ||
-        !serviceData.lead
+        !serviceData.price
       ) {
         toast.error("Please fill in all required fields.");
         return;

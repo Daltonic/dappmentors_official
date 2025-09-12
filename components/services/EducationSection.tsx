@@ -1,6 +1,13 @@
 // Web3 Education Section
-const EducationSection = () => {
-  const educationServices = [
+import { Service } from "@/utils/interfaces";
+import ServiceCard from "../shared/ServiceCard";
+
+interface EducationSectionProps {
+  onGetQuote: (service: Service) => void;
+}
+
+const EducationSection = ({ onGetQuote }: EducationSectionProps) => {
+  const educationServices: Partial<Service>[] = [
     {
       title: "Free Tutorials",
       description:
@@ -12,8 +19,8 @@ const EducationSection = () => {
         "Multiple Blockchains",
       ],
       icon: "📚",
-      gradient: "from-blue-500 to-cyan-500",
       price: "Free",
+      type: "Education",
     },
     {
       title: "Dapp Mentors Academy",
@@ -26,8 +33,8 @@ const EducationSection = () => {
         "Advanced Topics",
       ],
       icon: "🎓",
-      gradient: "from-emerald-500 to-teal-500",
       price: "Premium",
+      type: "Education",
     },
     {
       title: "Live Workshops & Hackathons",
@@ -40,8 +47,8 @@ const EducationSection = () => {
         "Skill Showcase",
       ],
       icon: "⚡",
-      gradient: "from-orange-500 to-red-500",
       price: "Event-based",
+      type: "Education",
     },
   ];
 
@@ -60,52 +67,11 @@ const EducationSection = () => {
 
         <div className="grid lg:grid-cols-3 gap-8">
           {educationServices.map((service, index) => (
-            <div
+            <ServiceCard
               key={index}
-              className="group relative bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-3xl p-8 hover:shadow-2xl transition-all duration-700 border border-gray-200/50 dark:border-gray-700/50 hover:border-transparent"
-            >
-              <div
-                className={`absolute inset-0 bg-gradient-to-br ${service.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-500 rounded-3xl`}
-              ></div>
-
-              <div className="relative z-10">
-                <div className="flex items-center justify-between mb-6">
-                  <div
-                    className={`w-16 h-16 bg-gradient-to-br ${service.gradient} rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-500`}
-                  >
-                    {service.icon}
-                  </div>
-                  <span className="bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white px-4 py-2 rounded-full text-sm font-bold">
-                    {service.price}
-                  </span>
-                </div>
-
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-                  {service.title}
-                </h3>
-
-                <p className="text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">
-                  {service.description}
-                </p>
-
-                <div className="space-y-3 mb-8">
-                  {service.features.map((feature, idx) => (
-                    <div key={idx} className="flex items-center gap-3">
-                      <div className="w-2 h-2 bg-gradient-to-r from-[#D2145A] to-[#FF4081] rounded-full"></div>
-                      <span className="text-sm text-gray-700 dark:text-gray-300">
-                        {feature}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-
-                <button
-                  className={`w-full py-3 px-6 bg-gradient-to-r ${service.gradient} text-white rounded-xl font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg`}
-                >
-                  Get Started
-                </button>
-              </div>
-            </div>
+              service={service as Service}
+              onGetQuote={onGetQuote}
+            />
           ))}
         </div>
       </div>
