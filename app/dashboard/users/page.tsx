@@ -8,6 +8,8 @@ import {
   FaUsers,
   FaUserPlus,
   FaCommentDots,
+  FaChevronLeft,
+  FaChevronRight,
 } from "react-icons/fa";
 import { User } from "@/utils/interfaces";
 import Controls from "@/components/dashboard/users/Controls";
@@ -90,6 +92,49 @@ const StatsCards: React.FC<{ users: User[] }> = ({ users }) => {
   );
 };
 
+// PaginationFooter Component
+const PaginationFooter: React.FC<{
+  currentPage: number;
+  itemsPerPage: number;
+  total: number;
+  selectedCount: number;
+  onPageChange: (page: number) => void;
+}> = ({ currentPage, itemsPerPage, total, selectedCount, onPageChange }) => {
+  const from = (currentPage - 1) * itemsPerPage + 1;
+  const to = Math.min(currentPage * itemsPerPage, total);
+  const totalPages = Math.ceil(total / itemsPerPage);
+
+  return (
+    <div className="px-6 py-4 border-t border-gray-200/50 dark:border-gray-700/50 bg-gray-50/50 dark:bg-gray-800/50">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between text-sm text-gray-600 dark:text-gray-300 gap-4 sm:gap-0">
+        <span>
+          Showing {from}-{to} of {total} users
+          {selectedCount > 0 && ` (${selectedCount} selected)`}
+        </span>
+        <div className="flex items-center gap-4">
+          <span>Rows per page: {itemsPerPage}</span>
+          <div className="flex gap-2">
+            <button
+              onClick={() => onPageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+            >
+              <FaChevronLeft className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => onPageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+            >
+              <FaChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // UserGrid Component
 const UserGrid: React.FC<{
   users: User[];
@@ -98,7 +143,7 @@ const UserGrid: React.FC<{
   getStatusColor: (status: User["status"]) => string;
   getRoleColor: (role: string) => string;
 }> = ({ users, selectedUsers, onToggle, getStatusColor, getRoleColor }) => (
-  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 p-6">
     {users.map((user) => (
       <UserCard
         key={user.id}
@@ -175,6 +220,8 @@ const Page: React.FC = () => {
     direction: "asc" | "desc";
   } | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "table">("table");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
 
   // Notification helper
   const addNotification = useCallback(
@@ -380,6 +427,18 @@ const Page: React.FC = () => {
     });
   }, [filteredUsers, sortConfig]);
 
+  // Paginate users
+  const currentUsers = useMemo(() => {
+    const indexOfLast = currentPage * itemsPerPage;
+    const indexOfFirst = indexOfLast - itemsPerPage;
+    return sortedUsers.slice(indexOfFirst, indexOfLast);
+  }, [sortedUsers, currentPage, itemsPerPage]);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedRole, statusFilter]);
+
   const handleSort = (key: keyof User) => {
     setSortConfig((prevConfig) => ({
       key,
@@ -402,15 +461,20 @@ const Page: React.FC = () => {
     });
   };
 
-  const toggleAllUsers = () => {
-    if (selectedUsers.size === sortedUsers.length) {
-      setSelectedUsers(new Set());
-    } else {
-      setSelectedUsers(
-        new Set(sortedUsers.map((user) => user.id).filter(Boolean) as string[]),
+  const toggleAllUsers = useCallback(() => {
+    setSelectedUsers((prev) => {
+      const newSet = new Set(prev);
+      const allCurrentSelected = currentUsers.every((user) =>
+        newSet.has(user.id!),
       );
-    }
-  };
+      if (allCurrentSelected) {
+        currentUsers.forEach((user) => newSet.delete(user.id!));
+      } else {
+        currentUsers.forEach((user) => newSet.add(user.id!));
+      }
+      return newSet;
+    });
+  }, [currentUsers]);
 
   const getRoleColor = (role: string) => {
     const colors = {
@@ -561,22 +625,36 @@ const Page: React.FC = () => {
             icon={<FaUserPlus className="w-8 h-8 text-gray-400" />}
           />
         ) : viewMode === "grid" ? (
-          <UserGrid
-            users={sortedUsers}
-            selectedUsers={selectedUsers}
-            onToggle={toggleUserSelection}
-            getStatusColor={getStatusColor}
-            getRoleColor={getRoleColor}
-          />
+          <div className="bg-white/10 dark:bg-gray-900/80 backdrop-blur-sm rounded-3xl border border-gray-200/50 dark:border-gray-700/50 shadow-lg overflow-hidden">
+            <UserGrid
+              users={currentUsers}
+              selectedUsers={selectedUsers}
+              onToggle={toggleUserSelection}
+              getStatusColor={getStatusColor}
+              getRoleColor={getRoleColor}
+            />
+            {sortedUsers.length > 0 && (
+              <PaginationFooter
+                currentPage={currentPage}
+                itemsPerPage={itemsPerPage}
+                total={sortedUsers.length}
+                selectedCount={selectedUsers.size}
+                onPageChange={setCurrentPage}
+              />
+            )}
+          </div>
         ) : (
           <UserTable
-            users={sortedUsers}
+            users={currentUsers}
+            totalUsers={sortedUsers.length}
+            currentPage={currentPage}
+            itemsPerPage={itemsPerPage}
+            setCurrentPage={setCurrentPage}
             selectedUsers={selectedUsers}
             onToggle={toggleUserSelection}
             toggleAll={toggleAllUsers}
             sortConfig={sortConfig}
             onSort={handleSort}
-            allUsersLength={users.length}
             getStatusColor={getStatusColor}
             getRoleColor={getRoleColor}
           />

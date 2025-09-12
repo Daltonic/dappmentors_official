@@ -1,4 +1,4 @@
-"use client"; // Ensure this is a client component
+"use client";
 
 import { Product } from "@/utils/interfaces";
 import { useDelete } from "@/contexts/DeleteContext"; // Import the useDelete hook
@@ -33,26 +33,75 @@ const SortIcon: React.FC<{
   );
 };
 
+// PaginationFooter Component (moved for reuse)
+const PaginationFooter: React.FC<{
+  currentPage: number;
+  itemsPerPage: number;
+  total: number;
+  selectedCount: number;
+  onPageChange: (page: number) => void;
+}> = ({ currentPage, itemsPerPage, total, selectedCount, onPageChange }) => {
+  const from = (currentPage - 1) * itemsPerPage + 1;
+  const to = Math.min(currentPage * itemsPerPage, total);
+  const totalPages = Math.ceil(total / itemsPerPage);
+
+  return (
+    <div className="px-6 py-4 border-t border-gray-200/50 dark:border-gray-700/50 bg-gray-50/50 dark:bg-gray-800/50">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between text-sm text-gray-600 dark:text-gray-300 gap-4 sm:gap-0">
+        <span>
+          Showing {from}-{to} of {total} products
+          {selectedCount > 0 && ` (${selectedCount} selected)`}
+        </span>
+        <div className="flex items-center gap-4">
+          <span>Rows per page: {itemsPerPage}</span>
+          <div className="flex gap-2">
+            <button
+              onClick={() => onPageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+            >
+              <FaChevronLeft className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => onPageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+            >
+              <FaChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // ProductTable Component
 const ProductTable: React.FC<{
   products: Product[];
+  totalProducts: number;
+  currentPage: number;
+  itemsPerPage: number;
+  setCurrentPage: (page: number) => void;
   selectedProducts: Set<string>;
   onToggle: (id: string) => void;
   toggleAll: () => void;
   sortConfig: { key: keyof Product; direction: "asc" | "desc" } | null;
   onSort: (key: keyof Product) => void;
-  allProductsLength: number;
   getStatusColor: (status: Product["status"]) => string;
   getTypeColor: (type: Product["type"]) => string;
   onDelete?: (productId: string) => void; // Optional callback to refresh parent component
 }> = ({
   products,
+  totalProducts,
+  currentPage,
+  itemsPerPage,
+  setCurrentPage,
   selectedProducts,
   onToggle,
   toggleAll,
   sortConfig,
   onSort,
-  allProductsLength,
   getStatusColor,
   getTypeColor,
   onDelete,
@@ -80,8 +129,8 @@ const ProductTable: React.FC<{
                 <input
                   type="checkbox"
                   checked={
-                    selectedProducts.size === products.length &&
-                    products.length > 0
+                    products.length > 0 &&
+                    products.every((p) => selectedProducts.has(p.id))
                   }
                   onChange={toggleAll}
                   className="w-4 h-4 text-[#D2145A] bg-gray-100 border-gray-300 rounded focus:ring-[#D2145A] focus:ring-2"
@@ -276,34 +325,14 @@ const ProductTable: React.FC<{
         </table>
       </div>
 
-      {/* Table Footer */}
-      {products.length > 0 && (
-        <div className="px-6 py-4 border-t border-gray-200/50 dark:border-gray-700/50 bg-gray-50/50 dark:bg-gray-800/50">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between text-sm text-gray-600 dark:text-gray-300 gap-4 sm:gap-0">
-            <span>
-              Showing {products.length} of {allProductsLength} products
-              {selectedProducts.size > 0 &&
-                ` (${selectedProducts.size} selected)`}
-            </span>
-            <div className="flex items-center gap-4">
-              <span>Rows per page: 50</span>
-              <div className="flex gap-2">
-                <button
-                  className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-                  disabled
-                >
-                  <FaChevronLeft className="w-4 h-4" />
-                </button>
-                <button
-                  className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-                  disabled
-                >
-                  <FaChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+      {totalProducts > 0 && (
+        <PaginationFooter
+          currentPage={currentPage}
+          itemsPerPage={itemsPerPage}
+          total={totalProducts}
+          selectedCount={selectedProducts.size}
+          onPageChange={setCurrentPage}
+        />
       )}
     </div>
   );

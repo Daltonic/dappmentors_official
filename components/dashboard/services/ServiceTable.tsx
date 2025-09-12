@@ -18,7 +18,11 @@ import Link from "next/link";
 
 // Props interface for ServiceTable
 interface ServiceTableProps {
-  sortedServices: Service[];
+  services: Service[];
+  totalServices: number;
+  currentPage: number;
+  itemsPerPage: number;
+  setCurrentPage: (page: number) => void;
   selectedServices: Set<string>;
   toggleServiceSelection: (serviceId: string) => void;
   toggleAllServices: () => void;
@@ -45,9 +49,56 @@ const SortIcon: React.FC<{
   );
 };
 
+// PaginationFooter Component (moved from Page for reuse)
+const PaginationFooter: React.FC<{
+  currentPage: number;
+  itemsPerPage: number;
+  total: number;
+  selectedCount: number;
+  onPageChange: (page: number) => void;
+}> = ({ currentPage, itemsPerPage, total, selectedCount, onPageChange }) => {
+  const from = (currentPage - 1) * itemsPerPage + 1;
+  const to = Math.min(currentPage * itemsPerPage, total);
+  const totalPages = Math.ceil(total / itemsPerPage);
+
+  return (
+    <div className="px-6 py-4 border-t border-gray-200/50 dark:border-gray-700/50 bg-gray-50/50 dark:bg-gray-800/50">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between text-sm text-gray-600 dark:text-gray-300 gap-4 sm:gap-0">
+        <span>
+          Showing {from}-{to} of {total} services
+          {selectedCount > 0 && ` (${selectedCount} selected)`}
+        </span>
+        <div className="flex items-center gap-4">
+          <span>Rows per page: {itemsPerPage}</span>
+          <div className="flex gap-2">
+            <button
+              onClick={() => onPageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+            >
+              <FiChevronLeft className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => onPageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+            >
+              <FiChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // ServiceTable Component
 const ServiceTable: React.FC<ServiceTableProps> = ({
-  sortedServices,
+  services,
+  totalServices,
+  currentPage,
+  itemsPerPage,
+  setCurrentPage,
   selectedServices,
   toggleServiceSelection,
   toggleAllServices,
@@ -61,7 +112,7 @@ const ServiceTable: React.FC<ServiceTableProps> = ({
 
   // Handle individual service deletion
   const handleDeleteService = (serviceId: string) => {
-    const service = sortedServices.find((s) => s.id === serviceId);
+    const service = services.find((s) => s.id === serviceId);
     showDeleteModal({
       apiUrl: `/api/services/${serviceId}`,
       itemTitle: service?.title || "Service",
@@ -85,8 +136,8 @@ const ServiceTable: React.FC<ServiceTableProps> = ({
                 <input
                   type="checkbox"
                   checked={
-                    selectedServices.size === sortedServices.length &&
-                    sortedServices.length > 0
+                    services.length > 0 &&
+                    services.every((s) => selectedServices.has(s.id))
                   }
                   onChange={toggleAllServices}
                   className="w-4 h-4 text-[#D2145A] bg-gray-100 border-gray-300 rounded focus:ring-[#D2145A] focus:ring-2"
@@ -152,7 +203,7 @@ const ServiceTable: React.FC<ServiceTableProps> = ({
             </tr>
           </thead>
           <tbody>
-            {sortedServices.map((service, index) => (
+            {services.map((service, index) => (
               <motion.tr
                 key={service.id}
                 initial={{ opacity: 0, y: 20 }}
@@ -264,34 +315,14 @@ const ServiceTable: React.FC<ServiceTableProps> = ({
           </tbody>
         </table>
       </div>
-      {sortedServices.length > 0 && (
-        <div className="px-6 py-4 border-t border-gray-200/50 dark:border-gray-700/50 bg-gray-50/50 dark:bg-gray-800/50">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between text-sm text-gray-600 dark:text-gray-300 gap-4 sm:gap-0">
-            <span>
-              Showing {sortedServices.length} of {sortedServices.length}{" "}
-              services
-              {selectedServices.size > 0 &&
-                ` (${selectedServices.size} selected)`}
-            </span>
-            <div className="flex items-center gap-4">
-              <span>Rows per page: 50</span>
-              <div className="flex gap-2">
-                <button
-                  className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-                  disabled
-                >
-                  <FiChevronLeft className="w-4 h-4" />
-                </button>
-                <button
-                  className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-                  disabled
-                >
-                  <FiChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+      {totalServices > 0 && (
+        <PaginationFooter
+          currentPage={currentPage}
+          itemsPerPage={itemsPerPage}
+          total={totalServices}
+          selectedCount={selectedServices.size}
+          onPageChange={setCurrentPage}
+        />
       )}
     </div>
   );

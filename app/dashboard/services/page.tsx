@@ -18,6 +18,7 @@ import {
   FaDollarSign,
 } from "react-icons/fa";
 import { serviceApiService } from "@/services/serviceApiService";
+import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 
 // StatsCards Component
 const StatsCards: React.FC<{ services: Service[] }> = ({ services }) => {
@@ -89,6 +90,49 @@ const StatsCards: React.FC<{ services: Service[] }> = ({ services }) => {
   );
 };
 
+// PaginationFooter Component
+const PaginationFooter: React.FC<{
+  currentPage: number;
+  itemsPerPage: number;
+  total: number;
+  selectedCount: number;
+  onPageChange: (page: number) => void;
+}> = ({ currentPage, itemsPerPage, total, selectedCount, onPageChange }) => {
+  const from = (currentPage - 1) * itemsPerPage + 1;
+  const to = Math.min(currentPage * itemsPerPage, total);
+  const totalPages = Math.ceil(total / itemsPerPage);
+
+  return (
+    <div className="px-6 py-4 border-t border-gray-200/50 dark:border-gray-700/50 bg-gray-50/50 dark:bg-gray-800/50">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between text-sm text-gray-600 dark:text-gray-300 gap-4 sm:gap-0">
+        <span>
+          Showing {from}-{to} of {total} services
+          {selectedCount > 0 && ` (${selectedCount} selected)`}
+        </span>
+        <div className="flex items-center gap-4">
+          <span>Rows per page: {itemsPerPage}</span>
+          <div className="flex gap-2">
+            <button
+              onClick={() => onPageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+            >
+              <FiChevronLeft className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => onPageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+            >
+              <FiChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // ServiceGrid Component
 const ServiceGrid: React.FC<{
   services: Service[];
@@ -96,7 +140,7 @@ const ServiceGrid: React.FC<{
   onToggle: (id: string) => void;
   getStatusColor: (status: Service["status"]) => string;
 }> = ({ services, selectedServices, onToggle, getStatusColor }) => (
-  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 p-6">
     {services.map((service) => (
       <ServiceCard
         key={service.id}
@@ -141,6 +185,8 @@ const Page: React.FC = () => {
     direction: "asc" | "desc";
   } | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "table">("table");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
 
   // Notification helper
   const addNotification = useCallback(
@@ -259,17 +305,20 @@ const Page: React.FC = () => {
     checkAuth();
   }, []);
 
-  // Filter services client-side (for search)
+  // Filter services client-side (for search and type)
   const filteredServices = useMemo(() => {
     return services.filter(
       (service) =>
-        service.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        service.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        service.features.some((feature) =>
-          feature.toLowerCase().includes(searchTerm.toLowerCase()),
-        ),
+        (typeFilter === "all" || service.type === typeFilter) &&
+        (service.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          service.description
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          service.features.some((feature) =>
+            feature.toLowerCase().includes(searchTerm.toLowerCase()),
+          )),
     );
-  }, [services, searchTerm]);
+  }, [services, searchTerm, typeFilter]);
 
   // Sort services
   const sortedServices = useMemo(() => {
@@ -298,6 +347,18 @@ const Page: React.FC = () => {
     });
   }, [filteredServices, sortConfig]);
 
+  // Paginate services
+  const currentServices = useMemo(() => {
+    const indexOfLast = currentPage * itemsPerPage;
+    const indexOfFirst = indexOfLast - itemsPerPage;
+    return sortedServices.slice(indexOfFirst, indexOfLast);
+  }, [sortedServices, currentPage, itemsPerPage]);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter, typeFilter]);
+
   const handleSort = (key: keyof Service) => {
     setSortConfig((prevConfig) => ({
       key,
@@ -320,13 +381,18 @@ const Page: React.FC = () => {
     });
   };
 
-  const toggleAllServices = () => {
-    if (selectedServices.size === sortedServices.length) {
-      setSelectedServices(new Set());
-    } else {
-      setSelectedServices(new Set(sortedServices.map((service) => service.id)));
-    }
-  };
+  const toggleAllServices = useCallback(() => {
+    setSelectedServices((prev) => {
+      const newSet = new Set(prev);
+      const allCurrentSelected = currentServices.every((s) => newSet.has(s.id));
+      if (allCurrentSelected) {
+        currentServices.forEach((s) => newSet.delete(s.id));
+      } else {
+        currentServices.forEach((s) => newSet.add(s.id));
+      }
+      return newSet;
+    });
+  }, [currentServices]);
 
   const getStatusColor = (status: Service["status"]) => {
     switch (status) {
@@ -459,15 +525,30 @@ const Page: React.FC = () => {
             icon={<FaBriefcase className="w-8 h-8 text-gray-400" />}
           />
         ) : viewMode === "grid" ? (
-          <ServiceGrid
-            services={sortedServices}
-            selectedServices={selectedServices}
-            onToggle={toggleServiceSelection}
-            getStatusColor={getStatusColor}
-          />
+          <div className="bg-white/10 dark:bg-gray-900/80 backdrop-blur-sm rounded-3xl border border-gray-200/50 dark:border-gray-700/50 shadow-lg overflow-hidden">
+            <ServiceGrid
+              services={currentServices}
+              selectedServices={selectedServices}
+              onToggle={toggleServiceSelection}
+              getStatusColor={getStatusColor}
+            />
+            {sortedServices.length > 0 && (
+              <PaginationFooter
+                currentPage={currentPage}
+                itemsPerPage={itemsPerPage}
+                total={sortedServices.length}
+                selectedCount={selectedServices.size}
+                onPageChange={setCurrentPage}
+              />
+            )}
+          </div>
         ) : (
           <ServiceTable
-            sortedServices={sortedServices}
+            services={currentServices}
+            totalServices={sortedServices.length}
+            currentPage={currentPage}
+            itemsPerPage={itemsPerPage}
+            setCurrentPage={setCurrentPage}
             selectedServices={selectedServices}
             toggleServiceSelection={toggleServiceSelection}
             toggleAllServices={toggleAllServices}

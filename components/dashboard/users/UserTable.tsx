@@ -27,25 +27,74 @@ const SortIcon: React.FC<{
   );
 };
 
+// PaginationFooter Component (moved for reuse)
+const PaginationFooter: React.FC<{
+  currentPage: number;
+  itemsPerPage: number;
+  total: number;
+  selectedCount: number;
+  onPageChange: (page: number) => void;
+}> = ({ currentPage, itemsPerPage, total, selectedCount, onPageChange }) => {
+  const from = (currentPage - 1) * itemsPerPage + 1;
+  const to = Math.min(currentPage * itemsPerPage, total);
+  const totalPages = Math.ceil(total / itemsPerPage);
+
+  return (
+    <div className="px-6 py-4 border-t border-gray-200/50 dark:border-gray-700/50 bg-gray-50/50 dark:bg-gray-800/50">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between text-sm text-gray-600 dark:text-gray-300 gap-4 sm:gap-0">
+        <span>
+          Showing {from}-{to} of {total} users
+          {selectedCount > 0 && ` (${selectedCount} selected)`}
+        </span>
+        <div className="flex items-center gap-4">
+          <span>Rows per page: {itemsPerPage}</span>
+          <div className="flex gap-2">
+            <button
+              onClick={() => onPageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+            >
+              <FaChevronLeft className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => onPageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+            >
+              <FaChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // UserTable Component
 const UserTable: React.FC<{
   users: User[];
+  totalUsers: number;
+  currentPage: number;
+  itemsPerPage: number;
+  setCurrentPage: (page: number) => void;
   selectedUsers: Set<string>;
   onToggle: (id: string) => void;
   toggleAll: () => void;
   sortConfig: { key: keyof User; direction: "asc" | "desc" } | null;
   onSort: (key: keyof User) => void;
-  allUsersLength: number;
   getStatusColor: (status: User["status"]) => string;
   getRoleColor: (role: string) => string;
 }> = ({
   users,
+  totalUsers,
+  currentPage,
+  itemsPerPage,
+  setCurrentPage,
   selectedUsers,
   onToggle,
   toggleAll,
   sortConfig,
   onSort,
-  allUsersLength,
   getStatusColor,
   getRoleColor,
 }) => {
@@ -87,7 +136,8 @@ const UserTable: React.FC<{
                 <input
                   type="checkbox"
                   checked={
-                    selectedUsers.size === users.length && users.length > 0
+                    users.length > 0 &&
+                    users.every((u) => selectedUsers.has(u.id!))
                   }
                   onChange={toggleAll}
                   className="w-4 h-4 text-[#D2145A] bg-gray-100 border-gray-300 rounded focus:ring-[#D2145A] focus:ring-2"
@@ -246,32 +296,15 @@ const UserTable: React.FC<{
         </table>
       </div>
 
-      {/* Table Footer */}
-      <div className="px-6 py-4 border-t border-gray-200/50 dark:border-gray-700/50 bg-gray-50/50 dark:bg-gray-800/50">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between text-sm text-gray-600 dark:text-gray-300 gap-4 sm:gap-0">
-          <span>
-            Showing {users.length} of {allUsersLength} users
-            {selectedUsers.size > 0 && ` (${selectedUsers.size} selected)`}
-          </span>
-          <div className="flex items-center gap-4">
-            <span>Rows per page: 50</span>
-            <div className="flex gap-2">
-              <button
-                className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-                disabled
-              >
-                <FaChevronLeft className="w-4 h-4" />
-              </button>
-              <button
-                className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-                disabled
-              >
-                <FaChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+      {totalUsers > 0 && (
+        <PaginationFooter
+          currentPage={currentPage}
+          itemsPerPage={itemsPerPage}
+          total={totalUsers}
+          selectedCount={selectedUsers.size}
+          onPageChange={setCurrentPage}
+        />
+      )}
     </div>
   );
 };

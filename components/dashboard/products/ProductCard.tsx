@@ -1,4 +1,4 @@
-"use client"; // Ensure this is a client component
+"use client";
 
 import { Product } from "@/utils/interfaces";
 import { useDelete } from "@/contexts/DeleteContext"; // Import the useDelete hook

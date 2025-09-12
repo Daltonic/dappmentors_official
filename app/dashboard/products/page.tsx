@@ -8,6 +8,8 @@ import {
   FaPen,
   FaDollarSign,
   FaPlus,
+  FaChevronLeft,
+  FaChevronRight,
 } from "react-icons/fa";
 import { Product } from "@/utils/interfaces";
 import ProductCard from "@/components/dashboard/products/ProductCard";
@@ -85,13 +87,56 @@ const StatsCards: React.FC<{ products: Product[] }> = ({ products }) => {
   );
 };
 
+// PaginationFooter Component
+const PaginationFooter: React.FC<{
+  currentPage: number;
+  itemsPerPage: number;
+  total: number;
+  selectedCount: number;
+  onPageChange: (page: number) => void;
+}> = ({ currentPage, itemsPerPage, total, selectedCount, onPageChange }) => {
+  const from = (currentPage - 1) * itemsPerPage + 1;
+  const to = Math.min(currentPage * itemsPerPage, total);
+  const totalPages = Math.ceil(total / itemsPerPage);
+
+  return (
+    <div className="px-6 py-4 border-t border-gray-200/50 dark:border-gray-700/50 bg-gray-50/50 dark:bg-gray-800/50">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between text-sm text-gray-600 dark:text-gray-300 gap-4 sm:gap-0">
+        <span>
+          Showing {from}-{to} of {total} products
+          {selectedCount > 0 && ` (${selectedCount} selected)`}
+        </span>
+        <div className="flex items-center gap-4">
+          <span>Rows per page: {itemsPerPage}</span>
+          <div className="flex gap-2">
+            <button
+              onClick={() => onPageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+            >
+              <FaChevronLeft className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => onPageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+            >
+              <FaChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // ProductGrid Component
 const ProductGrid: React.FC<{
   products: Product[];
   selectedProducts: Set<string>;
   onToggle: (id: string) => void;
 }> = ({ products, selectedProducts, onToggle }) => (
-  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 p-6">
     {products.map((product) => (
       <ProductCard
         key={product.id}
@@ -136,6 +181,8 @@ const Page: React.FC = () => {
     direction: "asc" | "desc";
   } | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "table">("table");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
 
   // Notification helper
   const addNotification = useCallback(
@@ -294,6 +341,18 @@ const Page: React.FC = () => {
     });
   }, [filteredProducts, sortConfig]);
 
+  // Paginate products
+  const currentProducts = useMemo(() => {
+    const indexOfLast = currentPage * itemsPerPage;
+    const indexOfFirst = indexOfLast - itemsPerPage;
+    return sortedProducts.slice(indexOfFirst, indexOfLast);
+  }, [sortedProducts, currentPage, itemsPerPage]);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedTab, statusFilter]);
+
   const handleSort = (key: keyof Product) => {
     setSortConfig((prevConfig) => ({
       key,
@@ -316,13 +375,18 @@ const Page: React.FC = () => {
     });
   };
 
-  const toggleAllProducts = () => {
-    if (selectedProducts.size === sortedProducts.length) {
-      setSelectedProducts(new Set());
-    } else {
-      setSelectedProducts(new Set(sortedProducts.map((product) => product.id)));
-    }
-  };
+  const toggleAllProducts = useCallback(() => {
+    setSelectedProducts((prev) => {
+      const newSet = new Set(prev);
+      const allCurrentSelected = currentProducts.every((p) => newSet.has(p.id));
+      if (allCurrentSelected) {
+        currentProducts.forEach((p) => newSet.delete(p.id));
+      } else {
+        currentProducts.forEach((p) => newSet.add(p.id));
+      }
+      return newSet;
+    });
+  }, [currentProducts]);
 
   const getStatusColor = (status: Product["status"]) => {
     switch (status) {
@@ -466,20 +530,34 @@ const Page: React.FC = () => {
             icon={<FaBox className="w-8 h-8 text-gray-400" />}
           />
         ) : viewMode === "grid" ? (
-          <ProductGrid
-            products={sortedProducts}
-            selectedProducts={selectedProducts}
-            onToggle={toggleProductSelection}
-          />
+          <div className="bg-white/10 dark:bg-gray-900/80 backdrop-blur-sm rounded-3xl border border-gray-200/50 dark:border-gray-700/50 shadow-lg overflow-hidden">
+            <ProductGrid
+              products={currentProducts}
+              selectedProducts={selectedProducts}
+              onToggle={toggleProductSelection}
+            />
+            {sortedProducts.length > 0 && (
+              <PaginationFooter
+                currentPage={currentPage}
+                itemsPerPage={itemsPerPage}
+                total={sortedProducts.length}
+                selectedCount={selectedProducts.size}
+                onPageChange={setCurrentPage}
+              />
+            )}
+          </div>
         ) : (
           <ProductTable
-            products={sortedProducts}
+            products={currentProducts}
+            totalProducts={sortedProducts.length}
+            currentPage={currentPage}
+            itemsPerPage={itemsPerPage}
+            setCurrentPage={setCurrentPage}
             selectedProducts={selectedProducts}
             onToggle={toggleProductSelection}
             toggleAll={toggleAllProducts}
             sortConfig={sortConfig}
             onSort={handleSort}
-            allProductsLength={products.length}
             getStatusColor={getStatusColor}
             getTypeColor={getTypeColor}
           />

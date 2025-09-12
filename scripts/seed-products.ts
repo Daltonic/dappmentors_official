@@ -12,7 +12,7 @@ const DATABASE_NAME: string = "dapp_mentors_official";
 const COLLECTION_NAME: string = "products";
 const MONGODB_URI: string =
   process.env.MONGODB_URI || "mongodb://localhost:27017";
-const NUM_PRODUCTS: number = parseInt(process.env.NUM_PRODUCTS || "50", 10);
+const NUM_PRODUCTS: number = parseInt(process.env.NUM_ITEM || "50", 10);
 
 // Data pools for random generation
 const PRODUCT_TYPES: string[] = ["Course", "Bootcamp", "EBook", "Codebase"];

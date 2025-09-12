@@ -12,7 +12,7 @@ const DATABASE_NAME: string = "dapp_mentors_official";
 const COLLECTION_NAME: string = "services";
 const MONGODB_URI: string =
   process.env.MONGODB_URI || "mongodb://localhost:27017";
-const NUM_SERVICES: number = parseInt(process.env.NUM_SERVICES || "50", 10);
+const NUM_SERVICES: number = parseInt(process.env.NUM_ITEM || "50", 10);
 
 const SERVICE_TYPES: ServiceType[] = [
   "Hiring",
