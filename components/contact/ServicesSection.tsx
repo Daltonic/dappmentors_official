@@ -146,10 +146,7 @@ const ServicesSection: React.FC<ServicesSectionProps> = ({ services }) => {
                   >
                     {services.map((service, index) => (
                       <SwiperSlide key={index} className="!flex justify-center">
-                        <ServiceCard
-                          service={service}
-                          onGetQuote={() => console.log("Clicked")}
-                        />
+                        <ServiceCard service={service} />
                       </SwiperSlide>
                     ))}
                   </Swiper>
@@ -198,10 +195,7 @@ const ServicesSection: React.FC<ServicesSectionProps> = ({ services }) => {
                   >
                     {services.map((service, index) => (
                       <SwiperSlide key={index} className="!flex justify-center">
-                        <ServiceCard
-                          service={service}
-                          onGetQuote={() => console.log("Clicked")}
-                        />
+                        <ServiceCard service={service} />
                       </SwiperSlide>
                     ))}
                   </Swiper>

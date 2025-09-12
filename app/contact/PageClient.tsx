@@ -3,7 +3,7 @@
 import ContactFormSection from "@/components/contact/ContactFormSection";
 import ContactMethodsSection from "@/components/contact/ContactMethodsSection";
 import MentorshipSection from "@/components/contact/MentorshipSection";
-import ServicesSection from "@/components/contact/ServicesSection";
+// import ServicesSection from "@/components/contact/ServicesSection";
 import MarketingLayout from "@/components/layouts/MarketingLayout";
 import CTASection from "@/components/shared/CTASection";
 import FAQSection from "@/components/shared/FAQSection";
@@ -76,7 +76,7 @@ const PageClient = () => {
       <ContactMethodsSection />
       <ContactFormSection />
       <MentorshipSection />
-      <ServicesSection />
+      {/* <ServicesSection /> */}
       <FAQSection
         subtitle="Quick answers to common questions about our services and community"
         faqs={faqs}
