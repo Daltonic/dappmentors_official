@@ -83,6 +83,9 @@ export const metadata: Metadata = {
   },
 };
 
+// Force dynamic rendering to avoid static prerender errors during build
+export const dynamic = "force-dynamic";
+
 // Server component that fetches featured products
 export default async function Page() {
   const BASE_URL =

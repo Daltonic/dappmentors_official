@@ -83,6 +83,8 @@ export interface FAQs {
   answer: string;
 }
 
+export type ProductType = "Course" | "Bootcamp" | "EBook" | "Codebase";
+
 export interface ProductFeature {
   icon: string;
   title: string;
@@ -95,7 +97,7 @@ export interface Product {
   title: string;
   description: string;
   longDescription?: string;
-  type: string;
+  type: ProductType;
   price: number | string;
   status?: string;
   difficulty?: string;

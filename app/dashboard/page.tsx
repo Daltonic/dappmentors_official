@@ -20,6 +20,8 @@ import {
   FaCog,
   FaUserSlash,
   FaUserPlus,
+  FaChevronLeft,
+  FaChevronRight,
 } from "react-icons/fa";
 import { useMemo, useState, useEffect, useCallback } from "react";
 import { userApiService, apiUtils } from "@/services/api.services";
@@ -119,6 +121,49 @@ const UserGrid: React.FC<{
   </div>
 );
 
+// PaginationFooter Component
+const PaginationFooter: React.FC<{
+  currentPage: number;
+  itemsPerPage: number;
+  total: number;
+  selectedCount: number;
+  onPageChange: (page: number) => void;
+}> = ({ currentPage, itemsPerPage, total, selectedCount, onPageChange }) => {
+  const from = (currentPage - 1) * itemsPerPage + 1;
+  const to = Math.min(currentPage * itemsPerPage, total);
+  const totalPages = Math.ceil(total / itemsPerPage);
+
+  return (
+    <div className="px-6 py-4 border-t border-gray-200/50 dark:border-gray-700/50 bg-gray-50/50 dark:bg-gray-800/50">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between text-sm text-gray-600 dark:text-gray-300 gap-4 sm:gap-0">
+        <span>
+          Showing {from}-{to} of {total} users
+          {selectedCount > 0 && ` (${selectedCount} selected)`}
+        </span>
+        <div className="flex items-center gap-4">
+          <span>Rows per page: {itemsPerPage}</span>
+          <div className="flex gap-2">
+            <button
+              onClick={() => onPageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+            >
+              <FaChevronLeft className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => onPageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+            >
+              <FaChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Main Dashboard Component
 const Page: React.FC = () => {
   // Auth and data state
@@ -149,6 +194,8 @@ const Page: React.FC = () => {
     direction: "asc" | "desc";
   } | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "table">("table");
+  const [currentPage, setCurrentPage] = useState(1); // Added for pagination
+  const itemsPerPage = 6; // Added for pagination
 
   // Notification helper
   const addNotification = useCallback(
@@ -175,7 +222,6 @@ const Page: React.FC = () => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        // First, try to fetch users - if successful, user is authorized
         const res = await fetch("/api/auth/users?limit=1", {
           credentials: "include",
           method: "GET",
@@ -231,7 +277,7 @@ const Page: React.FC = () => {
       setError(null);
 
       const response = await userApiService.getUsers({
-        limit: 50, // Limit for dashboard view
+        limit: 100,
         status: statusFilter === "all" ? undefined : statusFilter,
         role: selectedRole === "all" ? undefined : selectedRole,
       });
@@ -268,11 +314,10 @@ const Page: React.FC = () => {
     } else if (authState.isAuthorized === false) {
       setDataLoading(false);
     }
-  }, [fetchUsers]);
+  }, [authState.isAuthorized, fetchUsers]); // Added authState.isAuthorized
 
   // Update users after bulk operations
   const handleUsersUpdate = useCallback((updatedUsers: User[]) => {
-    // Update the main users array with the updated users
     setUsers((prevUsers) => {
       const updatedUserMap = new Map(
         updatedUsers.map((user) => [user.id, user]),
@@ -291,7 +336,6 @@ const Page: React.FC = () => {
       );
     });
 
-    // Clear selected users after successful update
     setSelectedUsers(new Set());
   }, []);
 
@@ -306,7 +350,7 @@ const Page: React.FC = () => {
       {
         label: "Total Users",
         value: users.length.toLocaleString(),
-        change: 12.5, // You can calculate this based on historical data
+        change: 12.5,
         trend: "up" as const,
         icon: <FaUsers className="text-white" />,
         trendData: [
@@ -405,6 +449,18 @@ const Page: React.FC = () => {
     });
   }, [filteredUsers, sortConfig]);
 
+  // Paginate users
+  const currentUsers = useMemo(() => {
+    const indexOfLast = currentPage * itemsPerPage;
+    const indexOfFirst = indexOfLast - itemsPerPage;
+    return sortedUsers.slice(indexOfFirst, indexOfLast);
+  }, [sortedUsers, currentPage, itemsPerPage]);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedRole, statusFilter]);
+
   const handleSort = (key: keyof User) => {
     setSortConfig((prevConfig) => ({
       key,
@@ -428,19 +484,19 @@ const Page: React.FC = () => {
   };
 
   const toggleAllUsers = () => {
-    if (selectedUsers.size === sortedUsers.length) {
+    if (selectedUsers.size === currentUsers.length) {
       setSelectedUsers(new Set());
     } else {
       setSelectedUsers(
-        new Set(sortedUsers.map((user) => user.id).filter(Boolean) as string[]),
+        new Set(
+          currentUsers.map((user) => user.id).filter(Boolean) as string[],
+        ),
       );
     }
   };
 
-  // Legacy callback handlers for backward compatibility
   const handleBulkRoleChange = (userIds: string[], newRole: string) => {
     console.log("Legacy bulk role change callback:", { userIds, newRole });
-    // This is now handled by the API integration in Controls component
   };
 
   const handleBulkStatusChange = (
@@ -448,7 +504,6 @@ const Page: React.FC = () => {
     newStatus: User["status"],
   ) => {
     console.log("Legacy bulk status change callback:", { userIds, newStatus });
-    // This is now handled by the API integration in Controls component
   };
 
   const getRoleColor = (role: string) => {
@@ -611,22 +666,36 @@ const Page: React.FC = () => {
                     icon={<FaUserPlus className="w-8 h-8 text-gray-400" />}
                   />
                 ) : viewMode === "grid" ? (
-                  <UserGrid
-                    users={sortedUsers}
-                    selectedUsers={selectedUsers}
-                    onToggle={toggleUserSelection}
-                    getStatusColor={getStatusColor}
-                    getRoleColor={getRoleColor}
-                  />
+                  <div className="bg-white/10 dark:bg-gray-900/80 backdrop-blur-sm rounded-3xl border border-gray-200/50 dark:border-gray-700/50 shadow-lg overflow-hidden">
+                    <UserGrid
+                      users={currentUsers} // Use paginated users
+                      selectedUsers={selectedUsers}
+                      onToggle={toggleUserSelection}
+                      getStatusColor={getStatusColor}
+                      getRoleColor={getRoleColor}
+                    />
+                    {sortedUsers.length > 0 && (
+                      <PaginationFooter
+                        currentPage={currentPage}
+                        itemsPerPage={itemsPerPage}
+                        total={sortedUsers.length}
+                        selectedCount={selectedUsers.size}
+                        onPageChange={setCurrentPage}
+                      />
+                    )}
+                  </div>
                 ) : (
                   <UserTable
-                    users={sortedUsers}
+                    users={currentUsers} // Use paginated users
+                    totalUsers={sortedUsers.length}
+                    currentPage={currentPage}
+                    itemsPerPage={itemsPerPage}
+                    setCurrentPage={setCurrentPage}
                     selectedUsers={selectedUsers}
                     onToggle={toggleUserSelection}
                     toggleAll={toggleAllUsers}
                     sortConfig={sortConfig}
                     onSort={handleSort}
-                    allUsersLength={users.length}
                     getStatusColor={getStatusColor}
                     getRoleColor={getRoleColor}
                   />

@@ -6,6 +6,7 @@ import {
   ProductFeature,
   ProductModule,
   ProductTestimonial,
+  ProductType,
 } from "@/utils/interfaces";
 import { Collection, Filter, ObjectId } from "mongodb";
 import { NextRequest, NextResponse } from "next/server";
@@ -18,7 +19,6 @@ import {
   validateUpdateProductData,
 } from "@/validations/products";
 
-type ProductType = "Course" | "Bootcamp" | "eBook" | "Codebase";
 type ProductStatus = "published" | "draft" | "archived";
 type ProductDifficulty = "Beginner" | "Intermediate" | "Advanced";
 

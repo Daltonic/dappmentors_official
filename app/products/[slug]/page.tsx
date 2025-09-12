@@ -135,6 +135,9 @@ export async function generateMetadata({
   }
 }
 
+// Force dynamic rendering to avoid static prerender errors during build
+export const dynamic = "force-dynamic";
+
 // Server component for dynamic route
 export default async function Page({
   params,

@@ -13,8 +13,11 @@ import WhyChooseSection from "@/components/shared/WhyChooseSection";
 import { Service } from "@/utils/interfaces";
 import React, { useState } from "react";
 
-// Client Component for Services Page
-const PageClient = () => {
+interface PageClientProps {
+  services: Service[];
+}
+
+const PageClient = ({ services }: PageClientProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
 
@@ -22,6 +25,22 @@ const PageClient = () => {
     setSelectedService(service);
     setIsModalOpen(true);
   };
+
+  const educationServices = services.filter(
+    (service) => service.type === "Education",
+  );
+  const mentorshipServices = services.filter(
+    (service) => service.type === "Mentorship",
+  );
+  const professionalServices = services.filter(
+    (service) => service.type === "Professional",
+  );
+  const writingServices = services.filter(
+    (service) => service.type === "Writing",
+  );
+  const hiringServices = services.filter(
+    (service) => service.type === "Hiring",
+  );
 
   return (
     <MarketingLayout>
@@ -31,11 +50,26 @@ const PageClient = () => {
         highlightText="Web3 Journey"
         subtitle="From hands-on education to professional development, we provide the tools, expertise, and support to bring your Web3 vision to life."
       />
-      <EducationSection onGetQuote={handleGetQuote} />
-      <MentorshipSection onGetQuote={handleGetQuote} />
-      <ProfessionalServicesSection onGetQuote={handleGetQuote} />
-      <TechnicalWritingSection onGetQuote={handleGetQuote} />
-      <DeveloperHiringSection onGetQuote={handleGetQuote} />
+      <EducationSection
+        services={educationServices}
+        onGetQuote={handleGetQuote}
+      />
+      <MentorshipSection
+        services={mentorshipServices}
+        onGetQuote={handleGetQuote}
+      />
+      <ProfessionalServicesSection
+        services={professionalServices}
+        onGetQuote={handleGetQuote}
+      />
+      <TechnicalWritingSection
+        services={writingServices}
+        onGetQuote={handleGetQuote}
+      />
+      <DeveloperHiringSection
+        services={hiringServices}
+        onGetQuote={handleGetQuote}
+      />
       <WhyChooseSection />
       <CTASection
         title="Ready to Start Your Web3 Journey?"

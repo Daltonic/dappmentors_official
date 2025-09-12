@@ -15,6 +15,11 @@ interface PageClientProps {
 }
 
 const PageClient = ({ products }: PageClientProps) => {
+  const Courses = products.filter((product) => product.type === "Course");
+  const Bootcamps = products.filter((product) => product.type === "Bootcamp");
+  const Codebases = products.filter((product) => product.type === "Codebase");
+  const EBooks = products.filter((product) => product.type === "EBook");
+
   return (
     <MarketingLayout>
       <HeroSection
@@ -24,18 +29,10 @@ const PageClient = ({ products }: PageClientProps) => {
         subtitle="From beginner to pro — get access to the best Web3 courses, codebases, and eBooks to fast-track your success."
       />
 
-      <CoursesSection
-        products={products.filter((product) => product.type === "Course")}
-      />
-      <BootcampsSection
-        products={products.filter((product) => product.type === "Bootcamp")}
-      />
-      <CodebasesSection
-        products={products.filter((product) => product.type === "Codebase")}
-      />
-      <EBooksSection
-        products={products.filter((product) => product.type === "EBook")}
-      />
+      <CoursesSection products={Courses} />
+      <BootcampsSection products={Bootcamps} />
+      <CodebasesSection products={Codebases} />
+      <EBooksSection products={EBooks} />
       <WhyChooseSection />
 
       <CTASection

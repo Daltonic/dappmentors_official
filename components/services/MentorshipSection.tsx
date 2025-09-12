@@ -2,23 +2,25 @@
 import { Service } from "@/utils/interfaces";
 
 interface MentorshipSectionProps {
+  services: Service[];
   onGetQuote: (service: Service) => void;
 }
 
-const MentorshipSection = ({ onGetQuote }: MentorshipSectionProps) => {
-  const mentorshipService: Partial<Service> = {
-    title: "Personalized Mentorship",
-    description:
-      "Get tailored guidance from our experienced blockchain developers to accelerate your learning and project development.",
-    icon: "👨‍🏫",
-    features: [
-      "One-on-One Sessions",
-      "Custom Learning Paths",
-      "Project Support",
-    ],
-    price: "Custom",
-    type: "Mentorship",
-  };
+const MentorshipSection = ({
+  services,
+  onGetQuote,
+}: MentorshipSectionProps) => {
+  const service = services[0]; // Assuming one primary mentorship service
+
+  if (!service) {
+    return null; // Or render a fallback
+  }
+
+  const featureDescriptions = [
+    "Book private mentorship to debug code, design dApps, or navigate specific challenges in smart contract development.",
+    "Work with mentors to create a personalized roadmap for transitioning from Web2 to Web3, tailored to your goals.",
+    "Receive expert advice on building secure, scalable dApps, from ideation to deployment on various blockchains.",
+  ];
 
   return (
     <section className="py-20 bg-gradient-to-br from-gray-50 to-purple-50 dark:from-[#1A1A1A] dark:to-purple-900/10">
@@ -26,15 +28,14 @@ const MentorshipSection = ({ onGetQuote }: MentorshipSectionProps) => {
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           <div>
             <h2 className="text-4xl md:text-5xl font-cambo font-normal text-gray-900 dark:text-white mb-8">
-              Personalized Mentorship
+              {service.title}
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">
-              Get tailored guidance from our experienced blockchain developers
-              to accelerate your learning and project development.
+              {service.description}
             </p>
 
             <div className="space-y-6">
-              {mentorshipService.features?.map((feature, index) => (
+              {service.features?.map((feature, index) => (
                 <div key={index} className="flex items-start gap-4">
                   <div
                     className={`w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-xl flex items-center justify-center text-white`}
@@ -46,11 +47,7 @@ const MentorshipSection = ({ onGetQuote }: MentorshipSectionProps) => {
                       {feature}
                     </h3>
                     <p className="text-gray-600 dark:text-gray-300">
-                      {index === 0
-                        ? "Book private mentorship to debug code, design dApps, or navigate specific challenges in smart contract development."
-                        : index === 1
-                          ? "Work with mentors to create a personalized roadmap for transitioning from Web2 to Web3, tailored to your goals."
-                          : "Receive expert advice on building secure, scalable dApps, from ideation to deployment on various blockchains."}
+                      {featureDescriptions[index]}
                     </p>
                   </div>
                 </div>
@@ -110,7 +107,7 @@ const MentorshipSection = ({ onGetQuote }: MentorshipSectionProps) => {
               </div>
 
               <button
-                onClick={() => onGetQuote(mentorshipService as Service)}
+                onClick={() => onGetQuote(service)}
                 className="w-full mt-8 bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white py-4 px-6 rounded-xl font-bold text-lg hover:scale-105 transition-all duration-300"
               >
                 Get Quote

@@ -3,55 +3,11 @@ import { Service } from "@/utils/interfaces";
 import ServiceCard from "../shared/ServiceCard";
 
 interface EducationSectionProps {
+  services: Service[];
   onGetQuote: (service: Service) => void;
 }
 
-const EducationSection = ({ onGetQuote }: EducationSectionProps) => {
-  const educationServices: Partial<Service>[] = [
-    {
-      title: "Free Tutorials",
-      description:
-        "Access our YouTube channel and blog for step-by-step guides on Web3 development, covering Solidity, Rust, Next.js, and blockchains like Solana, Alephium, Sia, and ICP Bitfinity.",
-      features: [
-        "YouTube Channel",
-        "Blog Tutorials",
-        "Real-world Projects",
-        "Multiple Blockchains",
-      ],
-      icon: "📚",
-      price: "Free",
-      type: "Education",
-    },
-    {
-      title: "Dapp Mentors Academy",
-      description:
-        "Join our premium membership platform for exclusive access to in-depth courses, books, and video content. Master advanced topics like DeFi, NFTs, and decentralized storage.",
-      features: [
-        "Premium Courses",
-        "Exclusive Books",
-        "Video Content",
-        "Advanced Topics",
-      ],
-      icon: "🎓",
-      price: "Premium",
-      type: "Education",
-    },
-    {
-      title: "Live Workshops & Hackathons",
-      description:
-        "Participate in virtual workshops and hackathons to gain hands-on experience, collaborate with peers, and showcase your skills in the Web3 ecosystem.",
-      features: [
-        "Virtual Workshops",
-        "Hackathons",
-        "Peer Collaboration",
-        "Skill Showcase",
-      ],
-      icon: "⚡",
-      price: "Event-based",
-      type: "Education",
-    },
-  ];
-
+const EducationSection = ({ services, onGetQuote }: EducationSectionProps) => {
   return (
     <section className="py-20 bg-white dark:bg-[#0A0A0A]">
       <div className="max-w-7xl mx-auto px-4">
@@ -66,10 +22,10 @@ const EducationSection = ({ onGetQuote }: EducationSectionProps) => {
         </div>
 
         <div className="grid lg:grid-cols-3 gap-8">
-          {educationServices.map((service, index) => (
+          {services.map((service, index) => (
             <ServiceCard
               key={index}
-              service={service as Service}
+              service={service}
               onGetQuote={onGetQuote}
             />
           ))}

@@ -26,7 +26,11 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
             {service.icon}
           </div>
           <span className="bg-white text-[#D2145A] transition-all duration-300 hover:bg-gray-100 px-4 py-2 rounded-full text-sm font-bold">
-            {service.price}
+            {typeof service.price === "string"
+              ? /\d/.test(service.price)
+                ? service.price
+                : "$" + service.price
+              : "$" + service.price}
           </span>
         </div>
 

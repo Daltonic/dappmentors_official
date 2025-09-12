@@ -14,11 +14,11 @@ import {
 import { Product } from "@/utils/interfaces";
 import ProductCard from "@/components/dashboard/products/ProductCard";
 import ProductTable from "@/components/dashboard/products/ProductTable";
-import Controls from "@/components/dashboard/products/Controls";
 import { productApiService, apiUtils } from "@/services/api.services";
 import EmptyState from "@/components/dashboard/EmptyState";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import { toast } from "react-toastify";
+import ProductsControls from "@/components/dashboard/products/Controls";
 
 // StatsCards Component
 const StatsCards: React.FC<{ products: Product[] }> = ({ products }) => {
@@ -166,9 +166,7 @@ const Page: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   // UI state
-  const [selectedTab, setSelectedTab] = useState<"all" | Product["type"]>(
-    "all",
-  );
+  const [typeFilter, setTypeFilter] = useState<"all" | Product["type"]>("all");
   const [statusFilter, setStatusFilter] = useState<"all" | Product["status"]>(
     "all",
   );
@@ -195,11 +193,67 @@ const Page: React.FC = () => {
         pauseOnHover: true,
         draggable: true,
         theme: "colored",
-        toastId: Math.random().toString(36).substr(2, 9), // Unique ID for each toast
+        toastId: Math.random().toString(36).substr(2, 9),
       });
     },
     [],
   );
+
+  // Handle bulk status change
+  const handleBulkStatusChange = useCallback(
+    (productIds: string[], newStatus: Product["status"]) => {
+      setProducts((prevProducts) =>
+        prevProducts.map((product) =>
+          productIds.includes(product.id)
+            ? { ...product, status: newStatus }
+            : product,
+        ),
+      );
+      setSelectedProducts(new Set()); // Clear selection after action
+    },
+    [],
+  );
+
+  // Handle bulk featured change
+  const handleBulkFeaturedChange = useCallback(
+    (productIds: string[], featured: boolean) => {
+      setProducts((prevProducts) =>
+        prevProducts.map((product) =>
+          productIds.includes(product.id) ? { ...product, featured } : product,
+        ),
+      );
+      setSelectedProducts(new Set()); // Clear selection after action
+    },
+    [],
+  );
+
+  // Handle bulk delete
+  const handleBulkDelete = useCallback((productIds: string[]) => {
+    setProducts((prevProducts) =>
+      prevProducts.filter((product) => !productIds.includes(product.id)),
+    );
+    setSelectedProducts(new Set()); // Clear selection after action
+  }, []);
+
+  // Handle products update from API
+  const handleProductsUpdate = useCallback((updatedProducts: Product[]) => {
+    setProducts((prevProducts) => {
+      const updatedMap = new Map(updatedProducts.map((p) => [p.id, p]));
+      return prevProducts.map((product) =>
+        updatedMap.has(product.id)
+          ? {
+              ...updatedMap.get(product.id)!,
+              createdAt: product.createdAt
+                ? new Date(product.createdAt)
+                : new Date(),
+              updatedAt: product.updatedAt
+                ? new Date(product.updatedAt)
+                : new Date(),
+            }
+          : product,
+      );
+    });
+  }, []);
 
   // Fetch products using the API service
   const fetchProducts = useCallback(async () => {
@@ -215,7 +269,7 @@ const Page: React.FC = () => {
       const response = await productApiService.getProducts({
         limit: 100,
         status: statusFilter === "all" ? undefined : statusFilter,
-        type: selectedTab === "all" ? undefined : selectedTab,
+        type: typeFilter === "all" ? undefined : typeFilter,
       });
 
       if (apiUtils.isSuccess(response)) {
@@ -247,7 +301,7 @@ const Page: React.FC = () => {
     } finally {
       setDataLoading(false);
     }
-  }, [authState.isAuthorized, statusFilter, selectedTab, addNotification]);
+  }, [authState.isAuthorized, statusFilter, typeFilter, addNotification]);
 
   // Fetch products when auth state changes or filters change
   useEffect(() => {
@@ -351,7 +405,7 @@ const Page: React.FC = () => {
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, selectedTab, statusFilter]);
+  }, [searchTerm, typeFilter, statusFilter]);
 
   const handleSort = (key: keyof Product) => {
     setSortConfig((prevConfig) => ({
@@ -407,7 +461,7 @@ const Page: React.FC = () => {
         return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300";
       case "Bootcamp":
         return "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300";
-      case "eBook":
+      case "EBook":
         return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300";
       case "Codebase":
         return "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300";
@@ -497,16 +551,20 @@ const Page: React.FC = () => {
           buttonIcon={<FaPlus size={18} />}
         />
         <StatsCards products={products} />
-        <Controls
+        <ProductsControls
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
-          selectedTab={selectedTab}
-          setSelectedTab={setSelectedTab}
+          typeFilter={typeFilter}
+          setTypeFilter={setTypeFilter}
           statusFilter={statusFilter}
           setStatusFilter={setStatusFilter}
           viewMode={viewMode}
           setViewMode={setViewMode}
           selectedProducts={selectedProducts}
+          onBulkStatusChange={handleBulkStatusChange}
+          onBulkFeaturedChange={handleBulkFeaturedChange}
+          onBulkDelete={handleBulkDelete}
+          onProductsUpdate={handleProductsUpdate}
         />
 
         {dataLoading ? (

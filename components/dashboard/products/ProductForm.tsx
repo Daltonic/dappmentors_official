@@ -6,6 +6,7 @@ import {
   ProductFeature,
   ProductModule,
   ProductTestimonial,
+  ProductType,
 } from "@/utils/interfaces";
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
@@ -109,8 +110,6 @@ interface FormErrors {
   faqs?: string;
   submit?: string;
 }
-
-type ProductType = "Course" | "Bootcamp" | "eBook" | "Codebase";
 
 interface CategoryOptions {
   Course: string[];
@@ -227,7 +226,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
   useEffect(() => {
     if (product) {
       const productType = (
-        ["Course", "Bootcamp", "eBook", "Codebase"] as ProductType[]
+        ["Course", "Bootcamp", "EBook", "Codebase"] as ProductType[]
       ).includes(product.type as ProductType)
         ? (product.type as ProductType)
         : "Course"; // Fallback to "Course" if product.type is invalid
@@ -836,7 +835,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
         return <FiBook className="w-5 h-5" />;
       case "Bootcamp":
         return <FiUsers className="w-5 h-5" />;
-      case "eBook":
+      case "EBook":
         return <FiFileText className="w-5 h-5" />;
       case "Codebase":
         return <FiPackage className="w-5 h-5" />;
@@ -851,7 +850,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
         return "from-blue-500 to-blue-600";
       case "Bootcamp":
         return "from-purple-500 to-purple-600";
-      case "eBook":
+      case "EBook":
         return "from-green-500 to-green-600";
       case "Codebase":
         return "from-orange-500 to-orange-600";

@@ -105,7 +105,7 @@ const ProductCard = ({ product }: { product: Product }) => {
             <button className="bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg">
               {product.type === "Course" && "Enroll Now"}
               {product.type === "Bootcamp" && "Reserve Spot"}
-              {product.type === "eBook" && "Download eBook"}
+              {product.type === "EBook" && "Download eBook"}
               {!["Course", "Bootcamp", "eBook"].includes(product.type) &&
                 "Get Started"}
             </button>

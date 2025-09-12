@@ -3,7 +3,7 @@
 import { MongoClient, ObjectId } from "mongodb";
 import { fileURLToPath } from "node:url";
 import * as dotenv from "dotenv";
-import { Product } from "@/utils/interfaces";
+import { Product, ProductType } from "@/utils/interfaces";
 
 dotenv.config();
 
@@ -15,7 +15,12 @@ const MONGODB_URI: string =
 const NUM_PRODUCTS: number = parseInt(process.env.NUM_ITEM || "50", 10);
 
 // Data pools for random generation
-const PRODUCT_TYPES: string[] = ["Course", "Bootcamp", "EBook", "Codebase"];
+const PRODUCT_TYPES: ProductType[] = [
+  "Course",
+  "Bootcamp",
+  "EBook",
+  "Codebase",
+];
 
 const CATEGORIES: string[] = [
   "Blockchain",
@@ -32,7 +37,7 @@ const CATEGORIES: string[] = [
 
 const DIFFICULTIES: string[] = ["Beginner", "Intermediate", "Advanced"];
 
-const DURATIONS: Record<string, string[]> = {
+const DURATIONS: Record<ProductType, string[]> = {
   Course: ["2-4 weeks", "4-8 weeks", "8-12 weeks", "3-6 months"],
   Bootcamp: ["2-3 months", "3-6 months", "6-12 months"],
   EBook: ["Self-paced", "1-2 weeks", "2-4 weeks"],
@@ -311,13 +316,13 @@ const VALID_PEXELS_IMAGES: string[] = [
 
 // Direct playable video preview URLs from Pexels (mp4 links for embedding/preview)
 const VALID_PEXELS_VIDEOS: string[] = [
-  "https://player.vimeo.com/external/407516680.sd.mp4?s=1d3a5d3a5d3a5d3a5d3a5d3a5d3a5d3a5d3a5d3a&profile_id=165", // Placeholder; actual direct from search
-  "https://videos.pexels.com/video-files/8557642/8557642-uhd_1920_1080_30fps.mp4", // Direct mp4 for tech video
-  "https://videos.pexels.com/video-files/5835106/5835106-uhd_1920_1080_30fps.mp4", // Direct mp4
-  "https://videos.pexels.com/video-files/6153354/6153354-uhd_1920_1080_30fps.mp4", // Direct mp4
-  "https://videos.pexels.com/video-files/8728382/8728382-uhd_1920_1080_30fps.mp4", // Direct mp4
-  "https://videos.pexels.com/video-files/7947456/7947456-uhd_1920_1080_30fps.mp4", // Direct mp4
-  "https://videos.pexels.com/video-files/4819840/4819840-uhd_1920_1080_30fps.mp4", // Direct mp4
+  "https://player.vimeo.com/external/407516680.sd.mp4?s=1d3a5d3a5d3a5d3a5d3a5d3a5d3a5d3a5d3a5d3a&profile_id=165",
+  "https://videos.pexels.com/video-files/8557642/8557642-uhd_1920_1080_30fps.mp4",
+  "https://videos.pexels.com/video-files/5835106/5835106-uhd_1920_1080_30fps.mp4",
+  "https://videos.pexels.com/video-files/6153354/6153354-uhd_1920_1080_30fps.mp4",
+  "https://videos.pexels.com/video-files/8728382/8728382-uhd_1920_1080_30fps.mp4",
+  "https://videos.pexels.com/video-files/7947456/7947456-uhd_1920_1080_30fps.mp4",
+  "https://videos.pexels.com/video-files/4819840/4819840-uhd_1920_1080_30fps.mp4",
 ];
 
 // Utility functions
@@ -355,13 +360,13 @@ const generateVideoUrl = (): string => {
 };
 
 // Generate product data with fixed type
-const generateProduct = (type: string): Product => {
+const generateProduct = (type: ProductType): Product => {
   const _id: ObjectId = new ObjectId();
   const category: string = randomChoice(CATEGORIES);
   const difficulty: string = randomChoice(DIFFICULTIES);
   const instructor = randomChoice(INSTRUCTORS);
 
-  let title: string;
+  let title: ProductType;
   switch (type) {
     case "Course":
       title = randomChoice(COURSE_TITLES) + ` - ${category} Edition`;
@@ -376,7 +381,7 @@ const generateProduct = (type: string): Product => {
       title = randomChoice(CODEBASE_TITLES) + ` - ${category} Ready`;
       break;
     default:
-      title = "Untitled Product";
+      title = "Course";
   }
 
   const basePrice: number = randomInt(29, 499);
@@ -561,4 +566,6 @@ if (process.argv[1] === __filename) {
     });
 }
 
-export default { generateProduct, seedDatabase };
+// Named export to satisfy ESLint
+const seedExports = { generateProduct, seedDatabase };
+export default seedExports;

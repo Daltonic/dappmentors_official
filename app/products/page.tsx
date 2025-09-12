@@ -118,6 +118,9 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 }
 
+// Force dynamic rendering to avoid static prerender errors during build
+export const dynamic = "force-dynamic";
+
 // Server component for products page
 export default async function Page() {
   const BASE_URL =
@@ -126,13 +129,16 @@ export default async function Page() {
   console.log(`Fetching products data from ${BASE_URL}/api/products`);
 
   try {
-    const response = await fetch(`${BASE_URL}/api/products?status=published`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
+    const response = await fetch(
+      `${BASE_URL}/api/products?status=published&featured=true&limit=100`, // Increased limit
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        cache: "no-store",
       },
-      cache: "no-store",
-    });
+    );
 
     if (!response.ok) {
       console.error(`API request failed: ${response.status}`);

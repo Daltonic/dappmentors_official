@@ -1,7 +1,6 @@
-// /api/products/route.ts
 import { connectToDatabase } from "@/lib/mongodb";
 import { verifyAccessToken } from "@/lib/jwt";
-import { Product } from "@/utils/interfaces";
+import { Product, ProductType } from "@/utils/interfaces";
 import { Collection, Filter, ObjectId } from "mongodb";
 import { NextRequest, NextResponse } from "next/server";
 import { generateSlug } from "@/heplers/global";
@@ -13,7 +12,6 @@ import {
   validateProductData,
 } from "@/validations/products";
 
-type ProductType = "Course" | "Bootcamp" | "eBook" | "Codebase";
 type ProductStatus = "published" | "draft" | "archived";
 type ProductDifficulty = "Beginner" | "Intermediate" | "Advanced";
 
@@ -22,6 +20,18 @@ interface ProductDocument extends Omit<Product, "id"> {
   createdBy: string;
   slug: string;
 }
+
+// Helper function to normalize ProductType
+const normalizeProductType = (
+  type: string | undefined,
+): ProductType | undefined => {
+  if (!type) return undefined;
+  const normalizedType =
+    type.charAt(0).toUpperCase() + type.slice(1).toLowerCase();
+  return ["Course", "Bootcamp", "EBook", "Codebase"].includes(normalizedType)
+    ? (normalizedType as ProductType)
+    : undefined;
+};
 
 // GET - List all products with filtering and pagination (PUBLIC ACCESS)
 export async function GET(request: NextRequest): Promise<NextResponse> {
@@ -70,7 +80,17 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       ];
     }
 
-    if (type) filter.type = type as ProductType;
+    // Normalize type to match ProductType
+    const normalizedType = normalizeProductType(type);
+    if (normalizedType) {
+      filter.type = normalizedType;
+    } else if (type) {
+      return NextResponse.json(
+        { error: `Invalid product type: ${type}` },
+        { status: 400 },
+      );
+    }
+
     if (category) filter.category = category;
     if (featured !== null && featured !== undefined) {
       filter.featured = featured === "true";
@@ -127,7 +147,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       filters: {
         search,
         type,
-        status: payload ? status : "published", // Only show applied status filter for authenticated users
+        status: payload ? status : "published",
         category,
         featured,
       },
@@ -180,7 +200,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       "category",
       "difficulty",
       "duration",
-      "instructor.name", // Specify instructor.name as required
+      "instructor.name",
     ];
     const missingFields = requiredFields.filter((field) => {
       if (field === "instructor.name") {
@@ -196,8 +216,20 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
+    // Normalize type to match ProductType
+    const normalizedType = normalizeProductType(body.type);
+    if (!normalizedType) {
+      return NextResponse.json(
+        { error: `Invalid product type: ${body.type}` },
+        { status: 400 },
+      );
+    }
+
     // Validate data types and constraints
-    const validationErrors = validateProductData(body);
+    const validationErrors = validateProductData({
+      ...body,
+      type: normalizedType,
+    });
     if (validationErrors.length > 0) {
       return NextResponse.json(
         { error: `Validation errors: ${validationErrors.join(", ")}` },
@@ -216,8 +248,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       subtitle: body.subtitle?.trim() || "",
       description: body.description.trim(),
       longDescription: body.longDescription?.trim() || "",
-      type: body.type as ProductType,
-      price: parseFloat(String(body.price)), // Ensure price is a number
+      type: normalizedType,
+      price: parseFloat(String(body.price)),
       originalPrice: body.originalPrice
         ? parseFloat(String(body.originalPrice))
         : undefined,
@@ -226,7 +258,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       category: body.category.trim(),
       difficulty: body.difficulty as ProductDifficulty,
       duration: body.duration.trim(),
-      level: body.level || body.difficulty, // Fallback to difficulty
+      level: body.level || body.difficulty,
       language: body.language || "English",
       lastUpdated: now.toISOString(),
       instructor: {
