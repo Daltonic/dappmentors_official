@@ -1,4 +1,4 @@
-import { PostProp, Product, ProductProp, User } from "@/utils/interfaces";
+import { PostProp, Product, User } from "@/utils/interfaces";
 // @/config/dashboardConfig.ts
 import {
   FaChartPie,
@@ -7,6 +7,7 @@ import {
   FaUsers,
   FaCog,
   FaBriefcase,
+  FaDollarSign,
 } from "react-icons/fa";
 
 export const navlinks = [
@@ -16,118 +17,6 @@ export const navlinks = [
   { label: "About", link: "/about" },
   { label: "Contact", link: "/contact" },
   { label: "Blogs", link: "/blogs" },
-];
-
-export const products: ProductProp[] = [
-  {
-    title: "Solana dApp Development Bootcamp",
-    description:
-      "Build a complete crowdfunding platform in 6 weeks with hands-on instruction. Master Rust, Anchor, and React integration.",
-    type: "Bootcamp",
-    duration: "6 weeks",
-    level: "Intermediate",
-    price: "$299",
-    image: "🚀",
-    imageSrc: "/assets/images/products/solana.jpg",
-    alt: "Solana dApp Development Bootcamp",
-    gradient: "from-purple-500 to-indigo-500",
-    features: [
-      "Live Sessions",
-      "1-on-1 Mentoring",
-      "Project Portfolio",
-      "Certificate",
-    ],
-  },
-  {
-    title: "Solidity for Smart Contract Development",
-    description:
-      "Master Ethereum smart contract development with comprehensive modules covering security, testing, and deployment.",
-    type: "Course",
-    duration: "4 weeks",
-    level: "Beginner",
-    price: "$199",
-    image: "⚡",
-    imageSrc: "/assets/images/products/ethereum.jpg",
-    alt: "Solidity Smart Contract Development Course",
-    gradient: "from-yellow-500 to-orange-500",
-    features: [
-      "Self-paced",
-      "Code Examples",
-      "Assignments",
-      "Community Access",
-    ],
-  },
-  {
-    title: "Decentralized Storage Mastery",
-    description:
-      "Learn IPFS, Filecoin, and Sia integration for scalable, decentralized data storage solutions in your dApps.",
-    type: "EBook",
-    duration: "2 weeks",
-    level: "Intermediate",
-    price: "$149",
-    image: "🗄️",
-    imageSrc: "/assets/images/products/filecoin.jpg",
-    alt: "Decentralized Storage Mastery Course",
-    gradient: "from-green-500 to-emerald-500",
-    features: ["PDF Guide", "Video Tutorials", "Code Repository", "Updates"],
-  },
-  {
-    title: "DeFi Protocol Development",
-    description:
-      "Build advanced DeFi protocols with yield farming, liquidity pools, and governance mechanisms.",
-    type: "Course",
-    duration: "8 weeks",
-    level: "Advanced",
-    price: "$399",
-    image: "💰",
-    imageSrc: "/assets/images/products/defi.jpg",
-    alt: "DeFi Protocol Development Course",
-    gradient: "from-blue-500 to-cyan-500",
-    features: [
-      "Advanced Projects",
-      "Real Protocols",
-      "Gas Optimization",
-      "Security Audits",
-    ],
-  },
-  {
-    title: "NFT Marketplace Creation",
-    description:
-      "Create and deploy your own NFT marketplace with advanced features like royalties and lazy minting.",
-    type: "Course",
-    duration: "5 weeks",
-    level: "Intermediate",
-    price: "$249",
-    image: "🎨",
-    imageSrc: "/assets/images/products/nft.jpg",
-    alt: "NFT Marketplace Creation Course",
-    gradient: "from-pink-500 to-rose-500",
-    features: [
-      "Full Stack",
-      "IPFS Integration",
-      "Smart Contracts",
-      "Frontend UI",
-    ],
-  },
-  {
-    title: "Web3 Security Fundamentals",
-    description:
-      "Learn to identify and prevent common vulnerabilities in smart contracts and dApps.",
-    type: "Bootcamp",
-    duration: "3 weeks",
-    level: "Intermediate",
-    price: "$179",
-    image: "🔐",
-    imageSrc: "/assets/images/products/security.jpg",
-    alt: "Web3 Security Fundamentals Course",
-    gradient: "from-red-500 to-orange-500",
-    features: [
-      "Vulnerability Testing",
-      "Audit Tools",
-      "Best Practices",
-      "Case Studies",
-    ],
-  },
 ];
 
 export const postx: PostProp[] = [
@@ -372,6 +261,13 @@ export const dashboardPages = [
     title: "Services Management",
     icon: FaBriefcase,
     badge: "4",
+  },
+  {
+    path: "/dashboard/purchases",
+    label: "Purchases",
+    title: "Purchased Items",
+    icon: FaDollarSign,
+    badge: null,
   },
   {
     path: "/dashboard/blogs",

@@ -319,7 +319,7 @@ const SettingsPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-purple-50 dark:from-black dark:to-purple-900/20 transition-colors duration-300">
+    <div className="min-h-screen p-4 md:p-8">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-10 dark:opacity-20">
         <div

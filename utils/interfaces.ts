@@ -135,6 +135,35 @@ export interface Product {
   createdBy?: string;
 }
 
+export interface Lesson {
+  id: string;
+  title: string;
+  type: "video" | "reading" | "code" | "quiz" | "project";
+  duration: string;
+  completed: boolean;
+  locked: boolean;
+  videoUrl?: string;
+  content?: string;
+  transcript?: string;
+  description?: string;
+  resources?: Resource[];
+}
+
+export interface Resource {
+  id: string;
+  title: string;
+  type: "pdf" | "code" | "link" | "image";
+  url: string;
+  downloadable: boolean;
+}
+
+export interface ModuleWithLessons extends Omit<ProductModule, "lessons"> {
+  id: string;
+  lessons: Lesson[];
+  completed: boolean;
+  progress: number;
+}
+
 export interface DashboardStats {
   label: string;
   value: string;

@@ -296,12 +296,7 @@ export default function DashboardLayout({
           {/* Main Content Area */}
           <main className="relative z-10 px-4 lg:px-8 pb-8 w-full">
             <div className="w-full max-w-none lg:max-w-7xl mx-auto">
-              {/* Content Container with subtle background */}
-              <div className="bg-white/40 dark:bg-gray-900/40 backdrop-blur-sm rounded-2xl lg:rounded-3xl border border-gray-200/50 dark:border-gray-700/50 p-1">
-                <div className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm rounded-xl lg:rounded-[22px] border border-gray-200/30 dark:border-gray-700/30 p-4 lg:p-6 xl:p-8">
-                  {children}
-                </div>
-              </div>
+              {children}
             </div>
           </main>
 

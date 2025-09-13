@@ -538,7 +538,7 @@ const Page: React.FC = () => {
   // Show loading state while checking authentication
   if (authState.isCheckingAuth) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-purple-50 dark:from-black dark:to-purple-900/20 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
           <div className="text-lg text-gray-600 dark:text-gray-300">
@@ -552,7 +552,7 @@ const Page: React.FC = () => {
   // Show access denied without redirecting
   if (!authState.isAuthorized) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-purple-50 dark:from-black dark:to-purple-900/20 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center max-w-md mx-auto p-8">
           <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
             <FaUserSlash className="w-8 h-8 text-red-600 dark:text-red-400" />
@@ -582,7 +582,7 @@ const Page: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-purple-50 dark:from-black dark:to-purple-900/20 transition-colors duration-300">
+    <div className="min-h-screen p-4 md:p-8">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-10 dark:opacity-20">
         <div
