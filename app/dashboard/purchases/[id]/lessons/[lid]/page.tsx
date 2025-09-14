@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Lesson, Resource } from "@/utils/interfaces";
+import CustomYouTubePlayer from "@/components/dashboard/purchases/CustomYouTubePlayer";
 
 interface Note {
   id: string;
@@ -100,220 +101,6 @@ const moduleStructure: ModuleLesson[] = [
     ],
   },
 ];
-
-// VideoPlayer Component
-interface VideoPlayerProps {
-  videoUrl?: string;
-  onTimeUpdate?: (time: number) => void;
-  onProgressUpdate?: (progress: number) => void;
-}
-
-const VideoPlayer: React.FC<VideoPlayerProps> = ({
-  videoUrl,
-  onTimeUpdate,
-  onProgressUpdate,
-}) => {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [volume, setVolume] = useState(1);
-  const [playbackRate, setPlaybackRate] = useState(1);
-  const videoRef = useRef<HTMLVideoElement>(null);
-
-  const togglePlay = () => {
-    if (videoRef.current) {
-      if (isPlaying) {
-        videoRef.current.pause();
-      } else {
-        videoRef.current.play();
-      }
-      setIsPlaying(!isPlaying);
-    }
-  };
-
-  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const time = parseFloat(e.target.value);
-    setCurrentTime(time);
-    if (videoRef.current) {
-      videoRef.current.currentTime = time;
-    }
-  };
-
-  const handleTimeUpdate = () => {
-    if (videoRef.current) {
-      const time = videoRef.current.currentTime;
-      setCurrentTime(time);
-      onTimeUpdate?.(time);
-
-      const progress = (time / duration) * 100;
-      onProgressUpdate?.(progress);
-    }
-  };
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, "0")}`;
-  };
-
-  const skipTime = (seconds: number) => {
-    if (videoRef.current) {
-      const newTime = Math.max(0, Math.min(duration, currentTime + seconds));
-      videoRef.current.currentTime = newTime;
-      setCurrentTime(newTime);
-    }
-  };
-
-  return (
-    <div className="relative bg-black rounded-2xl overflow-hidden group">
-      {/* Video Element */}
-      <video
-        ref={videoRef}
-        className="w-full aspect-video"
-        onLoadedMetadata={() => {
-          if (videoRef.current) {
-            setDuration(videoRef.current.duration);
-          }
-        }}
-        onTimeUpdate={handleTimeUpdate}
-        onEnded={() => setIsPlaying(false)}
-        poster="/video-placeholder.jpg"
-      >
-        {/* In a real app, you'd have actual video sources */}
-        <source src={videoUrl} type="video/mp4" />
-        Your browser does not support the video tag.
-      </video>
-
-      {/* Placeholder for demo - shows a play button overlay */}
-      {!videoUrl && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900">
-          <div className="text-center">
-            <button
-              onClick={togglePlay}
-              className="w-20 h-20 bg-gradient-to-r from-[#D2145A] to-[#FF4081] rounded-full flex items-center justify-center text-white text-2xl mb-4 hover:scale-110 transition-transform"
-            >
-              {isPlaying ? "⏸️" : "▶️"}
-            </button>
-            <p className="text-white text-lg">Video Player</p>
-            <p className="text-gray-400 text-sm">
-              Demo Mode - Click to simulate playback
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Controls Overlay */}
-      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2 sm:p-4 md:p-6 opacity-0 group-hover:opacity-100 transition-opacity">
-        {/* Progress Bar */}
-        <div className="mb-2 sm:mb-4">
-          <input
-            type="range"
-            min="0"
-            max={duration}
-            value={currentTime}
-            onChange={handleSeek}
-            className="w-full h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer slider"
-            style={{
-              background: `linear-gradient(to right, #D2145A 0%, #D2145A ${(currentTime / duration) * 100}%, #4B5563 ${(currentTime / duration) * 100}%, #4B5563 100%)`,
-            }}
-          />
-        </div>
-
-        {/* Controls */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
-          <div className="flex flex-wrap items-center gap-2 sm:gap-4">
-            <button
-              onClick={togglePlay}
-              className="text-white hover:text-[#FF4081] transition-colors text-lg sm:text-xl"
-            >
-              {isPlaying ? "⏸️" : "▶️"}
-            </button>
-            <button
-              onClick={() => skipTime(-10)}
-              className="text-white hover:text-[#FF4081] transition-colors text-lg sm:text-xl"
-            >
-              ⏪
-            </button>
-            <button
-              onClick={() => skipTime(10)}
-              className="text-white hover:text-[#FF4081] transition-colors text-lg sm:text-xl"
-            >
-              ⏩
-            </button>
-            <div className="text-white text-xs sm:text-sm">
-              {formatTime(currentTime)} / {formatTime(duration)}
-            </div>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2 sm:gap-4 mt-2 sm:mt-0">
-            {/* Playback Speed */}
-            <select
-              value={playbackRate}
-              onChange={(e) => {
-                const rate = parseFloat(e.target.value);
-                setPlaybackRate(rate);
-                if (videoRef.current) {
-                  videoRef.current.playbackRate = rate;
-                }
-              }}
-              className="bg-black/50 text-white text-xs sm:text-sm rounded px-2 py-1 border-none outline-none"
-            >
-              <option value="0.5">0.5x</option>
-              <option value="0.75">0.75x</option>
-              <option value="1">1x</option>
-              <option value="1.25">1.25x</option>
-              <option value="1.5">1.5x</option>
-              <option value="2">2x</option>
-            </select>
-
-            {/* Volume Control */}
-            <div className="flex items-center gap-1 sm:gap-2">
-              <button
-                onClick={() => {
-                  const newVolume = volume === 0 ? 1 : 0;
-                  setVolume(newVolume);
-                  if (videoRef.current) {
-                    videoRef.current.volume = newVolume;
-                  }
-                }}
-                className="text-white hover:text-[#FF4081] transition-colors text-lg sm:text-xl"
-              >
-                {volume === 0 ? "🔇" : "🔊"}
-              </button>
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.1"
-                value={volume}
-                onChange={(e) => {
-                  const vol = parseFloat(e.target.value);
-                  setVolume(vol);
-                  if (videoRef.current) {
-                    videoRef.current.volume = vol;
-                  }
-                }}
-                className="w-16 sm:w-20 h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer"
-              />
-            </div>
-
-            {/* Fullscreen Button */}
-            <button
-              onClick={() => {
-                if (videoRef.current) {
-                  videoRef.current.requestFullscreen();
-                }
-              }}
-              className="text-white hover:text-[#FF4081] transition-colors text-lg sm:text-xl"
-            >
-              ⛶
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 // NotesComponent
 interface NotesComponentProps {
@@ -838,6 +625,7 @@ const LessonSidebar: React.FC<LessonSidebarProps> = ({
 // Main Page Component
 const Page: React.FC = () => {
   const [currentLesson, setCurrentLesson] = useState<Lesson>(sampleLesson);
+  const [lessonProgress, setLessonProgress] = useState(35);
   const [activeTab, setActiveTab] = useState<
     "overview" | "notes" | "resources" | "transcript"
   >("overview");
@@ -857,8 +645,7 @@ const Page: React.FC = () => {
       createdAt: new Date("2025-01-10"),
     },
   ]);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [lessonProgress, setLessonProgress] = useState(35);
+  const [currentTime] = useState(0);
 
   const handleAddNote = (content: string, timestamp: number) => {
     const newNote: Note = {
@@ -902,6 +689,7 @@ const Page: React.FC = () => {
 
   const markLessonComplete = () => {
     setCurrentLesson((prev) => ({ ...prev, completed: true }));
+    setLessonProgress(100); // TOBE REMOVED
     console.log(`Marked lesson ${currentLesson.id} as complete`);
   };
 
@@ -919,10 +707,10 @@ const Page: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 py-6 sm:py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           <div className="lg:col-span-2 space-y-6">
-            <VideoPlayer
-              videoUrl={currentLesson.videoUrl}
-              onTimeUpdate={setCurrentTime}
-              onProgressUpdate={setLessonProgress}
+            <CustomYouTubePlayer
+              videoUrl="https://www.youtube.com/watch?v=n5LAPG8Olyo"
+              width="100%"
+              height="400px"
             />
 
             <LessonNavigation
