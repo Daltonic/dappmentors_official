@@ -28,7 +28,7 @@ const normalizeProductType = (
   if (!type) return undefined;
   const normalizedType =
     type.charAt(0).toUpperCase() + type.slice(1).toLowerCase();
-  return ["Course", "Bootcamp", "EBook", "Codebase"].includes(normalizedType)
+  return ["Course", "Bootcamp", "Ebook", "Codebase"].includes(normalizedType)
     ? (normalizedType as ProductType)
     : undefined;
 };

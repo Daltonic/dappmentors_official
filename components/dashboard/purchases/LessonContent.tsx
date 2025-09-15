@@ -30,7 +30,7 @@ const getProductTypeConfig = (type: ProductType) => {
       contentLabel: "Sessions",
       progressLabel: "Bootcamp Progress",
     },
-    EBook: {
+    Ebook: {
       icon: "📚",
       primaryColor: "from-blue-500 to-indigo-500",
       bgColor: "from-blue-500/10 to-indigo-500/10",

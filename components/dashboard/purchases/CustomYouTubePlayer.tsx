@@ -43,6 +43,10 @@ interface OnPlaybackRateChangeEvent extends PlayerEvent {
   data: number;
 }
 
+interface OnPlaybackQualityChangeEvent extends PlayerEvent {
+  data: string;
+}
+
 interface OnErrorEvent extends PlayerEvent {
   data: number;
 }
@@ -70,6 +74,7 @@ interface PlayerOptions {
     onReady?: (event: PlayerEvent) => void;
     onStateChange?: (event: OnStateChangeEvent) => void;
     onPlaybackRateChange?: (event: OnPlaybackRateChangeEvent) => void;
+    onPlaybackQualityChange?: (event: OnPlaybackQualityChangeEvent) => void;
     onError?: (event: OnErrorEvent) => void;
   };
 }
@@ -121,7 +126,8 @@ const CustomYouTubePlayer: React.FC<CustomYouTubePlayerProps> = memo(
     const [showControls, setShowControls] = useState(false);
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [availableQualities, setAvailableQualities] = useState<string[]>([]);
-    const [currentQuality, setCurrentQuality] = useState("auto");
+    const [selectedQuality, setSelectedQuality] = useState("auto");
+    const [effectiveQuality, setEffectiveQuality] = useState("");
     const [showQualityMenu, setShowQualityMenu] = useState(false);
 
     // Refs
@@ -177,9 +183,19 @@ const CustomYouTubePlayer: React.FC<CustomYouTubePlayerProps> = memo(
         small: "240p",
         tiny: "144p",
         auto: "Auto",
+        default: "Auto",
       };
       return qualityMap[quality] || quality;
     }, []);
+
+    const getDisplayQuality = useCallback((): string => {
+      if (selectedQuality === "auto") {
+        return effectiveQuality
+          ? `Auto (${getQualityDisplayName(effectiveQuality)})`
+          : "Auto";
+      }
+      return getQualityDisplayName(selectedQuality);
+    }, [selectedQuality, effectiveQuality, getQualityDisplayName]);
 
     // Initialize YouTube player
     const initializePlayer = useCallback(async () => {
@@ -236,10 +252,10 @@ const CustomYouTubePlayer: React.FC<CustomYouTubePlayerProps> = memo(
                 setAvailableQualities(filteredQualities);
               }
 
-              // Get current quality
-              if (typeof event.target.getPlaybackQuality === "function") {
-                setCurrentQuality(event.target.getPlaybackQuality());
-              }
+              // Set default to auto
+              event.target.setPlaybackQuality("default");
+              setSelectedQuality("auto");
+              setEffectiveQuality(event.target.getPlaybackQuality());
 
               // Start time update interval
               let lastUpdateTime = 0;
@@ -289,6 +305,9 @@ const CustomYouTubePlayer: React.FC<CustomYouTubePlayerProps> = memo(
             },
             onPlaybackRateChange: (event: OnPlaybackRateChangeEvent) => {
               setPlaybackRate(event.data);
+            },
+            onPlaybackQualityChange: (event: OnPlaybackQualityChangeEvent) => {
+              setEffectiveQuality(event.data);
             },
             onError: () => {
               setError("Error loading video");
@@ -383,12 +402,11 @@ const CustomYouTubePlayer: React.FC<CustomYouTubePlayerProps> = memo(
       if (!playerRef.current) return;
 
       if (quality === "auto") {
-        // Let YouTube handle auto quality
         playerRef.current.setPlaybackQuality("default");
       } else {
         playerRef.current.setPlaybackQuality(quality);
       }
-      setCurrentQuality(quality);
+      setSelectedQuality(quality);
       setShowQualityMenu(false);
     }, []);
 
@@ -634,7 +652,7 @@ const CustomYouTubePlayer: React.FC<CustomYouTubePlayerProps> = memo(
                 >
                   <FaCog size={16} />
                   <span className="text-xs sm:text-sm">
-                    {getQualityDisplayName(currentQuality)}
+                    {getDisplayQuality()}
                   </span>
                 </button>
 
@@ -646,7 +664,7 @@ const CustomYouTubePlayer: React.FC<CustomYouTubePlayerProps> = memo(
                         key={quality}
                         onClick={() => handleQualityChange(quality)}
                         className={`w-full text-left px-3 py-2 text-xs sm:text-sm hover:bg-white/10 transition-colors ${
-                          currentQuality === quality
+                          selectedQuality === quality
                             ? "text-[#FF4081] bg-white/5"
                             : "text-white"
                         }`}

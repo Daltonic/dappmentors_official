@@ -277,7 +277,7 @@ const ProductsControls: React.FC<ProductsControlsProps> = ({
             <option value="all">All Types</option>
             <option value="Course">Course</option>
             <option value="Bootcamp">Bootcamp</option>
-            <option value="EBook">EBook</option>
+            <option value="Ebook">Ebook</option>
             <option value="Codebase">Codebase</option>
           </select>
 

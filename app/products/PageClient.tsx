@@ -18,7 +18,7 @@ const PageClient = ({ products }: PageClientProps) => {
   const Courses = products.filter((product) => product.type === "Course");
   const Bootcamps = products.filter((product) => product.type === "Bootcamp");
   const Codebases = products.filter((product) => product.type === "Codebase");
-  const EBooks = products.filter((product) => product.type === "EBook");
+  const EBooks = products.filter((product) => product.type === "Ebook");
 
   return (
     <MarketingLayout>

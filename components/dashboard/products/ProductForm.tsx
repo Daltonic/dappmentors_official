@@ -114,14 +114,14 @@ interface FormErrors {
 interface CategoryOptions {
   Course: string[];
   Bootcamp: string[];
-  eBook: string[];
+  Ebook: string[];
   Codebase: string[];
 }
 
 interface DurationSuggestions {
   Course: string[];
   Bootcamp: string[];
-  eBook: string[];
+  Ebook: string[];
   Codebase: string[];
 }
 
@@ -205,7 +205,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
       "Web3 Development",
       "Cybersecurity",
     ],
-    eBook: [
+    Ebook: [
       "Technical Guides",
       "Programming Tutorials",
       "Blockchain Basics",
@@ -218,7 +218,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
   const durationSuggestions: DurationSuggestions = {
     Course: ["4-8 weeks", "8-12 weeks", "Self-paced", "Ongoing"],
     Bootcamp: ["12-16 weeks", "8-12 weeks", "Intensive 4 weeks"],
-    eBook: ["Self-paced", "One-time"],
+    Ebook: ["Self-paced", "One-time"],
     Codebase: ["One-time", "Ongoing updates"],
   };
 
@@ -226,7 +226,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
   useEffect(() => {
     if (product) {
       const productType = (
-        ["Course", "Bootcamp", "EBook", "Codebase"] as ProductType[]
+        ["Course", "Bootcamp", "Ebook", "Codebase"] as ProductType[]
       ).includes(product.type as ProductType)
         ? (product.type as ProductType)
         : "Course"; // Fallback to "Course" if product.type is invalid
@@ -835,7 +835,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
         return <FiBook className="w-5 h-5" />;
       case "Bootcamp":
         return <FiUsers className="w-5 h-5" />;
-      case "EBook":
+      case "Ebook":
         return <FiFileText className="w-5 h-5" />;
       case "Codebase":
         return <FiPackage className="w-5 h-5" />;
@@ -850,7 +850,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
         return "from-blue-500 to-blue-600";
       case "Bootcamp":
         return "from-purple-500 to-purple-600";
-      case "EBook":
+      case "Ebook":
         return "from-green-500 to-green-600";
       case "Codebase":
         return "from-orange-500 to-orange-600";
@@ -1191,7 +1191,7 @@ const BasicInformationSection: React.FC<BasicInformationSectionProps> = ({
             Product Type *
           </label>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-            {(["Course", "Bootcamp", "eBook", "Codebase"] as ProductType[]).map(
+            {(["Course", "Bootcamp", "Ebook", "Codebase"] as ProductType[]).map(
               (type, index) => (
                 <motion.button
                   key={type}

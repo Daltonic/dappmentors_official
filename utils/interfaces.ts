@@ -83,7 +83,7 @@ export interface FAQs {
   answer: string;
 }
 
-export type ProductType = "Course" | "Bootcamp" | "EBook" | "Codebase";
+export type ProductType = "Course" | "Bootcamp" | "Ebook" | "Codebase";
 
 export interface ProductFeature {
   icon: string;
@@ -147,6 +147,7 @@ export interface Lesson {
   transcript?: string;
   description?: string;
   resources?: Resource[];
+  order?: number;
 }
 
 export interface Resource {
@@ -157,11 +158,22 @@ export interface Resource {
   downloadable: boolean;
 }
 
+export interface Note {
+  id: string;
+  timestamp: number;
+  content: string;
+  createdAt: Date;
+}
+
 export interface ModuleWithLessons extends Omit<ProductModule, "lessons"> {
   id: string;
+  title: string;
+  description: string;
+  duration: string;
   lessons: Lesson[];
   completed: boolean;
   progress: number;
+  order?: number;
 }
 
 export interface DashboardStats {

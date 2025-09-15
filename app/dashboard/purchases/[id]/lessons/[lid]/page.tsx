@@ -2,21 +2,8 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Lesson, Resource } from "@/utils/interfaces";
+import { Lesson, ModuleWithLessons, Note, Resource } from "@/utils/interfaces";
 import CustomYouTubePlayer from "@/components/dashboard/purchases/CustomYouTubePlayer";
-
-interface Note {
-  id: string;
-  timestamp: number;
-  content: string;
-  createdAt: Date;
-}
-
-interface ModuleLesson {
-  id: string;
-  title: string;
-  lessons: Lesson[];
-}
 
 // Sample data
 const sampleLesson: Lesson = {
@@ -61,10 +48,14 @@ Today, we'll cover the most common vulnerability patterns, including reentrancy 
 Let's start with the basics of what makes smart contracts vulnerable...`,
 };
 
-const moduleStructure: ModuleLesson[] = [
+const moduleStructure: ModuleWithLessons[] = [
   {
     id: "module-1",
     title: "Smart Contract Fundamentals",
+    completed: false,
+    description: "Fundamental concepts of smart contracts.",
+    progress: 0,
+    duration: "1h 30m",
     lessons: [
       {
         ...sampleLesson,
@@ -90,6 +81,10 @@ const moduleStructure: ModuleLesson[] = [
   {
     id: "module-2",
     title: "Advanced Security Patterns",
+    description: "Advanced techniques for securing smart contracts.",
+    completed: false,
+    progress: 0,
+    duration: "1h 15m",
     lessons: [
       {
         ...sampleLesson,

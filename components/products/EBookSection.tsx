@@ -78,7 +78,7 @@ const EBooksSection = ({ products }: EBooksSectionProps) => {
               )}
 
               <button className="w-full bg-white text-[#D2145A] py-3 px-6 rounded-xl font-semibold transition-all duration-300 hover:bg-gray-100 hover:scale-105">
-                Download eBook
+                Download Ebook
               </button>
             </div>
           ))}

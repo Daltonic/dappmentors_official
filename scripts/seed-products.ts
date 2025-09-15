@@ -18,7 +18,7 @@ const NUM_PRODUCTS: number = parseInt(process.env.NUM_ITEM || "50", 10);
 const PRODUCT_TYPES: ProductType[] = [
   "Course",
   "Bootcamp",
-  "EBook",
+  "Ebook",
   "Codebase",
 ];
 
@@ -40,7 +40,7 @@ const DIFFICULTIES: string[] = ["Beginner", "Intermediate", "Advanced"];
 const DURATIONS: Record<ProductType, string[]> = {
   Course: ["2-4 weeks", "4-8 weeks", "8-12 weeks", "3-6 months"],
   Bootcamp: ["2-3 months", "3-6 months", "6-12 months"],
-  EBook: ["Self-paced", "1-2 weeks", "2-4 weeks"],
+  Ebook: ["Self-paced", "1-2 weeks", "2-4 weeks"],
   Codebase: ["Instant download", "Self-paced", "Lifetime access"],
 };
 
@@ -374,7 +374,7 @@ const generateProduct = (type: ProductType): Product => {
     case "Bootcamp":
       title = randomChoice(BOOTCAMP_TITLES) + ` in ${category}`;
       break;
-    case "EBook":
+    case "Ebook":
       title = randomChoice(EBOOK_TITLES) + `: Focus on ${category}`;
       break;
     case "Codebase":

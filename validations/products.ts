@@ -35,7 +35,7 @@ export function validateProductData(data: Partial<Product>): string[] {
   }
 
   // Type validation
-  const validTypes = ["Course", "Bootcamp", "eBook", "Codebase"];
+  const validTypes = ["Course", "Bootcamp", "Ebook", "Codebase"];
   if (data.type && !validTypes.includes(data.type)) {
     errors.push("Invalid product type");
   }
@@ -300,7 +300,7 @@ function validateUpdateProductData(data: Partial<Product>): string[] {
 
   // Type validation (if provided)
   if (data.type !== undefined) {
-    const validTypes = ["Course", "Bootcamp", "eBook", "Codebase"];
+    const validTypes = ["Course", "Bootcamp", "Ebook", "Codebase"];
     if (!validTypes.includes(data.type)) {
       errors.push("Invalid product type");
     }

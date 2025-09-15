@@ -1,4 +1,4 @@
-import { PostProp, Product, User } from "@/utils/interfaces";
+import { ModuleWithLessons, PostProp, Product, User } from "@/utils/interfaces";
 // @/config/dashboardConfig.ts
 import {
   FaChartPie,
@@ -64,7 +64,7 @@ export const postx: PostProp[] = [
     gradient: "from-green-500 to-emerald-500",
     featured: true,
     relatedProduct:
-      "Decentralized Storage: Mastering IPFS, Filecoin, and Sia eBook",
+      "Decentralized Storage: Mastering IPFS, Filecoin, and Sia Ebook",
   },
   {
     title: "Building Scalable DeFi Protocols with Polygon",
@@ -424,5 +424,196 @@ export const mockUsers: User[] = [
     authMethod: "traditional",
     createdAt: new Date("2024-01-30"),
     updatedAt: new Date("2024-08-21"),
+  },
+];
+
+export const fakeModules: ModuleWithLessons[] = [
+  {
+    id: "module-1",
+    title: "Introduction to Web Development",
+    description:
+      "Learn the basics of web development, including HTML, CSS, and JavaScript.",
+    duration: "2 hours",
+    lessons: [
+      {
+        id: "lesson-1-1",
+        title: "What is Web Development?",
+        type: "video",
+        duration: "15 minutes",
+        completed: false,
+        locked: false,
+        videoUrl: "https://www.youtube.com/watch?v=0pThnRneDjw",
+        description:
+          "An introductory video on the fundamentals of web development.",
+        resources: [
+          {
+            id: "resource-1-1-1",
+            title: "Web Dev Basics PDF",
+            type: "pdf",
+            url: "https://example.com/web-dev-basics.pdf",
+            downloadable: true,
+          },
+          {
+            id: "resource-1-1-2",
+            title: "MDN Web Docs",
+            type: "link",
+            url: "https://developer.mozilla.org/en-US/",
+            downloadable: false,
+          },
+        ],
+        order: 0,
+      },
+      {
+        id: "lesson-1-2",
+        title: "Setting Up Your Environment",
+        type: "reading",
+        duration: "20 minutes",
+        completed: false,
+        locked: true,
+        content:
+          "This lesson covers how to set up a development environment, including installing VS Code, Node.js, and a browser.",
+        description: "Guide to setting up tools for web development.",
+        resources: [],
+        order: 1,
+      },
+      {
+        id: "lesson-1-3",
+        title: "Your First HTML Page",
+        type: "code",
+        duration: "30 minutes",
+        completed: false,
+        locked: false,
+        content:
+          "<!DOCTYPE html><html><head><title>My Page</title></head><body><h1>Hello, World!</h1></body></html>",
+        description: "Write your first HTML page with basic structure.",
+        resources: [
+          {
+            id: "resource-1-3-1",
+            title: "HTML Cheat Sheet",
+            type: "image",
+            url: "https://example.com/html-cheat-sheet.png",
+            downloadable: true,
+          },
+        ],
+        order: 2,
+      },
+    ],
+    completed: false,
+    progress: 0,
+    order: 0,
+  },
+  {
+    id: "module-2",
+    title: "Advanced JavaScript Concepts",
+    description:
+      "Dive into advanced JavaScript topics like closures, promises, and async/await.",
+    duration: "3 hours",
+    lessons: [
+      {
+        id: "lesson-2-1",
+        title: "Understanding Closures",
+        type: "video",
+        duration: "25 minutes",
+        completed: false,
+        locked: false,
+        videoUrl: "https://www.youtube.com/watch?v=vKJpN5FAeF4",
+        description:
+          "Learn how closures work in JavaScript with practical examples.",
+        resources: [
+          {
+            id: "resource-2-1-1",
+            title: "Closure Examples",
+            type: "code",
+            url: "https://example.com/closure-examples.js",
+            downloadable: true,
+          },
+        ],
+        order: 0,
+      },
+      {
+        id: "lesson-2-2",
+        title: "Promises and Async/Await",
+        type: "video",
+        duration: "30 minutes",
+        completed: false,
+        locked: true,
+        videoUrl: "https://www.youtube.com/watch?v=DHvZLI7Db8E",
+        description:
+          "Explore asynchronous JavaScript with promises and async/await.",
+        resources: [],
+        order: 1,
+      },
+      {
+        id: "lesson-2-3",
+        title: "JavaScript Quiz",
+        type: "quiz",
+        duration: "15 minutes",
+        completed: false,
+        locked: false,
+        description: "Test your knowledge of JavaScript concepts.",
+        resources: [
+          {
+            id: "resource-2-3-1",
+            title: "Quiz Reference Guide",
+            type: "pdf",
+            url: "https://example.com/js-quiz-guide.pdf",
+            downloadable: true,
+          },
+        ],
+        order: 2,
+      },
+    ],
+    completed: false,
+    progress: 0,
+    order: 1,
+  },
+  {
+    id: "module-3",
+    title: "Building a Project",
+    description: "Apply your skills to build a complete web application.",
+    duration: "4 hours",
+    lessons: [
+      {
+        id: "lesson-3-1",
+        title: "Project Setup",
+        type: "video",
+        duration: "20 minutes",
+        completed: false,
+        locked: false,
+        videoUrl: "https://www.youtube.com/watch?v=p0bGHP-PH5M",
+        description: "Set up a project with React and TypeScript.",
+        resources: [
+          {
+            id: "resource-3-1-1",
+            title: "React Setup Guide",
+            type: "pdf",
+            url: "https://example.com/react-setup.pdf",
+            downloadable: true,
+          },
+          {
+            id: "resource-3-1-2",
+            title: "React Documentation",
+            type: "link",
+            url: "https://react.dev/",
+            downloadable: false,
+          },
+        ],
+        order: 0,
+      },
+      {
+        id: "lesson-3-2",
+        title: "Building the UI",
+        type: "project",
+        duration: "2 hours",
+        completed: false,
+        locked: false,
+        description: "Create the user interface for your web application.",
+        resources: [],
+        order: 1,
+      },
+    ],
+    completed: false,
+    progress: 0,
+    order: 2,
   },
 ];

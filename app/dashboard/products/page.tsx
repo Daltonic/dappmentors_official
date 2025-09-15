@@ -461,7 +461,7 @@ const Page: React.FC = () => {
         return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300";
       case "Bootcamp":
         return "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300";
-      case "EBook":
+      case "Ebook":
         return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300";
       case "Codebase":
         return "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300";

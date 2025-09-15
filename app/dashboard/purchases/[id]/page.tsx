@@ -89,9 +89,9 @@ const sampleProducts: Record<ProductType, ProductInfo> = {
     completedLessons: 18,
     totalLessons: 30,
   },
-  EBook: {
+  Ebook: {
     id: "blockchain-guide",
-    type: "EBook",
+    type: "Ebook",
     title: "Blockchain Development Guide",
     subtitle: "Complete Reference Manual",
     description: "Comprehensive written content with examples",
@@ -339,7 +339,7 @@ const getSampleModules = (productType: ProductType): ModuleWithLessons[] => {
         progress: 0,
       },
     ],
-    EBook: [
+    Ebook: [
       {
         id: "chapter-1",
         title: "Chapter 1: Getting Started",
@@ -485,7 +485,7 @@ const getProductTypeConfig = (type: ProductType) => {
       contentLabel: "Sessions",
       progressLabel: "Bootcamp Progress",
     },
-    EBook: {
+    Ebook: {
       icon: "📚",
       primaryColor: "from-blue-500 to-indigo-500",
       bgColor: "from-blue-500/10 to-indigo-500/10",
@@ -651,7 +651,7 @@ const ModulesNavigation: React.FC<ModulesNavigationProps> = ({
         return "Course Modules";
       case "Bootcamp":
         return "Weekly Sessions";
-      case "EBook":
+      case "Ebook":
         return "Chapters";
       case "Codebase":
         return "Template Categories";
@@ -841,7 +841,7 @@ const Page: React.FC<PageProps> = ({ params, searchParams }) => {
   const validProductTypes: ProductType[] = [
     "Course",
     "Bootcamp",
-    "EBook",
+    "Ebook",
     "Codebase",
   ];
   const productType = validProductTypes.includes(id as ProductType)
