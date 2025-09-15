@@ -4,7 +4,6 @@ import {
   FAQs,
   Product,
   ProductFeature,
-  ProductModule,
   ProductTestimonial,
   ProductType,
 } from "@/utils/interfaces";
@@ -14,7 +13,6 @@ import { generateSlug } from "@/heplers/global";
 import {
   validateAndNormalizeFAQs,
   validateAndNormalizeFeatures,
-  validateAndNormalizeModules,
   validateAndNormalizeTestimonials,
   validateUpdateProductData,
 } from "@/validations/products";
@@ -199,13 +197,9 @@ export async function PUT(
       "tags",
       "technologies",
       "features",
-      "modules",
       "includes",
       "testimonials",
       "faqs",
-      "rating",
-      "totalReviews",
-      "studentsEnrolled",
     ];
 
     allowedFields.forEach((field) => {
@@ -229,10 +223,6 @@ export async function PUT(
           updateData[field] = value as ProductDifficulty;
         } else if (field === "featured") {
           updateData[field] = !!value;
-        } else if (field === "rating") {
-          updateData[field] = parseFloat(String(value)) || 0;
-        } else if (field === "totalReviews" || field === "studentsEnrolled") {
-          updateData[field] = parseInt(String(value)) || 0;
         } else if (["tags", "technologies", "includes"].includes(field)) {
           (updateData[field as keyof typeof updateData] as
             | string[]
@@ -242,10 +232,6 @@ export async function PUT(
         } else if (field === "features") {
           updateData[field] = validateAndNormalizeFeatures(
             value as ProductFeature[],
-          );
-        } else if (field === "modules") {
-          updateData[field] = validateAndNormalizeModules(
-            value as ProductModule[],
           );
         } else if (field === "testimonials") {
           updateData[field] = validateAndNormalizeTestimonials(

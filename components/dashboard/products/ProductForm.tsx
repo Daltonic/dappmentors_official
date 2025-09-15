@@ -4,7 +4,6 @@ import {
   FAQs,
   Product,
   ProductFeature,
-  ProductModule,
   ProductTestimonial,
   ProductType,
 } from "@/utils/interfaces";
@@ -65,7 +64,7 @@ interface FormData {
     avatar: string;
     credentials: string[];
   };
-  thumbnail: string;
+  imageUrl: string;
   videoPreviewUrl: string;
   featured: boolean;
   status: Product["status"];
@@ -76,7 +75,6 @@ interface FormData {
   totalReviews: string;
   studentsEnrolled: string;
   features: ProductFeature[];
-  modules: ProductModule[];
   testimonials: ProductTestimonial[];
   faqs: FAQs[];
 }
@@ -99,13 +97,12 @@ interface FormErrors {
     avatar?: string;
     credentials?: string;
   };
-  thumbnail?: string;
+  imageUrl?: string;
   videoPreviewUrl?: string;
   tags?: string;
   technologies?: string;
   includes?: string;
   features?: string;
-  modules?: string;
   testimonials?: string;
   faqs?: string;
   submit?: string;
@@ -155,7 +152,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
       avatar: "",
       credentials: [],
     },
-    thumbnail: "",
+    imageUrl: "",
     videoPreviewUrl: "",
     featured: false,
     status: "draft",
@@ -166,7 +163,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
     totalReviews: "0",
     studentsEnrolled: "0",
     features: [],
-    modules: [],
     testimonials: [],
     faqs: [],
   });
@@ -178,10 +174,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
   const [newFeatureIcon, setNewFeatureIcon] = useState("");
   const [newFeatureTitle, setNewFeatureTitle] = useState("");
   const [newFeatureDescription, setNewFeatureDescription] = useState("");
-  const [newModuleTitle, setNewModuleTitle] = useState("");
-  const [newModuleDescription, setNewModuleDescription] = useState("");
-  const [newModuleDuration, setNewModuleDuration] = useState("");
-  const [newModuleLessons, setNewModuleLessons] = useState("");
   const [newTestimonialName, setNewTestimonialName] = useState("");
   const [newTestimonialRole, setNewTestimonialRole] = useState("");
   const [newTestimonialComment, setNewTestimonialComment] = useState("");
@@ -250,7 +242,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
           avatar: product.instructor.avatar || "",
           credentials: product.instructor.credentials || [],
         },
-        thumbnail: product.imageUrl || "",
+        imageUrl: product.imageUrl || "",
         videoPreviewUrl: product.videoPreviewUrl || "",
         featured: product.featured || false,
         status: product.status || "draft",
@@ -261,7 +253,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
         totalReviews: (product.totalReviews || 0).toString(),
         studentsEnrolled: (product.studentsEnrolled || 0).toString(),
         features: product.features || [],
-        modules: product.modules || [],
         testimonials: product.testimonials || [],
         faqs: product.faqs || [],
       });
@@ -286,7 +277,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
           avatar: "",
           credentials: [],
         },
-        thumbnail: "",
+        imageUrl: "",
         videoPreviewUrl: "",
         featured: false,
         status: "draft",
@@ -297,7 +288,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
         totalReviews: "0",
         studentsEnrolled: "0",
         features: [],
-        modules: [],
         testimonials: [],
         faqs: [],
       });
@@ -431,9 +421,9 @@ const ProductForm: React.FC<ProductFormProps> = ({
         newErrors.tags = "Maximum 20 tags allowed";
       }
     } else if (step === 3) {
-      // Step 3: Features, Modules, Testimonials, and Media
-      if (formData.thumbnail && !isValidUrl(formData.thumbnail)) {
-        newErrors.thumbnail = "Please enter a valid URL";
+      // Step 3: Features, Testimonials, and Media
+      if (formData.imageUrl && !isValidUrl(formData.imageUrl)) {
+        newErrors.imageUrl = "Please enter a valid URL";
       }
 
       if (formData.videoPreviewUrl && !isValidUrl(formData.videoPreviewUrl)) {
@@ -446,10 +436,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
 
       if (formData.features.length > 10) {
         newErrors.features = "Maximum 10 features allowed";
-      }
-
-      if (formData.modules.length > 20) {
-        newErrors.modules = "Maximum 20 modules allowed";
       }
 
       if (formData.testimonials.length > 10) {
@@ -488,7 +474,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
       | boolean
       | string[]
       | ProductFeature[]
-      | ProductModule[]
       | ProductTestimonial[]
       | FAQs[],
   ) => {
@@ -563,41 +548,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
     setFormData((prev) => ({
       ...prev,
       features: prev.features.filter((_, i) => i !== index),
-    }));
-  };
-
-  const addModule = () => {
-    if (
-      newModuleTitle.trim() &&
-      newModuleDescription.trim() &&
-      newModuleDuration.trim() &&
-      newModuleLessons.trim() &&
-      !isNaN(parseInt(newModuleLessons)) &&
-      formData.modules.length < 20
-    ) {
-      setFormData((prev) => ({
-        ...prev,
-        modules: [
-          ...prev.modules,
-          {
-            title: newModuleTitle.trim(),
-            description: newModuleDescription.trim(),
-            duration: newModuleDuration.trim(),
-            lessons: parseInt(newModuleLessons),
-          },
-        ],
-      }));
-      setNewModuleTitle("");
-      setNewModuleDescription("");
-      setNewModuleDuration("");
-      setNewModuleLessons("");
-    }
-  };
-
-  const removeModule = (index: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      modules: prev.modules.filter((_, i) => i !== index),
     }));
   };
 
@@ -731,7 +681,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
           avatar: formData.instructor.avatar.trim(),
           credentials: formData.instructor.credentials,
         },
-        imageUrl: formData.thumbnail.trim(),
+        imageUrl: formData.imageUrl.trim(),
         videoPreviewUrl: formData.videoPreviewUrl.trim(),
         featured: formData.featured,
         status: formData.status,
@@ -748,7 +698,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
         totalReviews: parseInt(formData.totalReviews) || 0,
         studentsEnrolled: parseInt(formData.studentsEnrolled) || 0,
         features: formData.features,
-        modules: formData.modules,
         testimonials: formData.testimonials,
         faqs: formData.faqs,
       };
@@ -796,7 +745,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
               avatar: "👨‍💻",
               credentials: [],
             },
-            thumbnail: "",
+            imageUrl: "",
             videoPreviewUrl: "",
             featured: false,
             status: "draft",
@@ -807,7 +756,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
             totalReviews: "0",
             studentsEnrolled: "0",
             features: [],
-            modules: [],
             testimonials: [],
             faqs: [],
           });
@@ -983,20 +931,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
                 removeFeature={removeFeature}
                 errors={errors}
               />
-              <ModulesSection
-                formData={formData}
-                newModuleTitle={newModuleTitle}
-                setNewModuleTitle={setNewModuleTitle}
-                newModuleDescription={newModuleDescription}
-                setNewModuleDescription={setNewModuleDescription}
-                newModuleDuration={newModuleDuration}
-                setNewModuleDuration={setNewModuleDuration}
-                newModuleLessons={newModuleLessons}
-                setNewModuleLessons={setNewModuleLessons}
-                addModule={addModule}
-                removeModule={removeModule}
-                errors={errors}
-              />
               <TestimonialsSection
                 formData={formData}
                 newTestimonialName={newTestimonialName}
@@ -1115,7 +1049,6 @@ interface BasicInformationSectionProps {
       | boolean
       | string[]
       | ProductFeature[]
-      | ProductModule[]
       | ProductTestimonial[]
       | FAQs[],
   ) => void;
@@ -1241,7 +1174,6 @@ interface DescriptionSectionProps {
       | boolean
       | string[]
       | ProductFeature[]
-      | ProductModule[]
       | ProductTestimonial[]
       | FAQs[],
   ) => void;
@@ -1332,7 +1264,6 @@ interface PricingDetailsSectionProps {
       | boolean
       | string[]
       | ProductFeature[]
-      | ProductModule[]
       | ProductTestimonial[]
       | FAQs[],
   ) => void;
@@ -1489,7 +1420,6 @@ interface InstructorSectionProps {
       | boolean
       | string[]
       | ProductFeature[]
-      | ProductModule[]
       | ProductTestimonial[]
       | FAQs[],
   ) => void;
@@ -1675,7 +1605,6 @@ interface CategoryDifficultySectionProps {
       | boolean
       | string[]
       | ProductFeature[]
-      | ProductModule[]
       | ProductTestimonial[]
       | FAQs[],
   ) => void;
@@ -1769,7 +1698,6 @@ interface TechStackSectionProps {
       | boolean
       | string[]
       | ProductFeature[]
-      | ProductModule[]
       | ProductTestimonial[]
       | FAQs[],
   ) => void;
@@ -1943,138 +1871,6 @@ const FeaturesSectionForm: React.FC<FeaturesSectionFormProps> = ({
                   <button
                     type="button"
                     onClick={() => removeFeature(index)}
-                    className="p-1 text-red-500 hover:text-red-700 transition-colors"
-                  >
-                    <FiMinus className="w-4 h-4" />
-                  </button>
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-interface ModulesSectionProps {
-  formData: FormData;
-  newModuleTitle: string;
-  setNewModuleTitle: (value: string) => void;
-  newModuleDescription: string;
-  setNewModuleDescription: (value: string) => void;
-  newModuleDuration: string;
-  setNewModuleDuration: (value: string) => void;
-  newModuleLessons: string;
-  setNewModuleLessons: (value: string) => void;
-  addModule: () => void;
-  removeModule: (index: number) => void;
-  errors: FormErrors;
-}
-
-const ModulesSection: React.FC<ModulesSectionProps> = ({
-  formData,
-  newModuleTitle,
-  setNewModuleTitle,
-  newModuleDescription,
-  setNewModuleDescription,
-  newModuleDuration,
-  setNewModuleDuration,
-  newModuleLessons,
-  setNewModuleLessons,
-  addModule,
-  removeModule,
-  errors,
-}) => {
-  return (
-    <div>
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-        <FiBook className="w-5 h-5 text-[#D2145A]" />
-        Modules
-      </h3>
-
-      <div className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-          <input
-            type="text"
-            value={newModuleTitle}
-            onChange={(e) => setNewModuleTitle(e.target.value)}
-            className="px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200/50 dark:border-gray-700/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF4081]/50 focus:border-transparent transition-all duration-300"
-            placeholder="Module title"
-          />
-          <input
-            type="text"
-            value={newModuleDescription}
-            onChange={(e) => setNewModuleDescription(e.target.value)}
-            className="px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200/50 dark:border-gray-700/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF4081]/50 focus:border-transparent transition-all duration-300"
-            placeholder="Module description"
-          />
-          <input
-            type="text"
-            value={newModuleDuration}
-            onChange={(e) => setNewModuleDuration(e.target.value)}
-            className="px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200/50 dark:border-gray-700/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF4081]/50 focus:border-transparent transition-all duration-300"
-            placeholder="Duration (e.g. 2 hours)"
-          />
-          <input
-            type="number"
-            value={newModuleLessons}
-            onChange={(e) => setNewModuleLessons(e.target.value)}
-            className="px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200/50 dark:border-gray-700/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF4081]/50 focus:border-transparent transition-all duration-300"
-            placeholder="Number of lessons"
-            min="0"
-          />
-        </div>
-        <button
-          type="button"
-          onClick={addModule}
-          disabled={
-            !newModuleTitle.trim() ||
-            !newModuleDescription.trim() ||
-            !newModuleDuration.trim() ||
-            !newModuleLessons.trim() ||
-            isNaN(parseInt(newModuleLessons)) ||
-            formData.modules.length >= 20
-          }
-          className="px-4 py-3 bg-[#D2145A] text-white rounded-xl hover:bg-[#D2145A]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <FiPlus className="w-5 h-5 inline mr-2" /> Add Module
-        </button>
-        {errors.modules && (
-          <p className="text-sm text-red-600 dark:text-red-400">
-            {errors.modules}
-          </p>
-        )}
-
-        {formData.modules.length > 0 && (
-          <div className="space-y-2">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              {formData.modules.length}/20 modules
-            </p>
-            <AnimatePresence>
-              {formData.modules.map((module, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  layout
-                  className="flex items-start gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200/50 dark:border-gray-700/50"
-                >
-                  <div className="flex-1">
-                    <div className="font-medium text-gray-700 dark:text-gray-300">
-                      {module.title}
-                    </div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400">
-                      {module.description}
-                    </div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400">
-                      Duration: {module.duration} • Lessons: {module.lessons}
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => removeModule(index)}
                     className="p-1 text-red-500 hover:text-red-700 transition-colors"
                   >
                     <FiMinus className="w-4 h-4" />
@@ -2446,7 +2242,6 @@ interface MediaSettingsSectionProps {
       | boolean
       | string[]
       | ProductFeature[]
-      | ProductModule[]
       | ProductTestimonial[]
       | FAQs[],
   ) => void;
@@ -2470,24 +2265,24 @@ const MediaSettingsSection: React.FC<MediaSettingsSectionProps> = ({
       </h3>
 
       <div className="space-y-6">
-        {/* Thumbnail */}
+        {/* Image URL */}
         <div>
           <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-            Thumbnail URL
+            Image URL
           </label>
           <div className="flex gap-3">
             <input
               type="url"
-              value={formData.thumbnail}
-              onChange={(e) => handleInputChange("thumbnail", e.target.value)}
+              value={formData.imageUrl}
+              onChange={(e) => handleInputChange("imageUrl", e.target.value)}
               className={`flex-1 px-4 py-3 bg-gray-50 dark:bg-gray-800 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF4081]/50 focus:border-transparent transition-all duration-300 ${
-                errors.thumbnail
+                errors.imageUrl
                   ? "border-red-300 dark:border-red-600"
                   : "border-gray-200/50 dark:border-gray-700/50"
               }`}
               placeholder="https://example.com/image.jpg"
             />
-            {formData.thumbnail && (
+            {formData.imageUrl && (
               <button
                 type="button"
                 onClick={() => setShowImagePreview(!showImagePreview)}
@@ -2497,15 +2292,15 @@ const MediaSettingsSection: React.FC<MediaSettingsSectionProps> = ({
               </button>
             )}
           </div>
-          {errors.thumbnail && (
+          {errors.imageUrl && (
             <p className="mt-2 text-sm text-red-600 dark:text-red-400">
-              {errors.thumbnail}
+              {errors.imageUrl}
             </p>
           )}
 
           {/* Image Preview */}
           <AnimatePresence>
-            {showImagePreview && formData.thumbnail && (
+            {showImagePreview && formData.imageUrl && (
               <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -2513,8 +2308,8 @@ const MediaSettingsSection: React.FC<MediaSettingsSectionProps> = ({
                 className="mt-4"
               >
                 <Image
-                  src={formData.thumbnail}
-                  alt="Thumbnail preview"
+                  src={formData.imageUrl}
+                  alt="Image preview"
                   width={400}
                   height={160}
                   className="w-full max-w-md h-40 object-cover rounded-lg border border-gray-200 dark:border-gray-700"

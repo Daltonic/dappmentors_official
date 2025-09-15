@@ -84,7 +84,7 @@ const Page: React.FC = () => {
 
   return (
     <div className="min-h-screen p-4 md:p-8">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-7xl sm:max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
           <motion.div

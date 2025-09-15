@@ -104,8 +104,8 @@ const Page = ({ params }: { params: Promise<{ id: string }> }) => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-50 dark:from-gray-900 dark:via-[#0A0A0A] dark:to-purple-900/20 p-8">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen p-4 md:p-8">
+      <div className="max-w-7xl sm:max-w-4xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-cambo font-normal text-gray-900 dark:text-white mb-4">
             Update Product Record

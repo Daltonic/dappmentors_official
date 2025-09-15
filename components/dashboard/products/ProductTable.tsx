@@ -16,6 +16,7 @@ import {
   FaChevronRight,
 } from "react-icons/fa";
 import Link from "next/link";
+import { LuFileStack } from "react-icons/lu";
 
 // Helper function components (these can be in a separate utils file if needed)
 const SortIcon: React.FC<{
@@ -294,7 +295,21 @@ const ProductTable: React.FC<{
                 <td className="px-4 py-4">
                   <div className="flex items-center justify-end gap-1">
                     <button
-                      className="p-2 text-[#D2145A] hover:bg-[#FF4081]/10 dark:text-[#FF4081] dark:hover:bg-[#FF4081]/20 rounded-lg transition-all duration-300 hover:scale-110"
+                      className={`
+                          p-2 text-green-600 hover:bg-[#FF4081]/10 dark:text-green-300
+                          dark:hover:bg-[#FF4081]/20 rounded-lg transition-all duration-300
+                          hover:scale-110 ${product.type !== "Course" && "cursor-not-allowed"}
+                        `}
+                      title="Product Modules"
+                      onClick={() =>
+                        router.push(`/dashboard/products/${product.id}/modules`)
+                      }
+                      disabled={product.type !== "Course"}
+                    >
+                      <LuFileStack className="w-4 h-4" />
+                    </button>
+                    <button
+                      className="p-2 text-[#142dd2] hover:bg-[#FF4081]/10 dark:text-[#FF4081] dark:hover:bg-[#FF4081]/20 rounded-lg transition-all duration-300 hover:scale-110"
                       title="Edit product"
                       onClick={() =>
                         router.push(`/dashboard/products/${product.id}`)

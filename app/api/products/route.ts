@@ -13,7 +13,11 @@ import {
 } from "@/validations/products";
 
 type ProductStatus = "published" | "draft" | "archived";
-type ProductDifficulty = "Beginner" | "Intermediate" | "Advanced";
+type ProductDifficulty =
+  | "Beginner"
+  | "Intermediate"
+  | "Advanced"
+  | "All Levels";
 
 interface ProductDocument extends Omit<Product, "id"> {
   _id: ObjectId;
@@ -47,6 +51,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const type = url.searchParams.get("type") || "";
     const status = url.searchParams.get("status") || "";
     const category = url.searchParams.get("category") || "";
+    const difficulty = url.searchParams.get("difficulty") || "";
     const featured = url.searchParams.get("featured");
     const sortBy = url.searchParams.get("sortBy") || "createdAt";
     const sortOrder = url.searchParams.get("sortOrder") || "desc";
@@ -59,7 +64,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       try {
         payload = await verifyAccessToken(accessToken);
       } catch (error) {
-        // Invalid token, but we'll continue with public access
         console.warn("Invalid access token in GET request:", error);
       }
     }
@@ -92,6 +96,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
 
     if (category) filter.category = category;
+    if (difficulty) filter.difficulty = difficulty as ProductDifficulty;
     if (featured !== null && featured !== undefined) {
       filter.featured = featured === "true";
     }
@@ -149,6 +154,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         type,
         status: payload ? status : "published",
         category,
+        difficulty,
         featured,
       },
     });
@@ -244,12 +250,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const now = new Date();
     const productData: Omit<ProductDocument, "_id"> = {
       slug,
-      title: body.title.trim(),
-      subtitle: body.subtitle?.trim() || "",
-      description: body.description.trim(),
-      longDescription: body.longDescription?.trim() || "",
+      title: body.title.trim().slice(0, 100),
+      subtitle: body.subtitle?.trim().slice(0, 150) || "",
+      description: body.description.trim().slice(0, 500),
+      longDescription: body.longDescription?.trim().slice(0, 2000) || "",
       type: normalizedType,
-      price: parseFloat(String(body.price)),
+      price: parseFloat(String(body.price)) || 0,
       originalPrice: body.originalPrice
         ? parseFloat(String(body.originalPrice))
         : undefined,
@@ -257,43 +263,51 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       status: (body.status || "draft") as ProductStatus,
       category: body.category.trim(),
       difficulty: body.difficulty as ProductDifficulty,
+      level: body.level?.trim() || body.difficulty,
       duration: body.duration.trim(),
-      level: body.level || body.difficulty,
-      language: body.language || "English",
+      language: body.language?.trim() || "English",
       lastUpdated: now.toISOString(),
       instructor: {
-        name: String(body.instructor.name || "").trim(),
-        bio: body.instructor.bio ? String(body.instructor.bio).trim() : "",
+        name: String(body.instructor.name || "")
+          .trim()
+          .slice(0, 100),
+        bio: body.instructor.bio
+          ? String(body.instructor.bio).trim().slice(0, 500)
+          : "",
         avatar: body.instructor.avatar
           ? String(body.instructor.avatar).trim()
           : "",
         credentials: Array.isArray(body.instructor.credentials)
-          ? body.instructor.credentials.map((cred: string) =>
-              String(cred).trim(),
-            )
+          ? body.instructor.credentials
+              .map((cred: string) => String(cred).trim().slice(0, 100))
+              .slice(0, 10)
           : [],
       },
       createdAt: now,
       updatedAt: now,
       featured: Boolean(body.featured),
-      imageUrl: body.imageUrl?.trim() || body.thumbnail?.trim() || "",
+      imageUrl: body.imageUrl?.trim() || "",
       enrollments: 0,
       rating: parseFloat(String(body.rating)) || 0,
       totalReviews: parseInt(String(body.totalReviews)) || 0,
       studentsEnrolled: parseInt(String(body.studentsEnrolled)) || 0,
       tags: Array.isArray(body.tags)
-        ? body.tags.map((tag: string) => String(tag).trim())
+        ? body.tags.map((tag: string) => String(tag).trim()).slice(0, 20)
         : [],
       technologies: Array.isArray(body.technologies)
-        ? body.technologies.map((tech: string) => String(tech).trim())
+        ? body.technologies
+            .map((tech: string) => String(tech).trim())
+            .slice(0, 15)
         : [],
-      features: validateAndNormalizeFeatures(body.features || []),
+      features: validateAndNormalizeFeatures(body.features || []).slice(0, 10),
       modules: validateAndNormalizeModules(body.modules || []),
       includes: Array.isArray(body.includes)
-        ? body.includes.map((item: string) => String(item).trim())
+        ? body.includes.map((item: string) => String(item).trim()).slice(0, 20)
         : [],
-      testimonials: validateAndNormalizeTestimonials(body.testimonials || []),
-      faqs: validateAndNormalizeFAQs(body.faqs || []),
+      testimonials: validateAndNormalizeTestimonials(
+        body.testimonials || [],
+      ).slice(0, 10),
+      faqs: validateAndNormalizeFAQs(body.faqs || []).slice(0, 10),
       videoPreviewUrl: body.videoPreviewUrl?.trim() || "",
       createdBy: payload.userId,
     };

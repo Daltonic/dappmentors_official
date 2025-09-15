@@ -175,6 +175,14 @@ const ProductCard: React.FC<{
         <div className="flex gap-2">
           <button
             className="flex-1 bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white py-2 px-4 rounded-xl text-sm font-semibold hover:scale-105 transition-transform duration-300"
+            onClick={() =>
+              router.push(`/dashboard/products/${product.id}/modules`)
+            }
+          >
+            Modules
+          </button>
+          <button
+            className="flex-1 bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white py-2 px-4 rounded-xl text-sm font-semibold hover:scale-105 transition-transform duration-300"
             onClick={() => router.push(`/dashboard/products/${product.id}`)}
           >
             Edit
