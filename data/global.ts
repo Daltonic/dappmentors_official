@@ -222,6 +222,7 @@ export const dashboardPages = [
     title: "Dashboard Overview",
     icon: FaChartPie,
     badge: null,
+    roles: ["admin"],
   },
   {
     path: "/dashboard/products",
@@ -229,6 +230,7 @@ export const dashboardPages = [
     title: "Products Management",
     icon: FaBox,
     badge: "12",
+    roles: ["instructor", "admin"],
   },
   {
     path: "/dashboard/services",
@@ -236,6 +238,7 @@ export const dashboardPages = [
     title: "Services Management",
     icon: FaBriefcase,
     badge: "4",
+    roles: ["admin"],
   },
   {
     path: "/dashboard/purchases",
@@ -243,6 +246,7 @@ export const dashboardPages = [
     title: "Purchased Items",
     icon: FaDollarSign,
     badge: null,
+    roles: ["student", "instructor", "admin"],
   },
   {
     path: "/dashboard/blogs",
@@ -250,6 +254,7 @@ export const dashboardPages = [
     title: "Blog Posts",
     icon: FaPen,
     badge: null,
+    roles: ["admin"],
   },
   {
     path: "/dashboard/users",
@@ -257,6 +262,7 @@ export const dashboardPages = [
     title: "User Management",
     icon: FaUsers,
     badge: "24",
+    roles: ["admin"],
   },
   {
     path: "/dashboard/settings",
@@ -264,6 +270,7 @@ export const dashboardPages = [
     title: "System Settings",
     icon: FaCog,
     badge: null,
+    roles: ["student", "instructor", "admin"],
   },
 ];
 

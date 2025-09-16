@@ -29,11 +29,14 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   const [hoveredItem, setHoveredItem] = useState<number | null>(null);
   const pathname = usePathname();
 
+  // Debug user role
+  console.log("User object:", user);
+
   const fullName = user ? `${user.firstName} ${user.lastName}` : "User";
   const avatar = user?.avatar || "👨‍💻";
   const role = user?.role
     ? user.role.charAt(0).toUpperCase() + user.role.slice(1)
-    : "Administrator";
+    : "Unknown"; // Default to "Unknown" if role is undefined
 
   // Prevent body scroll when mobile sidebar is open
   useEffect(() => {
@@ -56,7 +59,12 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
         ? "Good afternoon"
         : "Good evening";
 
-  const dashboardNavLinks = dashboardPages.map((page) => ({
+  // Filter dashboard pages based on user role with fallback
+  const filteredDashboardPages = dashboardPages.filter(
+    (page) => page.roles.includes(user?.role || "user"), // Fallback to "user" if role is undefined
+  );
+
+  const dashboardNavLinks = filteredDashboardPages.map((page) => ({
     label: page.label,
     link: page.path,
     icon: <page.icon className="text-lg" />,

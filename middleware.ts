@@ -1,4 +1,6 @@
-// middleware.ts
+// data/global.ts remains the same, no changes needed
+
+// middleware.ts (Updated to redirect to first available route based on role)
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAccessToken } from "@/lib/jwt";
 import { dashboardPages } from "./data/global";
@@ -16,6 +18,25 @@ function matchesRoute(pathname: string, routes: string[]): boolean {
   });
 }
 
+// Helper function to get required roles for a pathname
+function getRequiredRoles(pathname: string): string[] | null {
+  for (const page of dashboardPages) {
+    if (
+      pathname === page.path ||
+      (page.path !== "/dashboard" && pathname.startsWith(page.path))
+    ) {
+      return page.roles;
+    }
+  }
+  return null;
+}
+
+// Helper function to get the default route for a given role
+function getDefaultRoute(role: string): string {
+  const firstPage = dashboardPages.find((page) => page.roles.includes(role));
+  return firstPage ? firstPage.path : "/auth/login"; // Fallback to login if no route available
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const url = request.nextUrl.clone();
@@ -30,40 +51,36 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Get tokens from cookies
   const accessToken = request.cookies.get("access-token")?.value;
   const refreshToken = request.cookies.get("refresh-token")?.value;
-
-  // Check if the current path is protected
   const isProtectedRoute = matchesRoute(pathname, protectedRoutes);
 
-  // If not protected, allow access
   if (!isProtectedRoute) {
     return NextResponse.next();
   }
 
-  // If no tokens and trying to access protected route, redirect to login
   if (!accessToken && !refreshToken) {
     url.pathname = "/auth/login";
     url.searchParams.set("redirectTo", pathname);
     return NextResponse.redirect(url);
   }
 
-  // If we have an access token, verify it
   if (accessToken) {
     const tokenPayload = await verifyAccessToken(accessToken);
 
     if (tokenPayload) {
-      // Token is valid
-
-      // Check if user is banned or inactive
       if (tokenPayload.status === "banned") {
         url.pathname = "/auth/account-suspended";
         return NextResponse.redirect(url);
       }
-
       if (tokenPayload.status === "inactive") {
         url.pathname = "/auth/account-inactive";
+        return NextResponse.redirect(url);
+      }
+
+      const requiredRoles = getRequiredRoles(pathname);
+      if (requiredRoles && !requiredRoles.includes(tokenPayload.role)) {
+        url.pathname = getDefaultRoute(tokenPayload.role);
         return NextResponse.redirect(url);
       }
 
@@ -71,43 +88,37 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // If access token is invalid but we have a refresh token, attempt to refresh
   if (refreshToken) {
     try {
       const refreshResponse = await fetch(
         new URL("/api/auth/refresh", request.url),
         {
           method: "POST",
-          headers: {
-            Cookie: request.headers.get("cookie") || "",
-          },
+          headers: { Cookie: request.headers.get("cookie") || "" },
         },
       );
 
       if (refreshResponse.ok) {
         const data = await refreshResponse.json();
         if (data.user) {
-          // Successfully refreshed, allow access
-          console.log("Token refreshed successfully in middleware");
+          const requiredRoles = getRequiredRoles(pathname);
+          if (requiredRoles && !requiredRoles.includes(data.user.role)) {
+            url.pathname = getDefaultRoute(data.user.role);
+            return NextResponse.redirect(url);
+          }
+          const response = NextResponse.next();
+          const setCookieHeaders = refreshResponse.headers.get("set-cookie");
+          if (setCookieHeaders) {
+            response.headers.set("set-cookie", setCookieHeaders);
+          }
+          return response;
         }
-        // Create response with new tokens
-        const response = NextResponse.next();
-
-        // Copy new cookies from refresh response
-        const setCookieHeaders = refreshResponse.headers.get("set-cookie");
-        if (setCookieHeaders) {
-          response.headers.set("set-cookie", setCookieHeaders);
-        }
-
-        return response;
       }
     } catch (error) {
       console.error("Token refresh failed in middleware:", error);
     }
   }
 
-  // If we reach here, authentication failed
-  // Clear any invalid cookies
   const loginUrl = new URL("/auth/login", request.url);
   loginUrl.searchParams.set("redirectTo", pathname);
   const response = NextResponse.redirect(loginUrl);
