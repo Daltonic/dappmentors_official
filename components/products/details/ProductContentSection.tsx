@@ -1,11 +1,11 @@
 "use client";
 
-import { ProductModule } from "@/utils/interfaces";
+import { ModuleWithLessons } from "@/utils/interfaces";
 import { useState } from "react";
 
 // Course Content/Modules Section
 interface ProductContentProps {
-  modules?: ProductModule[];
+  modules?: ModuleWithLessons[];
   includes: string[];
 }
 
@@ -58,7 +58,7 @@ const ProductContentSection: React.FC<ProductContentProps> = ({
                       {module.description}
                     </p>
                     <div className="text-sm text-[#D2145A] font-medium">
-                      {module.lessons} lessons
+                      {module.lessons.length} lessons
                     </div>
                   </div>
                 ))}
