@@ -175,32 +175,7 @@ export const sampleProduct: Product = {
       description: "Practice with live coding environments.",
     },
   ],
-  modules: [
-    {
-      title: "Introduction to Blockchain and AI",
-      duration: "2 hours",
-      lessons: 5,
-      description: "Understand the basics of blockchain and AI integration.",
-    },
-    {
-      title: "Smart Contracts with Solidity",
-      duration: "3 hours",
-      lessons: 8,
-      description: "Learn to write and deploy smart contracts on Ethereum.",
-    },
-    {
-      title: "AI Model Integration",
-      duration: "4 hours",
-      lessons: 10,
-      description: "Integrate machine learning models with blockchain.",
-    },
-    {
-      title: "Building Decentralized Applications",
-      duration: "5 hours",
-      lessons: 12,
-      description: "Develop full-stack dApps with AI capabilities.",
-    },
-  ],
+  modules: [],
   testimonials: [
     {
       name: "Michael Lee",

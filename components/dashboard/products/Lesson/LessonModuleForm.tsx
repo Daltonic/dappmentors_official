@@ -817,17 +817,6 @@ const FormActions: React.FC<FormActionsProps> = ({
   modulesLength,
 }) => (
   <div className="flex gap-3 mt-8 pt-6 border-t border-gray-200/50 dark:border-gray-700/50">
-    {onCancel && (
-      <button
-        type="button"
-        onClick={onCancel}
-        disabled={isSubmitting}
-        className="flex-1 px-6 py-3 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-xl font-semibold hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-300 disabled:opacity-50"
-      >
-        Cancel
-      </button>
-    )}
-
     <button
       type="submit"
       disabled={isSubmitting || modulesLength === 0}
@@ -847,6 +836,15 @@ const FormActions: React.FC<FormActionsProps> = ({
         )}
       </span>
       <div className="absolute inset-0 bg-white/20 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
+    </button>
+
+    <button
+      type="button"
+      onClick={onCancel}
+      disabled={isSubmitting}
+      className="flex-1 px-6 py-3 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-xl font-semibold hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-300 disabled:opacity-50"
+    >
+      Cancel
     </button>
   </div>
 );

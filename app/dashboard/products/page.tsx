@@ -130,24 +130,6 @@ const PaginationFooter: React.FC<{
   );
 };
 
-// ProductGrid Component
-const ProductGrid: React.FC<{
-  products: Product[];
-  selectedProducts: Set<string>;
-  onToggle: (id: string) => void;
-}> = ({ products, selectedProducts, onToggle }) => (
-  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 p-6">
-    {products.map((product) => (
-      <ProductCard
-        key={product.id}
-        product={product}
-        selected={selectedProducts.has(product.id)}
-        onToggle={() => onToggle(product.id)}
-      />
-    ))}
-  </div>
-);
-
 // Main Page Component
 const Page: React.FC = () => {
   // Auth and data state
@@ -470,6 +452,19 @@ const Page: React.FC = () => {
     }
   };
 
+  const getDifficultyColor = (difficulty: Product["difficulty"]) => {
+    switch (difficulty) {
+      case "Beginner":
+        return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300";
+      case "Intermediate":
+        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300";
+      case "Advanced":
+        return "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300";
+      default:
+        return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300";
+    }
+  };
+
   // Show loading state while checking authentication
   if (authState.isCheckingAuth) {
     return (
@@ -589,11 +584,19 @@ const Page: React.FC = () => {
           />
         ) : viewMode === "grid" ? (
           <div className="bg-white/10 dark:bg-gray-900/80 backdrop-blur-sm rounded-3xl border border-gray-200/50 dark:border-gray-700/50 shadow-lg overflow-hidden">
-            <ProductGrid
-              products={currentProducts}
-              selectedProducts={selectedProducts}
-              onToggle={toggleProductSelection}
-            />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 p-6">
+              {products.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  selected={selectedProducts.has(product.id)}
+                  onToggle={() => toggleProductSelection(product.id)}
+                  getStatusColor={getStatusColor}
+                  getTypeColor={getTypeColor}
+                  getDifficultyColor={getDifficultyColor}
+                />
+              ))}
+            </div>
             {sortedProducts.length > 0 && (
               <PaginationFooter
                 currentPage={currentPage}

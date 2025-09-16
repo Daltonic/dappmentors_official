@@ -1,17 +1,26 @@
-// api/products/[productId]/modules/route.ts
-
 import { connectToDatabase } from "@/lib/mongodb";
 import { verifyAccessToken } from "@/lib/jwt";
-import { Collection, Filter, ObjectId, OptionalId } from "mongodb";
+import { Collection, ObjectId } from "mongodb";
 import { NextRequest, NextResponse } from "next/server";
-import { Lesson, ModuleWithLessons } from "@/utils/interfaces";
+import { Lesson, ModuleWithLessons, Product } from "@/utils/interfaces";
 
-interface ModuleDocument extends Omit<ModuleWithLessons, "id"> {
+interface ProductDocument extends Omit<Product, "id"> {
   _id: ObjectId;
-  productId: ObjectId;
+  createdBy: string;
+  modules?: ModuleWithLessons[];
 }
 
-// GET - List all modules for a product with pagination (if needed)
+// Utility function to generate unique IDs (matching product-seeder pattern)
+const generateId = (): string => {
+  const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+  let result = "";
+  for (let i = 0; i < 9; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+};
+
+// GET - List all modules for a product with lessons
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -19,6 +28,8 @@ export async function GET(
   try {
     const resolvedParams = await params;
     const { id: productId } = resolvedParams;
+
+    console.log(`GET /api/products/${productId}/modules - Starting`);
 
     if (!ObjectId.isValid(productId)) {
       return NextResponse.json(
@@ -28,13 +39,13 @@ export async function GET(
     }
 
     const db = await connectToDatabase();
-    const modulesCollection: Collection<ModuleDocument> =
-      db.collection("modules");
-    const productsCollection: Collection = db.collection("products");
+    const productsCollection: Collection<ProductDocument> =
+      db.collection("products");
 
     const product = await productsCollection.findOne({
       _id: new ObjectId(productId),
     });
+
     if (!product) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
@@ -65,24 +76,23 @@ export async function GET(
       }
     }
 
-    const filter: Filter<ModuleDocument> = {
-      productId: new ObjectId(productId),
-    };
+    // Get modules from product and ensure they have proper structure
+    const modules = (product.modules || []) as ModuleWithLessons[];
 
-    const modules = await modulesCollection
-      .find(filter)
-      .sort({ order: 1 })
-      .toArray();
+    console.log(
+      `GET - Found ${modules.length} modules for product ${productId}`,
+    );
+    if (modules.length > 0) {
+      console.log(`GET - First module duration: "${modules[0].duration}"`);
+    }
 
-    const transformedModules = modules.map((module) => ({
-      ...module,
-      id: module._id.toString(),
-      productId: module.productId.toString(),
-      _id: undefined,
-    })) as ModuleWithLessons[];
+    // Sort modules by order
+    const sortedModules = modules.sort(
+      (a, b) => (a.order || 0) - (b.order || 0),
+    );
 
     return NextResponse.json({
-      modules: transformedModules,
+      modules: sortedModules,
     });
   } catch (error) {
     console.error("GET /api/products/[productId]/modules error:", error);
@@ -93,14 +103,19 @@ export async function GET(
   }
 }
 
-// PUT - Update multiple modules with lessons for a product
+// PUT - Update modules with lessons for a product (DEBUG VERSION)
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> {
+  const startTime = Date.now();
+
   try {
     const resolvedParams = await params;
     const { id: productId } = resolvedParams;
+
+    console.log(`\n=== PUT /api/products/${productId}/modules - Starting ===`);
+    console.log(`Request timestamp: ${new Date().toISOString()}`);
 
     if (!ObjectId.isValid(productId)) {
       return NextResponse.json(
@@ -129,182 +144,316 @@ export async function PUT(
     }
 
     const db = await connectToDatabase();
-    const modulesCollection: Collection<ModuleDocument> =
-      db.collection("modules");
-    const productsCollection: Collection = db.collection("products");
+    const productsCollection: Collection<ProductDocument> =
+      db.collection("products");
 
-    // Check product exists and permission
-    const product = await productsCollection.findOne({
+    // Get current product state BEFORE update
+    const productBefore = await productsCollection.findOne({
       _id: new ObjectId(productId),
     });
-    if (!product) {
+
+    if (!productBefore) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
 
-    if (payload.role !== "admin" && product.createdBy !== payload.userId) {
+    if (
+      payload.role !== "admin" &&
+      productBefore.createdBy !== payload.userId
+    ) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
+    console.log(
+      `Current modules count: ${(productBefore.modules || []).length}`,
+    );
+    if (productBefore.modules && productBefore.modules.length > 0) {
+      console.log(
+        `Current first module duration: "${productBefore.modules[0].duration}"`,
+      );
+    }
+
+    // Parse request body
     const body = await request.json();
-    const modules: ModuleWithLessons[] = body.modules;
+    const incomingModules: ModuleWithLessons[] = body.modules;
 
-    console.log("Incoming modules:", JSON.stringify(modules, null, 2));
+    console.log(`Incoming modules count: ${incomingModules.length}`);
+    if (incomingModules.length > 0) {
+      console.log(
+        `Incoming first module duration: "${incomingModules[0].duration}"`,
+      );
+      console.log(
+        "Incoming first module structure:",
+        JSON.stringify(
+          {
+            id: incomingModules[0].id,
+            title: incomingModules[0].title,
+            duration: incomingModules[0].duration,
+            lessonsCount: incomingModules[0].lessons?.length || 0,
+          },
+          null,
+          2,
+        ),
+      );
+    }
 
-    if (!Array.isArray(modules) || modules.length === 0) {
+    if (!Array.isArray(incomingModules)) {
       return NextResponse.json(
-        { error: "At least one module is required" },
+        { error: "Modules must be an array" },
         { status: 400 },
       );
     }
 
-    // Validate modules and lessons
-    const errors: string[] = [];
-    modules.forEach((module, index) => {
-      const requiredFields: (keyof ModuleWithLessons)[] = [
-        "title",
-        "description",
-        "duration",
-      ];
-      const missingFields = requiredFields.filter((field) => {
-        const value = module[field];
-        return typeof value !== "string" || !value.trim();
-      });
-      if (missingFields.length > 0) {
-        errors.push(
-          `Module ${index + 1}: Missing or invalid fields: ${missingFields.join(", ")}`,
-        );
-      }
+    // Allow empty modules array
+    if (incomingModules.length === 0) {
+      console.log("Clearing all modules");
 
-      if (module.lessons && Array.isArray(module.lessons)) {
-        module.lessons.forEach((lesson, lessonIndex) => {
-          const lessonRequiredFields: (keyof Lesson)[] = [
-            "title",
-            "type",
-            "duration",
-          ];
-          const missingLessonFields = lessonRequiredFields.filter((field) => {
-            const value = lesson[field];
-            return typeof value !== "string" || !value.trim();
-          });
-          if (missingLessonFields.length > 0) {
-            errors.push(
-              `Module ${index + 1}, Lesson ${lessonIndex + 1}: Missing or invalid fields: ${missingLessonFields.join(
-                ", ",
-              )}`,
-            );
-          }
-        });
+      const clearResult = await productsCollection.updateOne(
+        { _id: new ObjectId(productId) },
+        {
+          $set: {
+            modules: [],
+            updatedAt: new Date(),
+            lastUpdated: new Date().toISOString(),
+          },
+        },
+      );
+
+      console.log("Clear result:", clearResult);
+
+      return NextResponse.json(
+        {
+          message: "Modules cleared successfully",
+          modules: [],
+        },
+        { status: 200 },
+      );
+    }
+
+    // Basic validation - keep it simple
+    const errors: string[] = [];
+
+    incomingModules.forEach((module, moduleIndex) => {
+      if (!module.title || !module.title.trim()) {
+        errors.push(`Module ${moduleIndex + 1}: Title is required`);
+      }
+      if (!module.description || !module.description.trim()) {
+        errors.push(`Module ${moduleIndex + 1}: Description is required`);
+      }
+      if (!module.duration || !module.duration.trim()) {
+        errors.push(`Module ${moduleIndex + 1}: Duration is required`);
       }
     });
 
     if (errors.length > 0) {
+      console.log("Validation errors:", errors);
       return NextResponse.json(
         { error: "Validation errors", details: errors },
         { status: 400 },
       );
     }
 
-    // Prepare operations for upserting modules
-    const operations = modules.map(async (module, index) => {
-      const moduleId =
-        module.id && ObjectId.isValid(module.id)
-          ? module.id
-          : new ObjectId().toString();
+    // Process modules - preserve as much original structure as possible
+    const processedModules: ModuleWithLessons[] = incomingModules.map(
+      (module, moduleIndex) => {
+        console.log(
+          `Processing module ${moduleIndex + 1}: "${module.title}" - Duration: "${module.duration}"`,
+        );
 
-      const moduleData: OptionalId<ModuleDocument> = {
-        productId: new ObjectId(productId),
-        title: module.title.trim(),
-        description: module.description.trim(),
-        duration: module.duration.trim(),
-        lessons: module.lessons.map((lesson, lessonIndex) => ({
-          ...lesson,
-          id:
-            lesson.id && ObjectId.isValid(lesson.id)
-              ? lesson.id
-              : `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-          completed: lesson.completed || false,
-          locked: lesson.locked || false,
-          order: lessonIndex,
-          resources:
-            lesson.resources?.map((resource) => ({
-              ...resource,
-              id:
-                resource.id && ObjectId.isValid(resource.id)
-                  ? resource.id
-                  : `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-              downloadable: resource.downloadable || false,
-            })) || [],
-        })),
-        completed: module.completed || false,
-        progress: module.progress || 0,
-        order: index,
-      };
+        const moduleId = module.id || `module-${generateId()}`;
 
-      const filter: Filter<ModuleDocument> = {
-        _id: new ObjectId(moduleId),
-        productId: new ObjectId(productId),
-      };
+        // Process lessons
+        const processedLessons: Lesson[] = (module.lessons || []).map(
+          (lesson: Lesson, lessonIndex: number) => {
+            const lessonId = lesson.id || `lesson-${generateId()}`;
 
-      return modulesCollection
-        .replaceOne(filter, moduleData, { upsert: true })
-        .then((result) => ({
-          operation: result,
-          moduleId,
-        }));
+            const processedResources = (lesson.resources || []).map(
+              (resource) => ({
+                id: resource.id || `resource-${generateId()}`,
+                title: resource.title || `Resource ${lessonIndex + 1}`,
+                type: resource.type || "link",
+                url: resource.url || "",
+                downloadable: resource.downloadable ?? false,
+              }),
+            );
+
+            const processedLesson: Lesson = {
+              id: lessonId,
+              title: lesson.title || `Lesson ${lessonIndex + 1}`,
+              type: lesson.type || "reading",
+              duration: lesson.duration || "15 minutes",
+              description: lesson.description || "",
+              completed: lesson.completed ?? false,
+              locked: lesson.locked ?? lessonIndex > 0,
+              order: lessonIndex,
+              resources: processedResources,
+            };
+
+            // Add optional fields if they exist
+            if (lesson.videoUrl) processedLesson.videoUrl = lesson.videoUrl;
+            if (lesson.content) processedLesson.content = lesson.content;
+            if (lesson.transcript)
+              processedLesson.transcript = lesson.transcript;
+
+            return processedLesson;
+          },
+        );
+
+        const processedModule: ModuleWithLessons = {
+          id: moduleId,
+          title: module.title,
+          description: module.description,
+          duration: module.duration, // Keep original duration exactly as provided
+          lessons: processedLessons,
+          completed: module.completed ?? false,
+          progress: module.progress ?? 0,
+          order: moduleIndex,
+        };
+
+        // Add productId if provided
+        if (module.productId) {
+          processedModule.productId = module.productId;
+        }
+
+        console.log(
+          `Processed module ${moduleIndex + 1}: Duration="${processedModule.duration}"`,
+        );
+
+        return processedModule;
+      },
+    );
+
+    console.log("\n--- ABOUT TO UPDATE DATABASE ---");
+    console.log(`Updating ${processedModules.length} modules`);
+    console.log(
+      "First processed module:",
+      JSON.stringify(
+        {
+          id: processedModules[0]?.id,
+          title: processedModules[0]?.title,
+          duration: processedModules[0]?.duration,
+          lessonsCount: processedModules[0]?.lessons?.length || 0,
+        },
+        null,
+        2,
+      ),
+    );
+
+    // Perform the database update
+    const updateResult = await productsCollection.updateOne(
+      { _id: new ObjectId(productId) },
+      {
+        $set: {
+          modules: processedModules,
+          updatedAt: new Date(),
+          lastUpdated: new Date().toISOString(),
+        },
+      },
+    );
+
+    console.log("\n--- UPDATE RESULT ---");
+    console.log("Update result:", {
+      acknowledged: updateResult.acknowledged,
+      matchedCount: updateResult.matchedCount,
+      modifiedCount: updateResult.modifiedCount,
+      upsertedCount: updateResult.upsertedCount,
+      upsertedId: updateResult.upsertedId,
     });
 
-    // Execute all operations and collect results
-    const operationResults = await Promise.all(operations);
-
-    // Log operation results
-    operationResults.forEach((result, index) => {
-      console.log(
-        `Module ${index + 1} operation result:`,
-        JSON.stringify(result, null, 2),
+    if (updateResult.matchedCount === 0) {
+      return NextResponse.json(
+        { error: "Product not found for update" },
+        { status: 404 },
       );
-      if (result.operation.matchedCount === 0 && !result.operation.upsertedId) {
-        console.warn(`Module ${index + 1} was not updated or inserted`);
-      }
-    });
-
-    // Collect IDs of modules that were successfully updated or inserted
-    const moduleIds = operationResults
-      .filter((result) => result.moduleId)
-      .map((result) => new ObjectId(result.moduleId));
-
-    // Delete modules not included in the update
-    if (moduleIds.length > 0) {
-      const deleteResult = await modulesCollection.deleteMany({
-        productId: new ObjectId(productId),
-        _id: { $nin: moduleIds },
-      });
-      console.log(`Deleted ${deleteResult.deletedCount} outdated modules`);
     }
 
-    // Fetch updated modules
-    const updatedModules = await modulesCollection
-      .find({ productId: new ObjectId(productId) })
-      .sort({ order: 1 })
-      .toArray();
+    // CRITICAL: Verify the update by fetching the product again
+    console.log("\n--- VERIFICATION FETCH ---");
+    const verificationProduct = await productsCollection.findOne({
+      _id: new ObjectId(productId),
+    });
 
-    const transformedModules = updatedModules.map((module) => ({
-      ...module,
-      id: module._id.toString(),
-      productId: module.productId.toString(),
-      _id: undefined,
-    })) as ModuleWithLessons[];
+    if (!verificationProduct) {
+      console.error("CRITICAL: Product not found during verification!");
+      return NextResponse.json(
+        { error: "Failed to verify update" },
+        { status: 500 },
+      );
+    }
+
+    const savedModules = verificationProduct.modules || [];
+    console.log(
+      `Verification: Found ${savedModules.length} modules in database`,
+    );
+
+    if (savedModules.length > 0) {
+      console.log(
+        `Verification: First module duration="${savedModules[0].duration}"`,
+      );
+      console.log(
+        "Verification: First saved module structure:",
+        JSON.stringify(
+          {
+            id: savedModules[0].id,
+            title: savedModules[0].title,
+            duration: savedModules[0].duration,
+            lessonsCount: savedModules[0].lessons?.length || 0,
+          },
+          null,
+          2,
+        ),
+      );
+    }
+
+    // Check if the data actually matches what we tried to save
+    if (processedModules.length > 0 && savedModules.length > 0) {
+      const originalDuration = processedModules[0].duration;
+      const savedDuration = savedModules[0].duration;
+
+      if (originalDuration !== savedDuration) {
+        console.error("CRITICAL: Duration mismatch detected!");
+        console.error(
+          `Expected: "${originalDuration}", Got: "${savedDuration}"`,
+        );
+
+        return NextResponse.json(
+          {
+            error:
+              "Data consistency error - update may not have persisted correctly",
+            details: {
+              expected: originalDuration,
+              actual: savedDuration,
+            },
+          },
+          { status: 500 },
+        );
+      }
+    }
+
+    const endTime = Date.now();
+    console.log(
+      `\n=== PUT OPERATION COMPLETED in ${endTime - startTime}ms ===`,
+    );
+    console.log(`Successfully updated product ${productId}`);
+
+    // Return the verified modules from database
+    const sortedModules = savedModules.sort(
+      (a, b) => (a.order || 0) - (b.order || 0),
+    );
 
     return NextResponse.json(
       {
         message: "Modules updated successfully",
-        modules: transformedModules,
+        modules: sortedModules,
       },
       { status: 200 },
     );
   } catch (error) {
     console.error("PUT /api/products/[productId]/modules error:", error);
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      {
+        error: "Internal Server Error",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
       { status: 500 },
     );
   }

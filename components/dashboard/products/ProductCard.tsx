@@ -1,23 +1,38 @@
 "use client";
 
 import { Product } from "@/utils/interfaces";
-import { useDelete } from "@/contexts/DeleteContext"; // Import the useDelete hook
+import { useDelete } from "@/contexts/DeleteContext";
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { useRouter } from "next/navigation"; // Import useRouter for navigation
-import { FaEye, FaTrash, FaStar } from "react-icons/fa";
+import { useRouter } from "next/navigation";
+import { FaStar, FaEllipsisV } from "react-icons/fa";
 import Link from "next/link";
+import { useState, useRef, useEffect } from "react";
 
 const ProductCard: React.FC<{
   product: Product;
   selected: boolean;
   onToggle: () => void;
-  onDelete?: (productId: string) => void; // Optional callback to refresh parent component
-}> = ({ product, selected, onToggle, onDelete }) => {
-  const router = useRouter(); // Initialize useRouter
-  const { showDeleteModal } = useDelete(); // Use the delete context
+  onDelete?: (productId: string) => void;
+  getStatusColor: (status: Product["status"]) => string;
+  getTypeColor: (type: Product["type"]) => string;
+  getDifficultyColor: (type: Product["difficulty"]) => string;
+}> = ({
+  product,
+  selected,
+  onToggle,
+  onDelete,
+  getStatusColor,
+  getTypeColor,
+  getDifficultyColor,
+}) => {
+  const router = useRouter();
+  const { showDeleteModal } = useDelete();
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const toggleButtonRef = useRef<HTMLButtonElement>(null);
 
-  // Handle delete action by triggering the context modal
+  // Handle delete action
   const handleDelete = () => {
     showDeleteModal({
       apiUrl: `/api/products/${product.id}`,
@@ -25,48 +40,24 @@ const ProductCard: React.FC<{
       onSuccess: () => onDelete?.(product.id),
       entity: "product",
     });
+    setIsDropdownOpen(false);
   };
 
-  const getStatusColor = (status: Product["status"]) => {
-    switch (status) {
-      case "published":
-        return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300";
-      case "draft":
-        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300";
-      case "archived":
-        return "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300";
-      default:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300";
-    }
-  };
-
-  const getTypeColor = (type: Product["type"]) => {
-    switch (type) {
-      case "Course":
-        return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300";
-      case "Bootcamp":
-        return "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300";
-      case "Ebook":
-        return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300";
-      case "Codebase":
-        return "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300";
-      default:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300";
-    }
-  };
-
-  const getDifficultyColor = (difficulty: Product["difficulty"]) => {
-    switch (difficulty) {
-      case "Beginner":
-        return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300";
-      case "Intermediate":
-        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300";
-      case "Advanced":
-        return "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300";
-      default:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300";
-    }
-  };
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node) &&
+        toggleButtonRef.current &&
+        !toggleButtonRef.current.contains(event.target as Node)
+      ) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
     <motion.div
@@ -94,7 +85,7 @@ const ProductCard: React.FC<{
             className="w-4 h-4 text-[#D2145A] bg-white/90 border-gray-300 rounded focus:ring-[#D2145A] focus:ring-2"
           />
         </div>
-        <div className="absolute top-4 right-4 flex gap-2">
+        <div className="absolute top-4 right-4 flex gap-2 items-center">
           {product.featured && (
             <span className="bg-yellow-100 text-yellow-800 text-xs font-semibold px-2 py-1 rounded-full">
               Featured
@@ -105,8 +96,61 @@ const ProductCard: React.FC<{
           >
             {product.status}
           </span>
+          {/* Dropdown Toggle Button */}
+          <button
+            ref={toggleButtonRef}
+            className="p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800 rounded-full transition-colors"
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+          >
+            <FaEllipsisV className="w-5 h-5" />
+          </button>
         </div>
       </div>
+      {/* Dropdown Menu */}
+      {isDropdownOpen && (
+        <motion.div
+          ref={dropdownRef}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 10 }}
+          className="absolute top-14 right-4 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 overflow-hidden min-w-[200px] z-50"
+        >
+          <div className="flex flex-col gap-1 p-2">
+            <button
+              className="w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-left"
+              onClick={() => {
+                router.push(`/dashboard/products/${product.id}/modules`);
+                setIsDropdownOpen(false);
+              }}
+            >
+              Modules
+            </button>
+            <button
+              className="w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-left"
+              onClick={() => {
+                router.push(`/dashboard/products/${product.id}`);
+                setIsDropdownOpen(false);
+              }}
+            >
+              Edit
+            </button>
+            <Link
+              href={`/products/${product.slug}`}
+              target="_blank"
+              className="w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-left"
+              onClick={() => setIsDropdownOpen(false)}
+            >
+              View
+            </Link>
+            <button
+              className="w-full px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors text-left"
+              onClick={handleDelete}
+            >
+              Delete
+            </button>
+          </div>
+        </motion.div>
+      )}
 
       <div className="p-6 relative z-10">
         {/* Type and Price */}
@@ -169,37 +213,6 @@ const ProductCard: React.FC<{
               </span>
             </div>
           </div>
-        </div>
-
-        {/* Actions */}
-        <div className="flex gap-2">
-          <button
-            className="flex-1 bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white py-2 px-4 rounded-xl text-sm font-semibold hover:scale-105 transition-transform duration-300"
-            onClick={() =>
-              router.push(`/dashboard/products/${product.id}/modules`)
-            }
-          >
-            Modules
-          </button>
-          <button
-            className="flex-1 bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white py-2 px-4 rounded-xl text-sm font-semibold hover:scale-105 transition-transform duration-300"
-            onClick={() => router.push(`/dashboard/products/${product.id}`)}
-          >
-            Edit
-          </button>
-          <Link
-            href={`/products/${product.slug}`}
-            target="_blank"
-            className="p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800 rounded-xl transition-colors"
-          >
-            <FaEye className="w-5 h-5" />
-          </Link>
-          <button
-            className="p-2 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/30 rounded-xl transition-colors"
-            onClick={handleDelete}
-          >
-            <FaTrash className="w-5 h-5" />
-          </button>
         </div>
       </div>
     </motion.div>

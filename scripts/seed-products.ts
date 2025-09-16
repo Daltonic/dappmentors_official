@@ -3,13 +3,23 @@
 import { MongoClient, ObjectId } from "mongodb";
 import { fileURLToPath } from "node:url";
 import * as dotenv from "dotenv";
-import { Product, ProductType } from "@/utils/interfaces";
+import {
+  FAQs,
+  Lesson,
+  ModuleWithLessons,
+  Product,
+  ProductFeature,
+  ProductTestimonial,
+  ProductType,
+  Resource,
+} from "@/utils/interfaces";
 
 dotenv.config();
 
 // Configuration
 const DATABASE_NAME: string = "dapp_mentors_official";
-const COLLECTION_NAME: string = "products";
+const PRODUCTS_COLLECTION_NAME: string = "products";
+const MODULES_COLLECTION_NAME: string = "modules";
 const MONGODB_URI: string =
   process.env.MONGODB_URI || "mongodb://localhost:27017";
 const NUM_PRODUCTS: number = parseInt(process.env.NUM_ITEM || "50", 10);
@@ -21,7 +31,6 @@ const PRODUCT_TYPES: ProductType[] = [
   "Ebook",
   "Codebase",
 ];
-
 const CATEGORIES: string[] = [
   "Blockchain",
   "Web3",
@@ -34,9 +43,13 @@ const CATEGORIES: string[] = [
   "DAOs",
   "Layer 2",
 ];
-
-const DIFFICULTIES: string[] = ["Beginner", "Intermediate", "Advanced"];
-
+const DIFFICULTIES: string[] = [
+  "Beginner",
+  "Intermediate",
+  "Advanced",
+  "All Levels",
+];
+const STATUSES: string[] = ["published", "draft", "archived"];
 const DURATIONS: Record<ProductType, string[]> = {
   Course: ["2-4 weeks", "4-8 weeks", "8-12 weeks", "3-6 months"],
   Bootcamp: ["2-3 months", "3-6 months", "6-12 months"],
@@ -101,26 +114,6 @@ const INSTRUCTORS = [
       "Y Combinator Alumni",
     ],
   },
-  {
-    name: "Alex Thompson",
-    bio: "Former Google engineer turned Web3 developer and instructor.",
-    avatar: "👨‍🔬",
-    credentials: [
-      "Ex-Google Engineer",
-      "Full-Stack Web3 Developer",
-      "Technical Writer",
-    ],
-  },
-  {
-    name: "Dr. Priya Sharma",
-    bio: "Cryptocurrency researcher and DeFi protocol architect.",
-    avatar: "👩‍🔬",
-    credentials: [
-      "PhD in Cryptography",
-      "DeFi Protocol Architect",
-      "Research Scientist",
-    ],
-  },
 ];
 
 const COURSE_TITLES: string[] = [
@@ -134,47 +127,9 @@ const COURSE_TITLES: string[] = [
   "Cross-Chain Bridge Development",
   "Layer 2 Scaling Solutions",
   "Decentralized Identity Systems",
-  "Yield Farming Strategies",
-  "Flash Loan Development",
-  "MEV and Arbitrage Trading",
-  "Tokenomics Design",
-  "Blockchain Data Analytics",
 ];
 
-const BOOTCAMP_TITLES: string[] = [
-  "Full-Stack Web3 Developer Bootcamp",
-  "DeFi Developer Intensive",
-  "Blockchain Security Expert Program",
-  "NFT Creator Bootcamp",
-  "Smart Contract Auditor Training",
-  "Web3 Product Manager Program",
-  "Cryptocurrency Trading Bootcamp",
-];
-
-const EBOOK_TITLES: string[] = [
-  "The Complete Guide to DeFi",
-  "Smart Contract Best Practices",
-  "Web3 Security Handbook",
-  "NFT Creator's Manual",
-  "Blockchain Developer's Toolkit",
-  "DeFi Yield Farming Guide",
-  "DAO Governance Strategies",
-];
-
-const CODEBASE_TITLES: string[] = [
-  "ERC20 Token Implementation",
-  "NFT Collection Smart Contracts",
-  "DeFi Lending Protocol Codebase",
-  "DAO Voting and Governance System",
-  "Cross-Chain Bridge Framework",
-  "Yield Farming Smart Contracts",
-  "Flash Loan Arbitrage Bot",
-  "Tokenomics and Vesting Contracts",
-  "Layer 2 Rollup Integration",
-  "Decentralized Identity Solution",
-];
-
-const FEATURES_POOL = [
+const FEATURES_POOL: ProductFeature[] = [
   {
     icon: "📚",
     title: "Hands-On Projects",
@@ -205,260 +160,486 @@ const FEATURES_POOL = [
     title: "Community Access",
     description: "Join our exclusive developer community.",
   },
-  {
-    icon: "🔄",
-    title: "Regular Updates",
-    description: "Content updated with latest trends.",
-  },
-  {
-    icon: "📱",
-    title: "Mobile Friendly",
-    description: "Learn on any device, anywhere.",
-  },
-  {
-    icon: "🎯",
-    title: "Project Portfolio",
-    description: "Build a portfolio of real projects.",
-  },
-  {
-    icon: "⚡",
-    title: "Quick Start",
-    description: "Get up and running in minutes.",
-  },
 ];
 
-const TESTIMONIALS_POOL = [
+const TESTIMONIALS_POOL: ProductTestimonial[] = [
   {
     name: "Michael Lee",
     role: "Software Engineer",
     rating: 5,
-    comment: "This course transformed my career! Highly recommended.",
+    comment:
+      "This course transformed my career! The practical approach and real-world projects helped me land a Web3 developer position.",
     avatar: "👨‍💻",
   },
   {
     name: "Sarah Johnson",
     role: "Data Scientist",
     rating: 4,
-    comment: "Great content, practical examples, well-structured.",
+    comment:
+      "Great content with practical examples. The instructor explains complex concepts in an easy-to-understand manner.",
     avatar: "👩‍💻",
-  },
-  {
-    name: "David Kim",
-    role: "Product Manager",
-    rating: 5,
-    comment: "Perfect introduction to Web3. Clear explanations.",
-    avatar: "👨‍💼",
   },
   {
     name: "Lisa Wang",
     role: "Frontend Developer",
     rating: 4,
-    comment: "Learned so much about blockchain development.",
+    comment:
+      "Learned so much about blockchain development. The hands-on projects were particularly valuable.",
     avatar: "👩‍💼",
-  },
-  {
-    name: "James Wilson",
-    role: "Blockchain Developer",
-    rating: 5,
-    comment: "Exactly what I needed to level up my skills.",
-    avatar: "👨‍💻",
-  },
-  {
-    name: "Emma Brown",
-    role: "Smart Contract Auditor",
-    rating: 5,
-    comment: "Comprehensive coverage of security best practices.",
-    avatar: "👩‍🔬",
   },
 ];
 
-const FAQS_POOL = [
+const FAQS_POOL: FAQs[] = [
   {
     question: "Do I need prior blockchain experience?",
     answer:
-      "Basic programming knowledge is recommended, but we cover fundamentals.",
+      "Basic programming knowledge is recommended, but no prior blockchain experience is required. We start with fundamentals.",
   },
   {
-    question: "What tools will I learn?",
-    answer: "You'll master industry-standard tools and frameworks.",
+    question: "What tools and technologies will I learn?",
+    answer:
+      "You'll master industry-standard tools including Solidity, Web3.js, Hardhat, and more depending on the specific course.",
   },
   {
     question: "Is there a certificate provided?",
-    answer: "Yes, you'll receive a certificate upon completion.",
+    answer:
+      "Yes, upon successful completion of the course, you will receive a certificate of completion.",
   },
   {
-    question: "How long do I have access?",
-    answer: "You get lifetime access to all course materials.",
-  },
-  {
-    question: "Are there any prerequisites?",
-    answer: "Basic programming knowledge is helpful but not required.",
-  },
-  {
-    question: "Is this course regularly updated?",
-    answer: "Yes, we update content to reflect the latest industry trends.",
+    question: "How long do I have access to the course materials?",
+    answer:
+      "You get lifetime access to all course materials, including future updates and additions.",
   },
 ];
 
-// List of valid Pexels image URLs for tech, blockchain, crypto, etc. (verified working)
 const VALID_PEXELS_IMAGES: string[] = [
   "https://images.pexels.com/photos/546819/pexels-photo-546819.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
   "https://images.pexels.com/photos/1181671/pexels-photo-1181671.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
   "https://images.pexels.com/photos/3861976/pexels-photo-3861976.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
   "https://images.pexels.com/photos/1181355/pexels-photo-1181355.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
   "https://images.pexels.com/photos/577585/pexels-photo-577585.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
-  "https://images.pexels.com/photos/159888/pexels-photo-159888.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
-  "https://images.pexels.com/photos/3183150/pexels-photo-3183150.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
-  "https://images.pexels.com/photos/1181244/pexels-photo-1181244.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
-  "https://images.pexels.com/photos/3861964/pexels-photo-3861964.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
-  "https://images.pexels.com/photos/574070/pexels-photo-574070.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
 ];
 
-// Direct playable video preview URLs from Pexels (mp4 links for embedding/preview)
-const VALID_PEXELS_VIDEOS: string[] = [
-  "https://player.vimeo.com/external/407516680.sd.mp4?s=1d3a5d3a5d3a5d3a5d3a5d3a5d3a5d3a5d3a5d3a&profile_id=165",
-  "https://videos.pexels.com/video-files/8557642/8557642-uhd_1920_1080_30fps.mp4",
-  "https://videos.pexels.com/video-files/5835106/5835106-uhd_1920_1080_30fps.mp4",
-  "https://videos.pexels.com/video-files/6153354/6153354-uhd_1920_1080_30fps.mp4",
-  "https://videos.pexels.com/video-files/8728382/8728382-uhd_1920_1080_30fps.mp4",
-  "https://videos.pexels.com/video-files/7947456/7947456-uhd_1920_1080_30fps.mp4",
-  "https://videos.pexels.com/video-files/4819840/4819840-uhd_1920_1080_30fps.mp4",
+const VALID_YOUTUBE_VIDEOS: string[] = [
+  "https://www.youtube.com/watch?v=0pThnRneDjw",
+  "https://www.youtube.com/watch?v=vKJpN5FAeF4",
+  "https://www.youtube.com/watch?v=DHvZLI7Db8E",
+  "https://www.youtube.com/watch?v=p0bGHP-PH5M",
+  "https://www.youtube.com/watch?v=gyMwXuJrbJQ",
+];
+
+// Lesson-specific data pools
+const LESSON_TYPES: Lesson["type"][] = [
+  "video",
+  "reading",
+  "code",
+  "quiz",
+  "project",
+];
+
+// Lesson title pool to reflect cascading structure
+const LESSON_TITLES: Record<Lesson["type"], string[]> = {
+  video: [
+    "Introduction to {topic}",
+    "Understanding {topic} Concepts",
+    "Exploring {topic} with Examples",
+    "Deep Dive into {topic}",
+  ],
+  reading: [
+    "{topic} Fundamentals",
+    "{topic} Best Practices",
+    "{topic} Implementation Guide",
+    "{topic} Overview",
+  ],
+  code: [
+    "Building Your First {topic}",
+    "Implementing {topic} Features",
+    "Creating a {topic} Component",
+    "Coding {topic} Solutions",
+  ],
+  quiz: [
+    "{topic} Knowledge Check",
+    "{topic} Quiz",
+    "{topic} Assessment",
+    "Test Your {topic} Skills",
+  ],
+  project: [
+    "Build a {topic} Application",
+    "Create a {topic} Project",
+    "Develop a {topic} System",
+    "Complete {topic} Challenge",
+  ],
+};
+
+const RESOURCE_TYPES: Resource["type"][] = ["pdf", "code", "link", "image"];
+
+// Resource titles to match example style
+const RESOURCE_TITLES: Record<Resource["type"], string[]> = {
+  pdf: [
+    "{topic} Guide",
+    "{topic} Cheat Sheet",
+    "{topic} Documentation",
+    "{topic} Reference",
+  ],
+  code: [
+    "{topic} Examples",
+    "{topic} Starter Code",
+    "{topic} Template",
+    "{topic} Scripts",
+  ],
+  link: [
+    "{topic} Documentation",
+    "{topic} Reference",
+    "Official {topic} Docs",
+    "{topic} Resources",
+  ],
+  image: [
+    "{topic} Diagram",
+    "{topic} Flow Chart",
+    "{topic} Architecture",
+    "{topic} Visual Guide",
+  ],
+};
+
+// Module topics to match fakeModules style
+const MODULE_TOPICS = [
+  "Web Development",
+  "JavaScript Concepts",
+  "Building Projects",
+  "Smart Contract Development",
+  "DeFi Protocols",
+  "NFT Development",
+  "Web3 Integration",
+  "DAO Governance",
+  "Cross-Chain Development",
+  "Token Economics",
+  "Security Practices",
+  "Gas Optimization",
 ];
 
 // Utility functions
 const randomChoice = <T>(array: T[]): T =>
   array[Math.floor(Math.random() * array.length)];
+
 const randomChoices = <T>(array: T[], count: number): T[] => {
   const shuffled = [...array].sort(() => 0.5 - Math.random());
-  return shuffled.slice(0, count);
+  return shuffled.slice(0, Math.min(count, array.length));
 };
+
 const randomInt = (min: number, max: number): number =>
   Math.floor(Math.random() * (max - min + 1)) + min;
+
 const randomFloat = (min: number, max: number): number =>
   Math.random() * (max - min) + min;
 
-// Generate slug from title
-const generateSlug = (title: string, id: ObjectId): string => {
+const generateId = (): string => {
+  const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+  let result = "";
+  for (let i = 0; i < 9; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return `${result}`;
+};
+
+const generateSlug = (title: string, id: string): string => {
   return (
     title
       .toLowerCase()
       .replace(/[^a-z0-9\s]/g, "")
-      .replace(/\s+/g, "-") +
-    "-" +
-    id.toString().slice(-12)
+      .replace(/\s+/g, "-") + `-${id.slice(-8)}`
   );
 };
 
-// Generate random image URL using valid Pexels images
-const generateImageUrl = (): string => {
-  return randomChoice(VALID_PEXELS_IMAGES);
-};
+const generateImageUrl = (): string => randomChoice(VALID_PEXELS_IMAGES);
+const generateVideoUrl = (): string => randomChoice(VALID_YOUTUBE_VIDEOS);
 
-// Generate random video preview URL
-const generateVideoUrl = (): string => {
-  return randomChoice(VALID_PEXELS_VIDEOS);
-};
+// Generate resource to match fakeModules style
+const generateResource = (type: Resource["type"], topic: string): Resource => {
+  const titleTemplate = randomChoice(RESOURCE_TITLES[type]);
+  const title = titleTemplate.replace("{topic}", topic);
 
-// Generate product data with fixed type
-const generateProduct = (type: ProductType): Product => {
-  const _id: ObjectId = new ObjectId();
-  const category: string = randomChoice(CATEGORIES);
-  const difficulty: string = randomChoice(DIFFICULTIES);
-  const instructor = randomChoice(INSTRUCTORS);
-
-  let title: ProductType;
+  let url: string;
   switch (type) {
-    case "Course":
-      title = randomChoice(COURSE_TITLES) + ` - ${category} Edition`;
+    case "image":
+      url = `https://example.com/${topic.toLowerCase().replace(/\s+/g, "-")}-diagram.png`;
       break;
-    case "Bootcamp":
-      title = randomChoice(BOOTCAMP_TITLES) + ` in ${category}`;
+    case "code":
+      url = `https://example.com/${topic.toLowerCase().replace(/\s+/g, "-")}-examples.js`;
       break;
-    case "Ebook":
-      title = randomChoice(EBOOK_TITLES) + `: Focus on ${category}`;
+    case "pdf":
+      url = `https://example.com/${topic.toLowerCase().replace(/\s+/g, "-")}-guide.pdf`;
       break;
-    case "Codebase":
-      title = randomChoice(CODEBASE_TITLES) + ` - ${category} Ready`;
+    case "link":
+      url = `https://example.com/${topic.toLowerCase().replace(/\s+/g, "-")}-docs`;
       break;
     default:
-      title = "Course";
+      url = "https://example.com/resource";
   }
 
-  const basePrice: number = randomInt(29, 499);
-  const originalPrice: number = basePrice + randomInt(20, 100);
+  return {
+    id: `resource-${generateId()}`,
+    title,
+    type,
+    url,
+    downloadable: type === "pdf" || type === "code" || Math.random() < 0.5,
+  };
+};
 
-  const numFeatures: number = randomInt(3, 6);
-  const features = randomChoices(FEATURES_POOL, numFeatures);
+// Generate lesson to match fakeModules structure
+const generateLesson = (index: number, topic: string): Lesson => {
+  // Define lesson type progression to match fakeModules
+  const lessonTypeOrder: Lesson["type"][] = [
+    "video",
+    "reading",
+    "code",
+    "quiz",
+    "project",
+  ];
+  const type =
+    index < lessonTypeOrder.length
+      ? lessonTypeOrder[index]
+      : randomChoice(LESSON_TYPES);
 
-  const numTestimonials: number = randomInt(2, 4);
-  const testimonials = randomChoices(TESTIMONIALS_POOL, numTestimonials);
+  const titleTemplate = randomChoice(LESSON_TITLES[type]);
+  const title = titleTemplate.replace("{topic}", topic);
 
-  const numFaqs: number = randomInt(3, 6);
-  const faqs = randomChoices(FAQS_POOL, numFaqs);
+  // Generate duration to match fakeModules
+  let duration: string;
+  switch (type) {
+    case "video":
+      duration = `${randomInt(15, 30)} minutes`;
+      break;
+    case "reading":
+      duration = `${randomInt(15, 25)} minutes`;
+      break;
+    case "code":
+      duration = `${randomInt(30, 60)} minutes`;
+      break;
+    case "quiz":
+      duration = `${randomInt(10, 20)} minutes`;
+      break;
+    case "project":
+      duration = `${randomInt(1, 2)} hour${randomInt(1, 2) > 1 ? "s" : ""}`;
+      break;
+    default:
+      duration = `${randomInt(15, 30)} minutes`;
+  }
 
-  const numTechnologies: number = randomInt(3, 8);
-  const technologies: string[] = randomChoices(TECHNOLOGIES, numTechnologies);
+  // Generate description to match fakeModules style
+  const description = (() => {
+    switch (type) {
+      case "video":
+        return `An introductory video on ${topic.toLowerCase()}.`;
+      case "reading":
+        return `Guide to ${topic.toLowerCase()} concepts and practices.`;
+      case "code":
+        return `Write ${topic.toLowerCase()} code with practical examples.`;
+      case "quiz":
+        return `Test your knowledge of ${topic.toLowerCase()}.`;
+      case "project":
+        return `Create a ${topic.toLowerCase()} application or component.`;
+      default:
+        return `Learn about ${topic.toLowerCase()}.`;
+    }
+  })();
 
-  const numTags: number = randomInt(3, 6);
-  const tags: string[] = randomChoices(
-    [...CATEGORIES, ...TECHNOLOGIES],
-    numTags,
+  // Generate content based on type, matching fakeModules
+  let content: string | undefined;
+  let videoUrl: string | undefined;
+
+  if (type === "video") {
+    videoUrl = generateVideoUrl();
+  } else if (type === "reading") {
+    content = `This lesson covers ${topic.toLowerCase()}, including key concepts, practical implementation details, and best practices for development.`;
+  } else if (type === "code") {
+    content = `// ${title}\nfunction ${topic.toLowerCase().replace(/\s+/g, "")}Example() {\n  console.log('Working on ${topic}');\n  // TODO: Implement your solution\n}\n\n${topic.toLowerCase().replace(/\s+/g, "")}Example();`;
+  }
+  // No content for quiz or project, as per fakeModules
+
+  // First lesson is always unlocked, others have 50% chance of being locked
+  const locked = index > 0 && Math.random() < 0.5;
+
+  // Generate 0-2 resources per lesson
+  const numResources = Math.random() < 0.3 ? 0 : randomInt(1, 2);
+  const resources: Resource[] = [];
+  for (let i = 0; i < numResources; i++) {
+    const resourceType = randomChoice(RESOURCE_TYPES);
+    resources.push(generateResource(resourceType, topic));
+  }
+
+  return {
+    id: `lesson-${generateId()}`,
+    title,
+    type,
+    duration,
+    description,
+    completed: false,
+    locked,
+    videoUrl,
+    content,
+    transcript: undefined, // No transcript, as per fakeModules
+    resources,
+    order: index,
+  };
+};
+
+// Generate module with lessons to match fakeModules structure
+const generateModuleWithLessons = (
+  index: number,
+  productId: string,
+): ModuleWithLessons => {
+  const topic = randomChoice(MODULE_TOPICS);
+  const prefixes = ["Introduction to", "Advanced", "Building", "Understanding"];
+  const prefix = randomChoice(prefixes);
+  const title = `${prefix} ${topic}`;
+
+  const description = `Learn ${topic.toLowerCase()} with practical examples and hands-on exercises.`;
+
+  // Generate 2-4 lessons per module, as per fakeModules
+  const numLessons = randomInt(2, 4);
+  const lessons: Lesson[] = [];
+
+  for (let i = 0; i < numLessons; i++) {
+    const lesson = generateLesson(i, topic);
+    lessons.push(lesson);
+  }
+
+  // Calculate total duration
+  const totalMinutes = lessons.reduce((total, lesson) => {
+    const match = lesson.duration.match(/(\d+)/);
+    const value = match ? parseInt(match[1]) : 30;
+    return total + (lesson.duration.includes("hour") ? value * 60 : value);
+  }, 0);
+
+  const hours = Math.floor(totalMinutes / 60);
+  const remainingMinutes = totalMinutes % 60;
+
+  let duration: string;
+  if (hours > 0 && remainingMinutes > 0) {
+    duration = `${hours} hour${hours > 1 ? "s" : ""} ${remainingMinutes} minutes`;
+  } else if (hours > 0) {
+    duration = `${hours} hour${hours > 1 ? "s" : ""}`;
+  } else {
+    duration = `${totalMinutes} minutes`;
+  }
+
+  return {
+    id: `module-${generateId()}`,
+    productId,
+    title,
+    description,
+    duration,
+    lessons,
+    completed: false,
+    progress: 0,
+    order: index,
+  };
+};
+
+// Generate product with full modules including lessons
+const generateProduct = (type: ProductType): Product => {
+  const _id = new ObjectId();
+  const id = _id.toString();
+  const category = randomChoice(CATEGORIES);
+  const difficulty = randomChoice(DIFFICULTIES);
+  const instructor = randomChoice(INSTRUCTORS);
+  const status = randomChoice(STATUSES);
+
+  const title = `${randomChoice(COURSE_TITLES)} - ${category} Mastery`;
+  const basePrice = randomInt(99, 299);
+  const originalPrice = basePrice + randomInt(50, 120);
+
+  const subtitle = `Master ${category} development with ${difficulty.toLowerCase()}-level training. Build real projects and advance your blockchain career.`;
+  const description = `Comprehensive ${type.toLowerCase()} covering ${category} development from fundamentals to advanced topics. Perfect for ${difficulty.toLowerCase()} developers looking to excel in Web3.`;
+  const longDescription = `This ${type.toLowerCase()} provides comprehensive coverage of ${category} development with practical, hands-on learning. You'll master essential concepts, build real-world projects, and gain the expertise needed to succeed in the rapidly growing blockchain industry. Our expert-led curriculum combines theoretical knowledge with practical application, ensuring you're job-ready upon completion.`;
+
+  // Generate 4-6 technologies
+  const technologies = randomChoices(TECHNOLOGIES, randomInt(4, 6));
+
+  // Generate 4-6 features
+  const features = randomChoices(FEATURES_POOL, randomInt(4, 6));
+
+  // Generate 3-4 testimonials
+  const testimonials = randomChoices(TESTIMONIALS_POOL, randomInt(3, 4));
+
+  // Generate 4-5 FAQs
+  const faqs = randomChoices(FAQS_POOL, randomInt(4, 5));
+
+  // Generate realistic tags
+  const tags = randomChoices(
+    [
+      ...CATEGORIES.slice(0, 3),
+      ...technologies.slice(0, 3),
+      "Web3",
+      "Blockchain",
+      "Development",
+      "Programming",
+      difficulty,
+    ],
+    randomInt(8, 10),
   );
 
-  const modules = [];
-  const numModules: number = randomInt(3, 8);
-  for (let i = 0; i < numModules; i++) {
-    modules.push({
-      title: `Module ${i + 1}: ${randomChoice(["Introduction to", "Advanced", "Practical", "Deep Dive into"])} ${randomChoice(technologies)}`,
-      duration: `${randomInt(1, 5)} hours`,
-      lessons: randomInt(5, 15),
-      description: `Learn ${randomChoice(technologies)} with hands-on examples and real-world projects.`,
-    });
-  }
-
-  const includes: string[] = [
-    "Access to all course materials",
-    "Downloadable resources and code samples",
+  const includes = [
+    `${randomInt(25, 45)}+ hours of comprehensive content`,
+    "Lifetime access to all course materials",
+    "Downloadable resources and starter code",
     "Certificate of completion",
-    `${randomInt(1, 3)}-year access to updates`,
-    "Community Discord/Slack access",
-    "24/7 student support",
+    `${randomInt(5, 10)} real-world projects`,
+    "Access to exclusive developer community",
+    "30-day money-back guarantee",
+    "Mobile and desktop compatibility",
+    "Regular updates and new content",
+    "Direct instructor support and Q&A",
   ];
+
+  // Generate dates
+  const createdAt = new Date(
+    Date.now() - randomInt(30, 180) * 24 * 60 * 60 * 1000,
+  );
+  const updatedAt = new Date(
+    createdAt.getTime() + randomInt(1, 30) * 24 * 60 * 60 * 1000,
+  );
+
+  // Generate 2-4 modules with full lessons
+  const numModules = randomInt(2, 4);
+  const modules: ModuleWithLessons[] = [];
+  for (let moduleIndex = 0; moduleIndex < numModules; moduleIndex++) {
+    const moduleWithLessons = generateModuleWithLessons(moduleIndex, id);
+    modules.push(moduleWithLessons);
+  }
 
   return {
     _id,
-    id: _id.toString(),
-    slug: generateSlug(title, _id),
+    id,
+    slug: generateSlug(title, id),
     title,
-    subtitle: `Master ${category} development with ${difficulty.toLowerCase()} level training`,
-    description: `Learn ${category} development through hands-on projects and real-world applications. Perfect for ${difficulty.toLowerCase()} developers.`,
-    longDescription: `This comprehensive ${type.toLowerCase()} provides in-depth coverage of ${category} development. You'll learn ${technologies.slice(0, 3).join(", ")}, and more. Through practical projects and expert guidance, you'll build the skills needed to succeed in the Web3 industry. Our ${difficulty.toLowerCase()}-friendly approach ensures you'll master both theoretical concepts and practical implementation.`,
+    subtitle,
+    description,
+    longDescription,
     type,
     price: basePrice,
     originalPrice,
     currency: "USD",
-    status: randomChoice(["published", "published", "published", "draft"]),
+    status,
     category,
     difficulty,
-    duration: randomChoice(DURATIONS[type] || DURATIONS["Course"]),
     level: difficulty,
+    duration: randomChoice(DURATIONS[type]),
     language: "English",
-    lastUpdated: new Date(
-      Date.now() - randomInt(1, 30) * 24 * 60 * 60 * 1000,
-    ).toISOString(),
+    lastUpdated: updatedAt.toISOString(),
     instructor,
-    createdAt: new Date(Date.now() - randomInt(30, 365) * 24 * 60 * 60 * 1000),
-    updatedAt: new Date(Date.now() - randomInt(1, 30) * 24 * 60 * 60 * 1000),
-    featured: Math.random() < 0.2,
+    createdAt,
+    updatedAt,
+    featured: Math.random() < 0.15,
     imageUrl: generateImageUrl(),
     enrollments: randomInt(0, 1000),
     rating: parseFloat(randomFloat(3.5, 5.0).toFixed(1)),
-    totalReviews: randomInt(10, 500),
-    studentsEnrolled: randomInt(50, 2000),
+    totalReviews: randomInt(50, 300),
+    studentsEnrolled: randomInt(200, 1500),
     tags,
     technologies,
     features,
-    modules,
+    modules, // Store full ModuleWithLessons objects
     includes,
     testimonials,
     faqs,
@@ -472,92 +653,181 @@ async function seedDatabase(): Promise<void> {
   let client: MongoClient | undefined;
 
   try {
-    console.log("🚀 Starting database seeding...");
-    console.log(`📊 Generating ${NUM_PRODUCTS} products...`);
+    console.log(
+      "🚀 Starting database seeding with full module and lesson data...",
+    );
+    console.log(
+      `📊 Generating ${NUM_PRODUCTS} products with embedded ModuleWithLessons data...`,
+    );
 
-    // Connect to MongoDB
     client = new MongoClient(MONGODB_URI);
     await client.connect();
     console.log("✅ Connected to MongoDB");
 
     const db = client.db(DATABASE_NAME);
-    const collection = db.collection<Product>(COLLECTION_NAME);
+    const productsCollection = db.collection<Product>(PRODUCTS_COLLECTION_NAME);
+    const modulesCollection = db.collection<ModuleWithLessons>(
+      MODULES_COLLECTION_NAME,
+    );
 
-    // Generate products evenly across types
+    // Clear existing collections if requested
+    const shouldClear: boolean = process.env.CLEAR_EXISTING === "true";
+    if (shouldClear) {
+      await productsCollection.deleteMany({});
+      await modulesCollection.deleteMany({});
+      console.log("🗑️ Cleared existing data");
+    }
+
     const products: Product[] = [];
+    const allModulesWithLessons: ModuleWithLessons[] = [];
     const productsPerType = Math.floor(NUM_PRODUCTS / PRODUCT_TYPES.length);
     const extraProducts = NUM_PRODUCTS % PRODUCT_TYPES.length;
 
-    PRODUCT_TYPES.forEach((type, index) => {
-      const countForType = productsPerType + (index < extraProducts ? 1 : 0);
-      console.log(`📝 Generating ${countForType} products for type: ${type}`);
+    for (const [typeIndex, type] of PRODUCT_TYPES.entries()) {
+      const countForType =
+        productsPerType + (typeIndex < extraProducts ? 1 : 0);
+      console.log(`📝 Generating ${countForType} ${type} products...`);
+
       for (let i = 0; i < countForType; i++) {
-        products.push(generateProduct(type));
+        const product = generateProduct(type);
+        products.push(product);
+        allModulesWithLessons.push(...(product.modules || []));
+
+        const totalLessons = (product.modules || []).reduce(
+          (sum, m) => sum + m.lessons.length,
+          0,
+        );
+        console.log(
+          `   ✓ "${product.title}" - ${product.modules?.length} modules, ${totalLessons} lessons`,
+        );
       }
-    });
-
-    // Clear existing products (optional)
-    const shouldClear: boolean = process.env.CLEAR_EXISTING === "true";
-    if (shouldClear) {
-      const deleteResult = await collection.deleteMany({});
-      console.log(`🗑️  Cleared ${deleteResult.deletedCount} existing products`);
     }
 
-    // Insert products
-    const result = await collection.insertMany(products);
-    console.log(`✅ Inserted ${result.insertedCount} products successfully!`);
+    console.log(
+      `\n📦 Generated: ${products.length} products, ${allModulesWithLessons.length} modules`,
+    );
 
-    // Create indexes for better performance
-    await collection.createIndex({ slug: 1 }, { unique: true });
-    await collection.createIndex({ type: 1 });
-    await collection.createIndex({ category: 1 });
-    await collection.createIndex({ status: 1 });
-    await collection.createIndex({ featured: 1 });
-    await collection.createIndex({ createdAt: -1 });
+    // Insert all data
+    console.log("💾 Inserting products with full module and lesson data...");
+    const productsResult = await productsCollection.insertMany(products);
+    console.log(`✅ Inserted ${productsResult.insertedCount} products`);
 
-    console.log("📊 Created database indexes");
+    console.log("💾 Inserting modules with lessons for reference...");
+    const modulesResult = await modulesCollection.insertMany(
+      allModulesWithLessons,
+    );
+    console.log(
+      `✅ Inserted ${modulesResult.insertedCount} modules with full lesson data`,
+    );
 
-    // Display summary
-    interface Stat {
-      _id: string;
-      count: number;
-      avgPrice: number;
-    }
-    const stats: Stat[] = await collection
-      .aggregate<Stat>([
-        {
-          $group: {
-            _id: "$type",
-            count: { $sum: 1 },
-            avgPrice: { $avg: "$price" },
-          },
-        },
-      ])
-      .toArray();
+    // Create indexes
+    console.log("🔍 Creating indexes...");
+    await productsCollection.createIndex({ slug: 1 }, { unique: true });
+    await productsCollection.createIndex({ type: 1 });
+    await productsCollection.createIndex({ category: 1 });
+    await productsCollection.createIndex({ status: 1 });
+    await modulesCollection.createIndex({ productId: 1 });
+    await modulesCollection.createIndex({ productId: 1, order: 1 });
+    console.log("📊 Indexes created");
+
+    // Generate summary
+    const totalLessons = allModulesWithLessons.reduce(
+      (sum, m) => sum + m.lessons.length,
+      0,
+    );
 
     console.log("\n📈 Seeding Summary:");
-    stats.forEach((stat: Stat) => {
-      console.log(
-        `  ${stat._id}: ${stat.count} products (avg price: $${stat.avgPrice.toFixed(2)})`,
-      );
+    console.log("=".repeat(50));
+    console.log(`📚 Total Products: ${products.length}`);
+    console.log(`📝 Total Modules: ${allModulesWithLessons.length}`);
+    console.log(`🎓 Total Lessons: ${totalLessons}`);
+    console.log(
+      `📊 Avg Modules per Product: ${(allModulesWithLessons.length / products.length).toFixed(1)}`,
+    );
+    console.log(
+      `📖 Avg Lessons per Module: ${(totalLessons / allModulesWithLessons.length).toFixed(1)}`,
+    );
+
+    // Product type breakdown
+    const typeBreakdown = products.reduce(
+      (acc, product) => {
+        acc[product.type] = (acc[product.type] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
+
+    console.log("\n📊 Product Type Distribution:");
+    Object.entries(typeBreakdown).forEach(([type, count]) => {
+      console.log(`  ${type}: ${count} products`);
     });
+
+    // Lesson type breakdown
+    const lessonTypeBreakdown = allModulesWithLessons
+      .flatMap((m) => m.lessons)
+      .reduce(
+        (acc, lesson) => {
+          acc[lesson.type] = (acc[lesson.type] || 0) + 1;
+          return acc;
+        },
+        {} as Record<string, number>,
+      );
+
+    console.log("\n🎓 Lesson Type Distribution:");
+    Object.entries(lessonTypeBreakdown).forEach(([type, count]) => {
+      const percentage = ((count / totalLessons) * 100).toFixed(1);
+      console.log(`  ${type}: ${count} lessons (${percentage}%)`);
+    });
+
+    // Status distribution
+    const statusBreakdown = products.reduce(
+      (acc, product) => {
+        acc[product.status || "unknown"] =
+          (acc[product.status || "unknown"] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
+
+    console.log("\n📊 Product Status Distribution:");
+    Object.entries(statusBreakdown).forEach(([status, count]) => {
+      console.log(`  ${status}: ${count} products`);
+    });
+
+    console.log("=".repeat(50));
+    console.log("🎉 Database seeding completed successfully!");
+    console.log(
+      "💡 Products collection now contains full module and lesson data",
+    );
+    console.log(
+      "📱 Modules collection contains module references for querying",
+    );
   } catch (error: unknown) {
-    console.error("❌ Error seeding database:", error);
+    console.error("❌ Error during database seeding:", error);
+    if (error instanceof Error) {
+      console.error("Error details:", error.message);
+    }
     process.exit(1);
   } finally {
     if (client) {
       await client.close();
-      console.log("🔌 Disconnected from MongoDB");
+      console.log("🔌 Database connection closed");
     }
   }
 }
 
-// Run if called directly (ES module compatible)
+// Run if called directly
 const __filename: string = fileURLToPath(import.meta.url);
 if (process.argv[1] === __filename) {
   seedDatabase()
     .then(() => {
-      console.log("🎉 Database seeding completed!");
+      console.log("\n✨ Seeding operation completed!");
+      console.log("🔍 Query examples:");
+      console.log('  - Products: db.products.find({type: "Course"})');
+      console.log(
+        '  - Modules: db.modules.find({productId: "your-product-id"})',
+      );
+      console.log('  - Lessons: db.modules.find({"lessons.type": "video"})');
       process.exit(0);
     })
     .catch((error: unknown) => {
@@ -566,6 +836,22 @@ if (process.argv[1] === __filename) {
     });
 }
 
-// Named export to satisfy ESLint
-const seedExports = { generateProduct, seedDatabase };
-export default seedExports;
+// Export for reuse
+export default {
+  seedDatabase,
+  generateProduct,
+  generateModuleWithLessons,
+  generateLesson,
+  generateResource,
+};
+
+export {
+  generateId,
+  generateSlug,
+  generateImageUrl,
+  generateVideoUrl,
+  randomChoice,
+  randomChoices,
+  randomInt,
+  randomFloat,
+};

@@ -1,10 +1,11 @@
 // /validations/products.ts
 import {
   ProductFeature,
-  ProductModule,
+  ModuleWithLessons,
   ProductTestimonial,
   FAQs,
   Product,
+  Lesson,
 } from "@/utils/interfaces";
 
 export function validateProductData(data: Partial<Product>): string[] {
@@ -185,31 +186,47 @@ export function validateAndNormalizeFeatures(
 }
 
 export function validateAndNormalizeModules(
-  modules: ProductModule[],
-): ProductModule[] {
+  modules: ModuleWithLessons[],
+): ModuleWithLessons[] {
   if (!Array.isArray(modules)) return [];
 
   return modules
     .filter(
-      (module): module is ProductModule =>
+      (module): module is ModuleWithLessons =>
         module &&
         typeof module === "object" &&
         typeof module.title === "string" &&
         typeof module.description === "string" &&
-        typeof module.duration === "string" &&
-        typeof module.lessons === "number",
+        typeof module.duration === "string",
     )
     .map((module) => ({
+      id: String(module.id || new Date().getTime()), // Generate ID if missing
+      productId: String(module.productId || ""), // Ensure productId is present
       title: String(module.title || "").trim(),
-      duration: String(module.duration || "").trim(),
-      lessons: Number(module.lessons || 0),
       description: String(module.description || "").trim(),
+      duration: String(module.duration || "").trim(),
+      lessons: Array.isArray(module.lessons)
+        ? module.lessons.map((lesson: Lesson, index: number) => ({
+            id: String(lesson.id || new Date().getTime() + index),
+            title: String(lesson.title || "").trim(),
+            type: lesson.type,
+            duration: String(lesson.duration || "").trim(),
+            completed: Boolean(lesson.completed),
+            locked: Boolean(lesson.locked),
+            order: Number(lesson.order || index),
+            // Add other lesson properties as needed, ensuring they are valid
+          }))
+        : [],
+      completed: Boolean(module.completed),
+      progress: Number(module.progress || 0),
+      order: Number(module.order || 0),
     }))
     .filter(
       (module) =>
         module.title.trim() &&
         module.description.trim() &&
-        module.duration.trim(),
+        module.duration.trim() &&
+        module.lessons.length > 0, // Ensure modules have at least one lesson
     )
     .slice(0, 20);
 }

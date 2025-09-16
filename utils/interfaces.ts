@@ -64,10 +64,11 @@ export interface PostProp {
 }
 
 export interface ProductModule {
+  id: string;
   title: string;
-  duration: string;
-  lessons: number;
   description: string;
+  duration: string;
+  order?: number;
 }
 
 export interface ProductTestimonial {
@@ -114,7 +115,7 @@ export interface Product {
   tags?: string[];
   technologies?: string[];
   features?: ProductFeature[];
-  modules?: ProductModule[];
+  modules?: ModuleWithLessons[];
   testimonials?: ProductTestimonial[];
   faqs?: FAQs[];
   subtitle?: string;
@@ -134,7 +135,6 @@ export interface Product {
   slug?: string;
   createdBy?: string;
 }
-
 export interface Lesson {
   id: string;
   title: string;
@@ -167,6 +167,7 @@ export interface Note {
 
 export interface ModuleWithLessons extends Omit<ProductModule, "lessons"> {
   id: string;
+  productId?: string;
   title: string;
   description: string;
   duration: string;
