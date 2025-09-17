@@ -219,6 +219,8 @@ export interface User {
   comments: number;
   // Authentication method
   authMethod: "traditional" | "google" | "twitter";
+  purchasedProducts?: string[]; // Added to store product IDs
+  purchasedServices?: string[]; // Added to store service IDs
 }
 
 export interface QuickAction {

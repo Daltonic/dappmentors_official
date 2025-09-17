@@ -1,5 +1,3 @@
-// Product Component
-
 "use client";
 
 import React, { useState } from "react";
@@ -26,12 +24,37 @@ const PageClient: React.FC<PageClientProps> = ({ product }) => {
 
   const handleEnroll = async () => {
     setIsEnrolling(true);
-    // Simulate enrollment process
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    try {
+      const response = await fetch("/api/webhook", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          type: "product",
+          id: product.id,
+        }),
+      });
 
-    console.log(`Enrolling in: ${product.title}`);
-    toast.success(`Successfully enrolled in ${product.title}!`);
-    setIsEnrolling(false);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to process enrollment");
+      }
+
+      const data = await response.json();
+      toast.success(
+        data.message || `Successfully enrolled in ${product.title}!`,
+      );
+    } catch (error) {
+      console.error("Enrollment error:", error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "An error occurred during enrollment",
+      );
+    } finally {
+      setIsEnrolling(false);
+    }
   };
 
   // Generate structured data for SEO

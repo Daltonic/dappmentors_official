@@ -12,6 +12,7 @@ import QuoteSection from "@/components/services/details/QuoteSection";
 import PackagesSection from "@/components/services/details/PackageSection";
 import FeaturesSection from "@/components/services/details/FeaturesSection";
 import { getHighlightWord } from "@/heplers/global";
+import { toast } from "react-toastify";
 
 interface PageClientProps {
   service: Service;
@@ -19,6 +20,7 @@ interface PageClientProps {
 
 const PageClient: React.FC<PageClientProps> = ({ service }) => {
   const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
+  const [isPurchasing, setIsPurchasing] = useState(false);
 
   // Form states
   const [name, setName] = useState("");
@@ -47,12 +49,43 @@ const PageClient: React.FC<PageClientProps> = ({ service }) => {
     setSelectedPackage(null);
   };
 
-  const handlePayment = (packageName?: string) => {
-    const itemName = packageName || service.title;
-    const price = packageName
-      ? service.packages.find((p) => p.name === packageName)?.price
-      : service.price;
-    alert(`Processing payment for ${itemName} at ${price}`);
+  const handlePayment = async (packageName?: string) => {
+    setIsPurchasing(true);
+    try {
+      const response = await fetch("/api/webhook", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          type: "service",
+          id: service.id,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to process purchase");
+      }
+
+      const data = await response.json();
+      toast.success(data.message || "Purchase saved successfully!");
+
+      const itemName = packageName || service.title;
+      const price = packageName
+        ? service.packages.find((p) => p.name === packageName)?.price
+        : service.price;
+      console.log(`Processed mock purchase for ${itemName} at ${price}`);
+    } catch (error) {
+      console.error("Purchase error:", error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "An error occurred during purchase",
+      );
+    } finally {
+      setIsPurchasing(false);
+    }
   };
 
   const isFixedPrice =
@@ -207,6 +240,21 @@ const PageClient: React.FC<PageClientProps> = ({ service }) => {
         subtitle="Everything you need to know about our smart contract development services."
       />
       <CTASection />
+
+      {/* Loading Overlay for Purchase */}
+      {isPurchasing && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 text-center">
+            <div className="w-16 h-16 border-4 border-[#D2145A] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+              Processing Purchase
+            </h3>
+            <p className="text-gray-600 dark:text-gray-300">
+              Please wait while we record your purchase...
+            </p>
+          </div>
+        </div>
+      )}
     </MarketingLayout>
   );
 };
