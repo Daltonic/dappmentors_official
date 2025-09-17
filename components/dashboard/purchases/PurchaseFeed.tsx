@@ -227,7 +227,7 @@ const PurchaseFeed: React.FC<PurchaseFeedProps> = ({ products, services }) => {
                   {activity.icon}
                 </div>
                 <Link
-                  href={`/dashboard/purchases/${activity.id}`}
+                  href={`/dashboard/purchases/${activity.id}/lessons`}
                   onClick={
                     activity.type === "service"
                       ? (e) => e.preventDefault()

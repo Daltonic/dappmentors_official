@@ -1,101 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Lesson, ModuleWithLessons, Note, Resource } from "@/utils/interfaces";
 import CustomYouTubePlayer from "@/components/dashboard/purchases/CustomYouTubePlayer";
-
-// Sample data
-const sampleLesson: Lesson = {
-  id: "lesson-1",
-  title: "Introduction to Smart Contract Security",
-  description:
-    "Learn the fundamental principles of smart contract security, common vulnerabilities, and best practices for writing secure code.",
-  type: "video",
-  duration: "25:30",
-  videoUrl: "https://sample-video.mp4", // In real app, this would be actual video
-  completed: false,
-  locked: false,
-  resources: [
-    {
-      id: "res-1",
-      title: "Security Checklist.pdf",
-      type: "pdf",
-      url: "/security-checklist.pdf",
-      downloadable: true,
-    },
-    {
-      id: "res-2",
-      title: "Vulnerable Contract Example",
-      type: "code",
-      url: "/vulnerable-contract.sol",
-      downloadable: true,
-    },
-    {
-      id: "res-3",
-      title: "OpenZeppelin Security Guide",
-      type: "link",
-      url: "https://docs.openzeppelin.com/contracts/4.x/security",
-      downloadable: false,
-    },
-  ],
-  transcript: `Welcome to this lesson on smart contract security. In this comprehensive guide, we'll explore the fundamental principles that every blockchain developer must understand to build secure, robust applications.
-
-Security in smart contracts isn't just about preventing financial losses – it's about maintaining trust in the entire ecosystem. When we deploy a contract to the blockchain, it becomes immutable, which means any vulnerabilities we introduce cannot be easily fixed.
-
-Today, we'll cover the most common vulnerability patterns, including reentrancy attacks, integer overflow, and access control issues. We'll also discuss best practices and security frameworks that can help protect your contracts.
-
-Let's start with the basics of what makes smart contracts vulnerable...`,
-};
-
-const moduleStructure: ModuleWithLessons[] = [
-  {
-    id: "module-1",
-    title: "Smart Contract Fundamentals",
-    completed: false,
-    description: "Fundamental concepts of smart contracts.",
-    progress: 0,
-    duration: "1h 30m",
-    lessons: [
-      {
-        ...sampleLesson,
-        id: "1-1",
-        title: "Introduction to Smart Contracts",
-        completed: true,
-      },
-      {
-        ...sampleLesson,
-        id: "1-2",
-        title: "Development Environment Setup",
-        completed: true,
-      },
-      {
-        ...sampleLesson,
-        id: "1-3",
-        title: "Your First Contract",
-        completed: false,
-      },
-      { ...sampleLesson, id: "1-4", title: "Testing Basics", completed: false },
-    ],
-  },
-  {
-    id: "module-2",
-    title: "Advanced Security Patterns",
-    description: "Advanced techniques for securing smart contracts.",
-    completed: false,
-    progress: 0,
-    duration: "1h 15m",
-    lessons: [
-      {
-        ...sampleLesson,
-        id: "2-1",
-        title: "Reentrancy Prevention",
-        completed: false,
-      },
-      { ...sampleLesson, id: "2-2", title: "Access Control", completed: false },
-    ],
-  },
-];
+import { useRouter } from "next/navigation";
 
 // NotesComponent
 interface NotesComponentProps {
@@ -142,7 +51,6 @@ const NotesComponent: React.FC<NotesComponentProps> = ({
         </button>
       </div>
 
-      {/* Add Note Form */}
       <AnimatePresence>
         {isAddingNote && (
           <motion.div
@@ -185,7 +93,6 @@ const NotesComponent: React.FC<NotesComponentProps> = ({
         )}
       </AnimatePresence>
 
-      {/* Notes List */}
       <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
         {notes.length === 0 ? (
           <div className="text-center py-8 text-gray-500 dark:text-gray-400">
@@ -245,10 +152,8 @@ const ResourcesComponent: React.FC<ResourcesComponentProps> = ({
 
   const handleResourceClick = (resource: Resource) => {
     if (resource.downloadable) {
-      // In a real app, this would trigger a download
       console.log(`Downloading: ${resource.title}`);
     } else {
-      // Open external link
       window.open(resource.url, "_blank");
     }
   };
@@ -371,21 +276,30 @@ const TranscriptComponent: React.FC<TranscriptComponentProps> = ({
 // LessonHeader Component
 interface LessonHeaderProps {
   lesson: Lesson;
+  productId: string;
   lessonProgress: number;
   onMarkComplete: () => void;
+  isCompleted: boolean;
 }
 
 const LessonHeader: React.FC<LessonHeaderProps> = ({
   lesson,
+  productId,
   lessonProgress,
   onMarkComplete,
+  isCompleted,
 }) => {
+  const router = useRouter();
+
   return (
     <div className="border-b border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm rounded-t-3xl sm:rounded-3xl sticky top-0 z-40">
       <div className="max-w-7xl mx-auto px-4 py-4">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-0">
           <div className="flex items-center gap-4 w-full sm:w-auto">
-            <button className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors sm:hidden">
+            <button
+              onClick={() => router.push(`/dashboard/purchases/${productId}`)}
+              className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors sm:hidden"
+            >
               ← Back to Course
             </button>
             <div>
@@ -399,7 +313,6 @@ const LessonHeader: React.FC<LessonHeaderProps> = ({
           </div>
 
           <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-normal">
-            {/* Progress */}
             <div className="flex items-center gap-2">
               <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                 Progress:
@@ -415,16 +328,15 @@ const LessonHeader: React.FC<LessonHeaderProps> = ({
               </span>
             </div>
 
-            {/* Mark Complete Button */}
             <button
               onClick={onMarkComplete}
               className={`px-3 py-1 sm:px-4 sm:py-2 rounded-lg font-medium transition-all text-sm sm:text-base ${
-                lesson.completed
+                isCompleted
                   ? "bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-400"
                   : "bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white hover:scale-105"
               }`}
             >
-              {lesson.completed ? "✓ Completed" : "Mark Complete"}
+              {isCompleted ? "✓ Completed" : "Mark Complete"}
             </button>
           </div>
         </div>
@@ -465,7 +377,7 @@ const LessonNavigation: React.FC<LessonNavigationProps> = ({
 
       <div className="flex flex-col items-center justify-center">
         <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-1">
-          Lesson {currentLesson.id}
+          {currentLesson.title}
         </p>
         <div className="flex items-center gap-1">
           {[...Array(4)].map((_, i) => (
@@ -498,17 +410,21 @@ const LessonNavigation: React.FC<LessonNavigationProps> = ({
 interface TabNavigationProps {
   activeTab: "overview" | "notes" | "resources" | "transcript";
   onTabChange: (tab: "overview" | "notes" | "resources" | "transcript") => void;
+  lessonType: string;
 }
 
 const TabNavigation: React.FC<TabNavigationProps> = ({
   activeTab,
   onTabChange,
+  lessonType,
 }) => {
   const tabs = [
     { id: "overview", label: "Overview", icon: "📋" },
     { id: "notes", label: "Notes", icon: "📝" },
     { id: "resources", label: "Resources", icon: "📚" },
-    { id: "transcript", label: "Transcript", icon: "📄" },
+    ...(lessonType === "video"
+      ? [{ id: "transcript", label: "Transcript", icon: "📄" }]
+      : []),
   ];
 
   return (
@@ -557,7 +473,11 @@ const LessonSidebar: React.FC<LessonSidebarProps> = ({
 }) => {
   return (
     <div className="lg:sticky lg:top-24">
-      <TabNavigation activeTab={activeTab} onTabChange={onTabChange} />
+      <TabNavigation
+        activeTab={activeTab}
+        onTabChange={onTabChange}
+        lessonType={currentLesson.type}
+      />
 
       <div className="bg-white dark:bg-gray-900 rounded-2xl p-4 sm:p-6">
         <AnimatePresence mode="wait">
@@ -618,31 +538,139 @@ const LessonSidebar: React.FC<LessonSidebarProps> = ({
 };
 
 // Main Page Component
-const Page: React.FC = () => {
-  const [currentLesson, setCurrentLesson] = useState<Lesson>(sampleLesson);
-  const [lessonProgress, setLessonProgress] = useState(35);
+type PageProps = {
+  params: Promise<{ id: string; lid: string }>;
+};
+
+const Page: React.FC<PageProps> = ({ params }) => {
+  const router = useRouter();
+  const [resolvedParams, setResolvedParams] = useState<{
+    id: string;
+    lid: string;
+  } | null>(null);
+  const [currentLesson, setCurrentLesson] = useState<Lesson | null>(null);
+  const [lessonProgress, setLessonProgress] = useState(0);
   const [activeTab, setActiveTab] = useState<
     "overview" | "notes" | "resources" | "transcript"
   >("overview");
-  const [notes, setNotes] = useState<Note[]>([
-    {
-      id: "note-1",
-      timestamp: 180,
-      content:
-        "Important: Always use the latest version of OpenZeppelin contracts for security updates.",
-      createdAt: new Date("2025-01-10"),
-    },
-    {
-      id: "note-2",
-      timestamp: 350,
-      content:
-        "The reentrancy guard pattern is essential for protecting against one of the most common attack vectors.",
-      createdAt: new Date("2025-01-10"),
-    },
-  ]);
+  const [notes, setNotes] = useState<Note[]>([]);
   const [currentTime] = useState(0);
+  const [isCompleted, setIsCompleted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const handleAddNote = (content: string, timestamp: number) => {
+  // For navigation - we'll need to fetch the full product to get all lessons
+  const [allLessons, setAllLessons] = useState<Lesson[]>([]);
+
+  // Resolve params asynchronously
+  useEffect(() => {
+    const resolveParams = async () => {
+      try {
+        const resolved = await params;
+        setResolvedParams(resolved);
+      } catch (err) {
+        console.error("Error resolving params:", err);
+        setError("Invalid parameters");
+        setLoading(false);
+      }
+    };
+    resolveParams();
+  }, [params]);
+
+  // Fetch lesson data and product data for navigation
+  useEffect(() => {
+    if (!resolvedParams) return;
+
+    const { id: productId, lid: lessonId } = resolvedParams;
+
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+
+        // First, fetch the specific lesson
+        const lessonRes = await fetch(
+          `/api/products/${productId}/lessons/${lessonId}`,
+        );
+        if (!lessonRes.ok) {
+          throw new Error(`Failed to fetch lesson: ${lessonRes.statusText}`);
+        }
+        const { lesson, notes: fetchedNotes } = await lessonRes.json();
+        setCurrentLesson(lesson);
+
+        // Set notes from API response or localStorage fallback
+        if (fetchedNotes && fetchedNotes.length > 0) {
+          setNotes(fetchedNotes);
+        } else {
+          // Fallback to localStorage for notes
+          const notesKey = `product-${productId}-lesson-${lessonId}-notes`;
+          const savedNotes = localStorage.getItem(notesKey);
+          setNotes(savedNotes ? JSON.parse(savedNotes) : []);
+        }
+
+        // Now fetch the full product to get all lessons for navigation
+        try {
+          const productRes = await fetch(`/api/products/${productId}`);
+          if (productRes.ok) {
+            const productData = await productRes.json();
+            const allLessonsFromModules: Lesson[] = [];
+
+            if (productData.product && productData.product.modules) {
+              productData.product.modules.forEach(
+                (module: ModuleWithLessons) => {
+                  if (module.lessons) {
+                    allLessonsFromModules.push(...module.lessons);
+                  }
+                },
+              );
+            }
+            setAllLessons(allLessonsFromModules);
+          }
+        } catch (productError) {
+          console.warn(
+            "Could not fetch product data for navigation:",
+            productError,
+          );
+          // Navigation will be disabled but lesson viewing still works
+        }
+
+        // Load completed status from localStorage as fallback
+        const completedKey = `product-${productId}-lesson-${lessonId}-completed`;
+        const savedCompleted = localStorage.getItem(completedKey) === "true";
+        setIsCompleted(savedCompleted || lesson.completed);
+        setLessonProgress(savedCompleted || lesson.completed ? 100 : 0);
+
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching lesson data:", error);
+        setError("Failed to load lesson data");
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [resolvedParams]);
+
+  // Sync notes to localStorage
+  useEffect(() => {
+    if (!resolvedParams || !notes.length) return;
+
+    const { id: productId, lid: lessonId } = resolvedParams;
+    const notesKey = `product-${productId}-lesson-${lessonId}-notes`;
+    localStorage.setItem(notesKey, JSON.stringify(notes));
+  }, [notes, resolvedParams]);
+
+  const currentIndex = useMemo(
+    () => allLessons.findIndex((l) => l.id === resolvedParams?.lid),
+    [allLessons, resolvedParams],
+  );
+
+  const hasPrevious = currentIndex > 0;
+  const hasNext = currentIndex >= 0 && currentIndex < allLessons.length - 1;
+
+  const handleAddNote = async (content: string, timestamp: number) => {
+    if (!resolvedParams) return;
+
+    const { id: productId, lid: lessonId } = resolvedParams;
     const newNote: Note = {
       id: `note-${Date.now()}`,
       timestamp,
@@ -652,71 +680,170 @@ const Page: React.FC = () => {
     setNotes((prev) =>
       [...prev, newNote].sort((a, b) => a.timestamp - b.timestamp),
     );
+
+    // Try to save note to backend
+    try {
+      const res = await fetch(
+        `/api/products/${productId}/lessons/${lessonId}/notes`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(newNote),
+        },
+      );
+      if (!res.ok) {
+        console.warn("Failed to save note to backend, using localStorage");
+      }
+    } catch (error) {
+      console.warn("Error saving note to backend:", error);
+    }
   };
 
-  const handleDeleteNote = (id: string) => {
+  const handleDeleteNote = async (id: string) => {
+    if (!resolvedParams) return;
+
+    const { id: productId, lid: lessonId } = resolvedParams;
     setNotes((prev) => prev.filter((note) => note.id !== id));
-  };
 
-  const getNextLesson = () => {
-    for (const mod of moduleStructure) {
-      const currentIndex = mod.lessons.findIndex(
-        (l) => l.id === currentLesson.id,
+    // Try to delete note from backend
+    try {
+      const res = await fetch(
+        `/api/products/${productId}/lessons/${lessonId}/notes/${id}`,
+        {
+          method: "DELETE",
+        },
       );
-      if (currentIndex !== -1 && currentIndex < mod.lessons.length - 1) {
-        return mod.lessons[currentIndex + 1];
+      if (!res.ok) {
+        console.warn("Failed to delete note from backend");
       }
+    } catch (error) {
+      console.warn("Error deleting note from backend:", error);
     }
-    return null;
   };
 
-  const getPreviousLesson = () => {
-    for (const mod of moduleStructure) {
-      const currentIndex = mod.lessons.findIndex(
-        (l) => l.id === currentLesson.id,
+  const markLessonComplete = async () => {
+    if (!resolvedParams || isCompleted) return;
+
+    const { id: productId, lid: lessonId } = resolvedParams;
+    const completedKey = `product-${productId}-lesson-${lessonId}-completed`;
+    localStorage.setItem(completedKey, "true");
+    setIsCompleted(true);
+    setLessonProgress(100);
+
+    // Try to update backend
+    try {
+      const res = await fetch(
+        `/api/products/${productId}/lessons/${lessonId}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ completed: true }),
+        },
       );
-      if (currentIndex > 0) {
-        return mod.lessons[currentIndex - 1];
+      if (!res.ok) {
+        console.warn("Failed to mark lesson complete in backend");
       }
+    } catch (error) {
+      console.warn("Error marking lesson complete:", error);
     }
-    return null;
   };
 
-  const markLessonComplete = () => {
-    setCurrentLesson((prev) => ({ ...prev, completed: true }));
-    setLessonProgress(100); // TOBE REMOVED
-    console.log(`Marked lesson ${currentLesson.id} as complete`);
+  const onPrevious = () => {
+    if (hasPrevious && resolvedParams) {
+      router.push(
+        `/dashboard/purchases/${resolvedParams.id}/lessons/${allLessons[currentIndex - 1].id}`,
+      );
+    }
   };
 
-  const nextLesson = getNextLesson();
-  const previousLesson = getPreviousLesson();
+  const onNext = () => {
+    if (hasNext && resolvedParams) {
+      router.push(
+        `/dashboard/purchases/${resolvedParams.id}/lessons/${allLessons[currentIndex + 1].id}`,
+      );
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#D2145A] mx-auto mb-4"></div>
+          <p>Loading lesson...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-red-500">
+        <div className="text-center">
+          <div className="text-4xl mb-4">⚠️</div>
+          <p className="text-lg font-medium mb-2">Error Loading Lesson</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+            {error}
+          </p>
+          <button
+            onClick={() => router.back()}
+            className="bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white px-4 py-2 rounded-lg font-medium hover:scale-105 transition-transform"
+          >
+            Go Back
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!currentLesson || !resolvedParams) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#D2145A] mx-auto mb-4"></div>
+          <p>Loading lesson data...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen p-4 md:p-8">
       <LessonHeader
         lesson={currentLesson}
+        productId={resolvedParams.id}
         lessonProgress={lessonProgress}
         onMarkComplete={markLessonComplete}
+        isCompleted={isCompleted}
       />
 
       <div className="max-w-7xl mx-auto px-4 py-6 sm:py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           <div className="lg:col-span-2 space-y-6">
-            <CustomYouTubePlayer
-              videoUrl="https://www.youtube.com/watch?v=n5LAPG8Olyo"
-              width="100%"
-              height="400px"
-            />
+            {currentLesson.type === "video" ? (
+              <CustomYouTubePlayer
+                videoUrl={currentLesson.videoUrl || ""}
+                width="100%"
+                height="400px"
+              />
+            ) : (
+              <div className="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-200 dark:border-gray-700">
+                <h2 className="text-xl font-bold mb-4">Lesson Content</h2>
+                <div className="prose dark:prose-invert">
+                  {currentLesson.content || "No content available."}
+                </div>
+              </div>
+            )}
 
-            <LessonNavigation
-              currentLesson={currentLesson}
-              onPrevious={() =>
-                previousLesson && setCurrentLesson(previousLesson)
-              }
-              onNext={() => nextLesson && setCurrentLesson(nextLesson)}
-              hasPrevious={!!previousLesson}
-              hasNext={!!nextLesson}
-            />
+            {/* Only show navigation if we have lesson data */}
+            {allLessons.length > 0 && (
+              <LessonNavigation
+                currentLesson={currentLesson}
+                onPrevious={onPrevious}
+                onNext={onNext}
+                hasPrevious={hasPrevious}
+                hasNext={hasNext}
+              />
+            )}
           </div>
 
           <div className="lg:col-span-1">

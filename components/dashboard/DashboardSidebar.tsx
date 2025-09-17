@@ -29,9 +29,6 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   const [hoveredItem, setHoveredItem] = useState<number | null>(null);
   const pathname = usePathname();
 
-  // Debug user role
-  console.log("User object:", user);
-
   const fullName = user ? `${user.firstName} ${user.lastName}` : "User";
   const avatar = user?.avatar || "👨‍💻";
   const role = user?.role
