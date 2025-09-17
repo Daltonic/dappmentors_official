@@ -171,9 +171,18 @@ const ProductCard: React.FC<{
         </div>
 
         {/* Title and Description */}
-        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 line-clamp-2">
-          {product.title}
-        </h3>
+        <Link
+          href={`/products/${product.slug}`}
+          target="_blank"
+          className="flex items-center gap-3"
+          onClick={(e) => {
+            if (product.status !== "published") e.preventDefault();
+          }}
+        >
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 line-clamp-2 group-hover:text-[#D2145A] transition-colors duration-300">
+            {product.title}
+          </h3>
+        </Link>
         <p className="text-gray-600 dark:text-gray-300 text-sm mb-4 line-clamp-2">
           {product.description}
         </p>

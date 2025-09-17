@@ -220,7 +220,14 @@ const ServiceTable: React.FC<ServiceTableProps> = ({
                   />
                 </td>
                 <td className="px-4 py-4">
-                  <div className="flex items-center gap-3">
+                  <Link
+                    href={`/services/${service.slug}`}
+                    target="_blank"
+                    className="flex items-center gap-3"
+                    onClick={(e) => {
+                      if (service.status !== "active") e.preventDefault();
+                    }}
+                  >
                     <Image
                       src={service.thumbnail}
                       alt={service.title}
@@ -230,7 +237,7 @@ const ServiceTable: React.FC<ServiceTableProps> = ({
                       style={{ objectFit: "cover" }}
                     />
                     <div className="min-w-0 flex-1">
-                      <h4 className="font-semibold text-gray-900 dark:text-white text-sm mb-1 line-clamp-1">
+                      <h4 className="font-semibold text-gray-900 dark:text-white text-sm mb-1 line-clamp-1 group-hover:text-[#D2145A] transition-colors duration-300">
                         {service.title}
                       </h4>
                       {service.featured && (
@@ -239,7 +246,7 @@ const ServiceTable: React.FC<ServiceTableProps> = ({
                         </span>
                       )}
                     </div>
-                  </div>
+                  </Link>
                 </td>
                 <td className="px-4 py-4">
                   <span

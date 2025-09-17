@@ -104,10 +104,7 @@ const PageClient: React.FC<PageClientProps> = ({ product }) => {
           </div>
           <div className="text-center">
             <div className="text-3xl font-bold text-gray-900 dark:text-white">
-              {product.duration.replace("months", "")}
-            </div>
-            <div className="text-sm text-gray-600 dark:text-gray-300">
-              Months Duration
+              {product.duration}
             </div>
           </div>
           <div className="text-center">

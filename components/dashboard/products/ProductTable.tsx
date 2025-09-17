@@ -16,7 +16,6 @@ import {
   FaChevronRight,
 } from "react-icons/fa";
 import Link from "next/link";
-import { LuFileStack } from "react-icons/lu";
 
 // Helper function components (these can be in a separate utils file if needed)
 const SortIcon: React.FC<{
@@ -211,7 +210,14 @@ const ProductTable: React.FC<{
                   />
                 </td>
                 <td className="px-4 py-4">
-                  <div className="flex items-center gap-3">
+                  <Link
+                    href={`/products/${product.slug}`}
+                    target="_blank"
+                    className="flex items-center gap-3"
+                    onClick={(e) => {
+                      if (product.status !== "published") e.preventDefault();
+                    }}
+                  >
                     <Image
                       src={product.imageUrl || "/placeholder-image.svg"} // Fallback to placeholder
                       alt={product.title}
@@ -221,7 +227,7 @@ const ProductTable: React.FC<{
                       style={{ objectFit: "cover" }}
                     />
                     <div className="min-w-0 flex-1">
-                      <h4 className="font-semibold text-gray-900 dark:text-white text-sm mb-1 line-clamp-1">
+                      <h4 className="font-semibold text-gray-900 dark:text-white text-sm mb-1 line-clamp-1 group-hover:text-[#D2145A] transition-colors duration-300">
                         {product.title}
                       </h4>
                       <p className="text-gray-600 dark:text-gray-300 text-xs line-clamp-1">
@@ -234,7 +240,7 @@ const ProductTable: React.FC<{
                         </span>
                       )}
                     </div>
-                  </div>
+                  </Link>
                 </td>
                 <td className="px-4 py-4">
                   <span
@@ -294,20 +300,6 @@ const ProductTable: React.FC<{
                 </td>
                 <td className="px-4 py-4">
                   <div className="flex items-center justify-end gap-1">
-                    <button
-                      className={`
-                          p-2 text-green-600 hover:bg-[#FF4081]/10 dark:text-green-300
-                          dark:hover:bg-[#FF4081]/20 rounded-lg transition-all duration-300
-                          hover:scale-110 ${product.type !== "Course" && "cursor-not-allowed"}
-                        `}
-                      title="Product Modules"
-                      onClick={() =>
-                        router.push(`/dashboard/products/${product.id}/modules`)
-                      }
-                      disabled={product.type !== "Course"}
-                    >
-                      <LuFileStack className="w-4 h-4" />
-                    </button>
                     <button
                       className="p-2 text-[#142dd2] hover:bg-[#FF4081]/10 dark:text-[#FF4081] dark:hover:bg-[#FF4081]/20 rounded-lg transition-all duration-300 hover:scale-110"
                       title="Edit product"
