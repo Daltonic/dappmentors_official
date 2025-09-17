@@ -2,6 +2,7 @@ import { generateGradientFromString } from "@/heplers/global";
 import { Product } from "@/utils/interfaces";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 // Function to generate gradient based on string hash
 
@@ -9,6 +10,7 @@ import Link from "next/link";
 const ProductCard = ({ product }: { product: Product }) => {
   // Generate gradient from title
   const gradient = generateGradientFromString(product.title);
+  const router = useRouter();
 
   // Provide fallback for imageUrl
   const imageSrc = product.imageUrl || "/placeholder-image.jpg";
@@ -102,12 +104,12 @@ const ProductCard = ({ product }: { product: Product }) => {
             </div>
 
             {/* Dynamic CTA Button */}
-            <button className="bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg">
-              {product.type === "Course" && "Enroll Now"}
-              {product.type === "Bootcamp" && "Reserve Spot"}
-              {product.type === "Ebook" && "Download Ebook"}
-              {!["Course", "Bootcamp", "Ebook"].includes(product.type) &&
-                "View Details"}
+            <button
+              onClick={() => router.push(`/products/${product.slug}`)}
+              className="bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white px-6 py-3
+              rounded-xl font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg"
+            >
+              View Details
             </button>
           </div>
         </div>

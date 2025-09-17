@@ -1,6 +1,6 @@
-import { useQuote } from "@/contexts/QuoteContext";
 import { generateGradientFromString } from "@/heplers/global";
 import { Service } from "@/utils/interfaces";
+import { useRouter } from "next/navigation";
 import React from "react";
 
 interface ServiceCardProps {
@@ -14,12 +14,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
 }) => {
   // Use provided gradient or generate a random one
   const gradient = generateGradientFromString(service.title);
-
-  const { showQuoteModal } = useQuote();
-
-  const handleGetQuote = (service: Service) => {
-    showQuoteModal(service);
-  };
+  const router = useRouter();
 
   if (transparent) {
     return (
@@ -36,7 +31,6 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
             </span>
           )}
         </div>
-
         <h3 className="text-2xl font-bold text-white mb-4">{service.title}</h3>
 
         <p className="text-white/80 mb-6 leading-relaxed">
@@ -53,7 +47,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
         </div>
 
         <button
-          onClick={() => handleGetQuote(service)}
+          onClick={() => router.push(`/services/${service.slug}`)}
           className="w-full bg-white text-[#D2145A] py-3 px-6 rounded-xl font-semibold transition-all duration-300 hover:bg-gray-100 hover:scale-105"
         >
           Get Quote
@@ -86,7 +80,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
         </div>
 
         {/* Title */}
-        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+        <h3 className="text-2xl font-bold text-gray-900 dark:text-white group-hover:text-[#D2145A] transition-colors duration-300 line-clamp-2 mb-4">
           {service.title}
         </h3>
 
@@ -111,7 +105,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
 
         {/* Get Quote Button */}
         <button
-          onClick={() => handleGetQuote(service)}
+          onClick={() => router.push(`/services/${service.slug}`)}
           className="w-full bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 text-gray-900 dark:text-white py-3 px-6 rounded-xl font-semibold transition-all duration-300 group-hover:bg-gradient-to-r group-hover:from-[#D2145A] group-hover:to-[#FF4081] group-hover:text-white hover:scale-105"
         >
           Get Quote

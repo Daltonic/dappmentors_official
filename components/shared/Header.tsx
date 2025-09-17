@@ -42,6 +42,11 @@ const Header: React.FC = () => {
     setIsSideBarOpen(false);
   };
 
+  // Determine if a nav link is active, including sub-routes
+  const isActiveLink = (link: string) => {
+    return pathname === link || (link !== "/" && pathname.startsWith(link));
+  };
+
   return (
     <>
       {/* Header */}
@@ -95,7 +100,7 @@ const Header: React.FC = () => {
                       className={`
                         relative px-3 py-2 font-semibold transition-all duration-300 rounded-xl
                         ${
-                          pathname === item.link
+                          isActiveLink(item.link)
                             ? "text-[#D2145A] bg-gradient-to-r from-[#D2145A]/10 to-[#FF4081]/10"
                             : "text-gray-700 dark:text-gray-300 hover:text-[#D2145A] dark:hover:text-[#FF4081] hover:bg-gray-100/50 dark:hover:bg-gray-700/50"
                         }
@@ -103,7 +108,7 @@ const Header: React.FC = () => {
                     >
                       {item.label}
                       {/* Active indicator */}
-                      {pathname === item.link && (
+                      {isActiveLink(item.link) && (
                         <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-[#D2145A] rounded-full animate-pulse"></div>
                       )}
                     </Link>

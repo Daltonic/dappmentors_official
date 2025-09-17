@@ -1,4 +1,10 @@
-import { ModuleWithLessons, PostProp, Product, User } from "@/utils/interfaces";
+import {
+  ModuleWithLessons,
+  PostProp,
+  Product,
+  Service,
+  User,
+} from "@/utils/interfaces";
 // @/config/dashboardConfig.ts
 import {
   FaChartPie,
@@ -599,3 +605,77 @@ export const fakeModules: ModuleWithLessons[] = [
     order: 2,
   },
 ];
+
+export const serviceData: Service = {
+  id: "smart-contract-development",
+  icon: "🎉",
+  title: "Smart Contract Development",
+  description:
+    "Custom smart contract development with security-first approach, gas optimization, and comprehensive testing for production-ready dApps.",
+  type: "Professional",
+  price: "2500",
+  status: "active",
+  clients: 150,
+  createdAt: new Date("2024-01-15T10:00:00Z"),
+  updatedAt: new Date("2025-09-03T02:27:00Z"),
+  featured: true,
+  thumbnail: "/assets/images/products/solana.jpg",
+  slug: "smart-contract-development",
+  features: [
+    "Security-First Development",
+    "Gas Optimization",
+    "Thorough Testing",
+    "Detailed Documentation",
+  ],
+  packages: [
+    {
+      name: "Basic",
+      price: "$2,500",
+      features: [
+        "Single smart contract",
+        "Basic testing",
+        "Standard deployment",
+        "Basic documentation",
+      ],
+    },
+    {
+      name: "Standard",
+      price: "$5,000",
+      features: [
+        "Up to 3 smart contracts",
+        "Comprehensive testing",
+        "Security audit",
+        "Detailed documentation",
+      ],
+      popular: true,
+    },
+    {
+      name: "Premium",
+      price: "$10,000+",
+      features: [
+        "Complex contract system",
+        "Full test suite",
+        "Advanced security audit",
+        "Ongoing support",
+        "Custom integrations",
+      ],
+    },
+  ],
+  faqs: [
+    {
+      question: "What blockchains do you support?",
+      answer:
+        "We support Ethereum, Polygon, BSC, Arbitrum, Optimism, Avalanche, and other EVM-compatible chains.",
+    },
+    {
+      question: "How do you ensure contract security?",
+      answer:
+        "We follow best practices with rigorous testing, code reviews, and third-party audits when required.",
+    },
+    {
+      question: "What is included in the deliverables?",
+      answer:
+        "You receive full source code, deployment scripts, test suites, audit reports, and detailed documentation.",
+    },
+  ],
+};

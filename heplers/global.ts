@@ -41,3 +41,12 @@ export const generateGradientFromString = (str: string): string => {
 
   return gradients[Math.abs(hash) % gradients.length];
 };
+
+export const getHighlightWord = (title: string) => {
+  const words = title.split(" ").filter((word) => word.length > 0); // Split and filter out empty strings
+  if (words.length > 3) {
+    const middleIndex = Math.floor((words.length - 1) / 2); // Find the starting index for middle two words
+    return `${words[middleIndex]} ${words[middleIndex + 1]}`; // Return two consecutive middle words
+  }
+  return words[words.length - 1] || ""; // Return last word or empty string if no words
+};
