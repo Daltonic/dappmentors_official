@@ -54,6 +54,11 @@ jobs:
             NEXT_PUBLIC_APP_URL=${{ secrets.NEXT_PUBLIC_APP_URL }}
             CLEAR_EXISTING=true
             NUM_ITEM=50
+            PROCESSOR_KEY=${{ secrets.PROCESSOR_KEY }}
+            STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }}
+            WEBHOOK_SECRET=${{ secrets.WEBHOOK_SECRET }}
+            BACKEND_DOMAIN=${{ secrets.BACKEND_DOMAIN }}
+            PAYMENT_PROCESSOR_URL=${{ secrets.PAYMENT_PROCESSOR_URL }}
             EOF
 
   deploy_with_compose:
