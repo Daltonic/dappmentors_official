@@ -337,3 +337,12 @@ export interface Service {
   packages: Package[];
   type: ServiceType;
 }
+
+export interface ICheckoutItem {
+  id: string;
+  title: string;
+  price: number;
+  quantity: number;
+  image?: string;
+  type?: "product" | "service"; // Optional type to distinguish products/services
+}

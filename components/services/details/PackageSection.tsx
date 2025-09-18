@@ -16,7 +16,7 @@ const PackagesSection: React.FC<{
   selectedPackage: string | null;
   setSelectedPackage: (val: string | null) => void;
   isFixedPrice: boolean;
-  handlePayment: (packageName?: string) => void;
+  handlePayment: (packageName?: string, packagePrice?: string) => void;
 }> = ({
   service,
   selectedPackage,
@@ -152,7 +152,7 @@ const PackagesSection: React.FC<{
                                     String(pkg.price),
                                   );
                                   if (hasNumericPrice) {
-                                    handlePayment(pkg.name);
+                                    handlePayment(pkg.name, pkg.price);
                                   } else {
                                     document
                                       .getElementById("quote-section")

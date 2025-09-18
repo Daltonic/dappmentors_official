@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import MarketingLayout from "@/components/layouts/MarketingLayout";
 import HeroSection from "@/components/shared/HeroSection";
 import Image from "next/image";
-import { Product } from "@/utils/interfaces";
+import { Product, ICheckoutItem } from "@/utils/interfaces";
 import FeaturesSection from "@/components/products/details/FeaturesSection";
 import ProductContentSection from "@/components/products/details/ProductContentSection";
 import InstructorSection from "@/components/products/details/InstructorSection";
@@ -24,27 +24,39 @@ const PageClient: React.FC<PageClientProps> = ({ product }) => {
 
   const handleEnroll = async () => {
     setIsEnrolling(true);
+
+    const item: ICheckoutItem = {
+      id: product.id,
+      image: product.imageUrl,
+      quantity: 1,
+      type: "product",
+      price: Number(product.price),
+      title: product.title,
+    };
+
     try {
-      const response = await fetch("/api/webhook", {
+      const response = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          type: "product",
-          id: product.id,
+          items: [item],
         }),
       });
 
+      if (response.status === 401) {
+        window.location.href = `/auth/login?redirectTo=${encodeURIComponent(window.location.pathname)}`;
+        return;
+      }
+
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to process enrollment");
+        throw new Error(errorData.error || "Failed to initiate checkout");
       }
 
       const data = await response.json();
-      toast.success(
-        data.message || `Successfully enrolled in ${product.title}!`,
-      );
+      window.location.href = data.checkoutSession.url;
     } catch (error) {
       console.error("Enrollment error:", error);
       toast.error(

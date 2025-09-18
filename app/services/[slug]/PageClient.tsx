@@ -6,7 +6,7 @@ import HeroSection from "@/components/shared/HeroSection";
 import Image from "next/image";
 import CTASection from "@/components/shared/CTASection";
 import FAQSection from "@/components/shared/FAQSection";
-import { Service } from "@/utils/interfaces";
+import { ICheckoutItem, Service } from "@/utils/interfaces";
 import { Star, ArrowRight } from "lucide-react";
 import QuoteSection from "@/components/services/details/QuoteSection";
 import PackagesSection from "@/components/services/details/PackageSection";
@@ -49,33 +49,40 @@ const PageClient: React.FC<PageClientProps> = ({ service }) => {
     setSelectedPackage(null);
   };
 
-  const handlePayment = async (packageName?: string) => {
+  const handlePayment = async (packageName: string, packagePrice: number) => {
     setIsPurchasing(true);
+    const item: ICheckoutItem = {
+      id: service.id,
+      image: service.thumbnail,
+      quantity: 1,
+      type: "service",
+      price: packagePrice,
+      title: packageName,
+    };
+
     try {
-      const response = await fetch("/api/webhook", {
+      const response = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          type: "service",
-          id: service.id,
+          items: [item],
         }),
       });
 
+      if (response.status === 401) {
+        window.location.href = `/auth/login?redirectTo=${encodeURIComponent(window.location.pathname)}`;
+        return;
+      }
+
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to process purchase");
+        throw new Error(errorData.error || "Failed to initiate checkout");
       }
 
       const data = await response.json();
-      toast.success(data.message || "Purchase saved successfully!");
-
-      const itemName = packageName || service.title;
-      const price = packageName
-        ? service.packages.find((p) => p.name === packageName)?.price
-        : service.price;
-      console.log(`Processed mock purchase for ${itemName} at ${price}`);
+      window.location.href = data.checkoutSession.url;
     } catch (error) {
       console.error("Purchase error:", error);
       toast.error(
@@ -218,7 +225,9 @@ const PageClient: React.FC<PageClientProps> = ({ service }) => {
         selectedPackage={selectedPackage}
         setSelectedPackage={setSelectedPackage}
         isFixedPrice={isFixedPrice}
-        handlePayment={handlePayment}
+        handlePayment={(packageName, packagePrice) =>
+          handlePayment(packageName!, Number(packagePrice))
+        }
       />
 
       <QuoteSection
