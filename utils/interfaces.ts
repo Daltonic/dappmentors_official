@@ -342,6 +342,7 @@ export interface ICheckoutItem {
   id: string;
   name: string;
   price: number;
+  amount?: number;
   quantity: number;
   image?: string;
   type?: "product" | "service"; // Optional type to distinguish products/services
