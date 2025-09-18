@@ -340,7 +340,7 @@ export interface Service {
 
 export interface ICheckoutItem {
   id: string;
-  title: string;
+  name: string;
   price: number;
   quantity: number;
   image?: string;

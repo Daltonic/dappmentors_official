@@ -31,7 +31,7 @@ const PageClient: React.FC<PageClientProps> = ({ product }) => {
       quantity: 1,
       type: "product",
       price: Number(product.price),
-      title: product.title,
+      name: product.title,
     };
 
     try {

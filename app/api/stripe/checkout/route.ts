@@ -11,8 +11,6 @@ const PROCESSOR_KEY = process.env.PROCESSOR_KEY;
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET;
 const BACKEND_DOMAIN = process.env.BACKEND_DOMAIN || "http://localhost:3000";
-const SUCCESS_URL = `${BACKEND_DOMAIN}/success`;
-const CANCEL_URL = `${BACKEND_DOMAIN}/cancel`;
 
 // POST - Initiate a checkout session for multiple items (products or services)
 export async function POST(request: NextRequest): Promise<NextResponse> {
@@ -67,7 +65,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // Prepare line_items for payment processor
     const lineItems = items.map((item) => {
       return {
-        name: item.title,
+        name: item.name,
+        type: item.type,
         amount: item.price, // Unit price (processor should handle quantity)
         image: item.image || "",
         product_id: item.id, // Or item_id for generality
@@ -76,6 +75,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     });
 
     console.log(`POST /api/stripe/checkout - Line Items:`, lineItems);
+
+    // Sum up total amount
+    const totalAmount = lineItems.reduce((sum, item) => {
+      return sum + item.amount * item.quantity;
+    }, 0);
+
+    const SUCCESS_URL = `${BACKEND_DOMAIN}/payment-status?status=success&amount=${totalAmount}&service=${lineItems[0].name}`;
+    const CANCEL_URL = `${BACKEND_DOMAIN}/payment-status?status=failure&amount=${totalAmount}&service=${lineItems[0].name}`;
 
     // Prepare payload for payment processor
     const checkoutPayload = {

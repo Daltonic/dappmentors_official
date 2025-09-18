@@ -57,7 +57,7 @@ const PageClient: React.FC<PageClientProps> = ({ service }) => {
       quantity: 1,
       type: "service",
       price: packagePrice,
-      title: packageName,
+      name: packageName,
     };
 
     try {
