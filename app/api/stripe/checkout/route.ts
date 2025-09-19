@@ -92,6 +92,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       cancelUrl: CANCEL_URL,
       backendDomain: BACKEND_DOMAIN,
       webhookSecret: WEBHOOK_SECRET,
+      userId: payload.userId,
+      email: payload.email,
     };
 
     // Call the payment processor's /checkout endpoint

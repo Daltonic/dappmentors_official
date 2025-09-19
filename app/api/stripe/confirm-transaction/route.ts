@@ -20,12 +20,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     // Parse request body
     const body = await request.json();
-    const { email, tx, type, id, line_items } = body;
+    const { email, userId, tx, type, id, line_items } = body;
 
     // Validate required fields
-    if (!email || !tx || !type) {
+    if (!email || !userId || !tx || !type) {
       return NextResponse.json(
-        { error: "Invalid request: email, tx, and type are required" },
+        { error: "Invalid request: email, userId, tx, and type are required" },
         { status: 400 },
       );
     }
@@ -76,6 +76,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // Create transaction record
     const transaction = {
       email,
+      userId,
       transactionId: tx,
       type: type || "checkout", // 'checkout', 'subscription', etc.
       ...(type !== "subscription" && { lineItems: normalizedLineItems }),
@@ -173,6 +174,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     console.log("Transaction saved successfully:", {
       transactionId: tx,
       email,
+      userId,
       type,
       ...(type !== "subscription" && {
         lineItemsCount: normalizedLineItems.length,
