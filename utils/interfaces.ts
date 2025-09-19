@@ -348,6 +348,19 @@ export interface ICheckoutItem {
   type?: "product" | "service"; // Optional type to distinguish products/services
 }
 
+export interface Transaction {
+  _id: string;
+  email: string;
+  userId: string;
+  transactionId: string;
+  type: string;
+  lineItems?: ICheckoutItem[];
+  totalAmount?: number;
+  subscriptionId?: string;
+  createdAt: Date;
+  status: string;
+}
+
 export interface Activity {
   id: string;
   type:
