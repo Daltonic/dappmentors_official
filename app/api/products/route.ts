@@ -11,6 +11,7 @@ import {
   validateAndNormalizeFAQs,
   validateProductData,
 } from "@/validations/products";
+import { logActivity } from "@/heplers/users";
 
 type ProductStatus = "published" | "draft" | "archived";
 type ProductDifficulty =
@@ -314,6 +315,19 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     // Insert product
     const result = await collection.insertOne(productData);
+
+    // Log activity for product creation
+    await logActivity(
+      db,
+      "items_activities",
+      "Product created",
+      `${productData.title} ${productData.type} has been created`,
+      {
+        userId: productData.createdBy,
+        itemSlug: productData.slug,
+        itemType: "product",
+      },
+    );
 
     // Fetch the created product
     const createdProduct = await collection.findOne({ _id: result.insertedId });

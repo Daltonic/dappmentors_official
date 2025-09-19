@@ -9,6 +9,7 @@ import {
   validateAndNormalizeFAQs,
   validateServiceData,
 } from "@/validations/services";
+import { logActivity } from "@/heplers/users";
 
 type ServiceStatus = "active" | "inactive" | "coming-soon";
 
@@ -184,6 +185,20 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     };
 
     const result = await collection.insertOne(serviceData);
+
+    // Log activity for product created
+    await logActivity(
+      db,
+      "items_activities",
+      "Service created",
+      `${serviceData.title} ${serviceData.type} has been created`,
+      {
+        userId: serviceData.createdBy,
+        itemSlug: serviceData.slug,
+        itemType: "service",
+      },
+    );
+
     const createdService = await collection.findOne({ _id: result.insertedId });
 
     if (!createdService) {

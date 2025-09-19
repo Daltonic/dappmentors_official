@@ -16,6 +16,7 @@ import {
   validateAndNormalizeTestimonials,
   validateUpdateProductData,
 } from "@/validations/products";
+import { logActivity } from "@/heplers/users";
 
 type ProductStatus = "published" | "draft" | "archived";
 type ProductDifficulty = "Beginner" | "Intermediate" | "Advanced";
@@ -276,6 +277,19 @@ export async function PUT(
     if (result.matchedCount === 0) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
+
+    // Log activity for product updated
+    await logActivity(
+      db,
+      "items_activities",
+      "Product updated",
+      `${updateData.title} ${updateData.type} has been updated`,
+      {
+        userId: updateData.createdBy,
+        itemSlug: updateData.slug,
+        itemType: "product",
+      },
+    );
 
     // Fetch updated product
     const updatedProduct = await collection.findOne(query);

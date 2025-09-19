@@ -11,6 +11,7 @@ import {
   validateAndNormalizePackages,
   validateUpdateServiceData,
 } from "@/validations/services";
+import { logActivity } from "@/heplers/users";
 
 type ServiceStatus = "active" | "inactive" | "coming-soon";
 
@@ -243,6 +244,20 @@ export async function PUT(
         { status: 500 },
       );
     }
+
+    // Log activity for product updated
+    await logActivity(
+      db,
+      "items_activities",
+      "Service updated",
+      `${updatedService.title} ${updatedService.type} has been updated`,
+      {
+        userId: updatedService.createdBy,
+        itemSlug: updatedService.slug,
+        itemType: "service",
+      },
+    );
+
     const { _id, ...rest } = updatedService;
     const transformedService = {
       ...rest,

@@ -347,3 +347,26 @@ export interface ICheckoutItem {
   image?: string;
   type?: "product" | "service"; // Optional type to distinguish products/services
 }
+
+export interface Activity {
+  id: string;
+  type:
+    | "user_registration"
+    | "items_activities"
+    | "course_completed"
+    | "payment_received"
+    | "new_review";
+  title: string;
+  description: string;
+  timestamp: Date; // ISO string from DB
+  icon: string;
+  color: string;
+  metadata?: {
+    userId?: string;
+    userName?: string;
+    amount?: number;
+    itemTtitle?: string;
+    itemType?: string;
+    itemSlug?: string;
+  };
+}

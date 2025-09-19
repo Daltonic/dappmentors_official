@@ -1,6 +1,6 @@
 // /api/auth/users/route.ts
 
-import { generateVerificationToken } from "@/heplers/users";
+import { generateVerificationToken, logActivity } from "@/heplers/users";
 import { sendVerificationEmail } from "@/lib/email";
 import { connectToDatabase } from "@/lib/mongodb";
 import { verifyAccessToken } from "@/lib/jwt";
@@ -166,6 +166,18 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     // Insert user into database
     const result = await collection.insertOne(newUser);
+
+    // Log activity for new registration
+    await logActivity(
+      db,
+      "user_registration",
+      "New user registration",
+      `${newUser.name} joined as ${newUser.role}`,
+      {
+        userId: result.insertedId.toString(),
+        userName: newUser.name,
+      },
+    );
 
     // Send email verification email
     try {

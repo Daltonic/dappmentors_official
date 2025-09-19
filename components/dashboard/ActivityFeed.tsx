@@ -1,41 +1,61 @@
 import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
+import { formatDistanceToNow } from "date-fns"; // npm i date-fns
+import { Activity } from "@/utils/interfaces"; // Adjust path
 
 // Activity Feed Component
 const ActivityFeed: React.FC = () => {
-  const activities = [
-    {
-      id: "1",
-      icon: "👤",
-      title: "New user registration",
-      description: "Alice Johnson joined as instructor",
-      time: "5 min ago",
-      color: "text-[#D2145A]",
-    },
-    {
-      id: "2",
-      icon: "📚",
-      title: "Course completed",
-      description: "Bob Smith finished React Masterclass",
-      time: "12 min ago",
-      color: "text-green-500",
-    },
-    {
-      id: "3",
-      icon: "💰",
-      title: "Payment received",
-      description: "$299 from course enrollment",
-      time: "1 hour ago",
-      color: "text-yellow-500",
-    },
-    {
-      id: "4",
-      icon: "⭐",
-      title: "New review",
-      description: "5-star review on Advanced JavaScript",
-      time: "2 hours ago",
-      color: "text-purple-500",
-    },
-  ];
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchActivities();
+  }, []);
+
+  const fetchActivities = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch("/api/activities?limit=10");
+      if (!response.ok) {
+        throw new Error("Failed to fetch activities");
+      }
+      const data = await response.json();
+      setActivities(data.activities);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="bg-white/10 dark:bg-gray-900/80 backdrop-blur-sm rounded-3xl border border-gray-200/50 dark:border-gray-700/50 shadow-lg p-6">
+        <p className="text-gray-500 dark:text-gray-400">
+          Loading activities...
+        </p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-white/10 dark:bg-gray-900/80 backdrop-blur-sm rounded-3xl border border-gray-200/50 dark:border-gray-700/50 shadow-lg p-6">
+        <p className="text-red-500 dark:text-red-400">Error: {error}</p>
+      </div>
+    );
+  }
+
+  if (activities.length === 0) {
+    return (
+      <div className="bg-white/10 dark:bg-gray-900/80 backdrop-blur-sm rounded-3xl border border-gray-200/50 dark:border-gray-700/50 shadow-lg p-6">
+        <p className="text-gray-500 dark:text-gray-400">
+          No recent activities.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white/10 dark:bg-gray-900/80 backdrop-blur-sm rounded-3xl border border-gray-200/50 dark:border-gray-700/50 shadow-lg">
@@ -75,7 +95,9 @@ const ActivityFeed: React.FC = () => {
                   {activity.description}
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  {activity.time}
+                  {formatDistanceToNow(new Date(activity.timestamp), {
+                    addSuffix: true,
+                  })}
                 </p>
               </div>
             </motion.div>

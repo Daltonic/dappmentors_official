@@ -4,6 +4,7 @@ import { connectToDatabase } from "@/lib/mongodb";
 import { Collection, ObjectId } from "mongodb";
 import { NextRequest, NextResponse } from "next/server";
 import { ICheckoutItem } from "@/utils/interfaces";
+import { logActivity } from "@/heplers/users";
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
@@ -98,7 +99,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     // Find user by email
-    const user = await usersCollection.findOne({ email });
+    const user = await usersCollection.findOne({ email }); // Find by email or userId
 
     if (user) {
       // Process each line item for non-subscription transactions
@@ -170,6 +171,22 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       console.warn(`User not found for email: ${email}`);
       // Optionally create a new user or handle this case
     }
+
+    // Log activity for product creation
+    await logActivity(
+      db,
+      "payment_received",
+      "Payment Received",
+      `${normalizedLineItems[0].name} ${
+        normalizedLineItems.length > 1
+          ? " and " + normalizedLineItems.length + " other items"
+          : type
+      } was purchased by ${email}`,
+      {
+        userId,
+        itemType: type,
+      },
+    );
 
     console.log("Transaction saved successfully:", {
       transactionId: tx,
