@@ -14,6 +14,8 @@ import FinalCTASection from "@/components/products/details/FinalCTASection";
 import { toast } from "react-toastify";
 import { Star, ArrowRight } from "lucide-react";
 import { getHighlightWord } from "@/heplers/global";
+import { useRouter } from "next/navigation";
+import { useUser } from "@/contexts/UserContext";
 
 interface PageClientProps {
   product: Product;
@@ -21,6 +23,10 @@ interface PageClientProps {
 
 const PageClient: React.FC<PageClientProps> = ({ product }) => {
   const [isEnrolling, setIsEnrolling] = useState(false);
+  const { user } = useUser();
+  const router = useRouter();
+
+  const isPurchased = user && user.purchasedProducts?.includes(product.id);
 
   const handleEnroll = async () => {
     setIsEnrolling(true);
@@ -68,6 +74,20 @@ const PageClient: React.FC<PageClientProps> = ({ product }) => {
       setIsEnrolling(false);
     }
   };
+
+  const handleAction = () => {
+    if (isPurchased) {
+      router.push(`/dashboard/purchases/${product.id}/lessons`);
+    } else {
+      handleEnroll();
+    }
+  };
+
+  const actionButtonText = isPurchased
+    ? `View ${product.type}`
+    : isEnrolling
+      ? "Enrolling..."
+      : "Enroll Now";
 
   // Generate structured data for SEO
   const structuredData = {
@@ -184,13 +204,15 @@ const PageClient: React.FC<PageClientProps> = ({ product }) => {
 
         <div className="flex flex-col sm:flex-row gap-4">
           <button
-            onClick={handleEnroll}
-            disabled={isEnrolling}
+            onClick={handleAction}
+            disabled={isEnrolling && !isPurchased}
             className="group bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-500 hover:scale-105 hover:shadow-2xl disabled:opacity-50"
           >
             <span className="flex items-center justify-center gap-2">
-              {isEnrolling ? "Enrolling..." : "Enroll Now"}
-              <ArrowRight className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" />
+              {actionButtonText}
+              {!isPurchased && (
+                <ArrowRight className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" />
+              )}
             </span>
           </button>
           <button className="group bg-white/80 dark:bg-white/10 backdrop-blur-sm border-2 border-[#FF4081]/50 dark:border-white/30 text-[#D2145A] dark:text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 hover:bg-gradient-to-r hover:from-[#D2145A] hover:to-[#FF4081] hover:text-white hover:border-transparent">
@@ -221,7 +243,13 @@ const PageClient: React.FC<PageClientProps> = ({ product }) => {
       />
 
       {/* Final CTA Section */}
-      <FinalCTASection product={product} onEnroll={handleEnroll} />
+      <FinalCTASection
+        product={product}
+        onEnroll={handleEnroll}
+        onView={() => router.push(`/dashboard/purchases/${product.id}/lessons`)}
+        isPurchased={!!isPurchased}
+        isEnrolling={isEnrolling}
+      />
 
       {/* Sticky Bottom CTA for Mobile */}
       <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 p-4 md:hidden z-50">
@@ -237,11 +265,11 @@ const PageClient: React.FC<PageClientProps> = ({ product }) => {
             )}
           </div>
           <button
-            onClick={handleEnroll}
-            disabled={isEnrolling}
+            onClick={handleAction}
+            disabled={isEnrolling && !isPurchased}
             className="bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-105 disabled:opacity-50"
           >
-            {isEnrolling ? "Enrolling..." : "Enroll Now"}
+            {actionButtonText}
           </button>
         </div>
       </div>

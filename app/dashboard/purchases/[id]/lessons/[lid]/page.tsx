@@ -592,6 +592,10 @@ const Page: React.FC<PageProps> = ({ params }) => {
           `/api/products/${productId}/lessons/${lessonId}`,
         );
         if (!lessonRes.ok) {
+          if (lessonRes.status === 401 || lessonRes.status === 403) {
+            router.push("/dashboard/purchases");
+            return;
+          }
           throw new Error(`Failed to fetch lesson: ${lessonRes.statusText}`);
         }
         const { lesson, notes: fetchedNotes } = await lessonRes.json();
@@ -610,21 +614,26 @@ const Page: React.FC<PageProps> = ({ params }) => {
         // Now fetch the full product to get all lessons for navigation
         try {
           const productRes = await fetch(`/api/products/${productId}`);
-          if (productRes.ok) {
-            const productData = await productRes.json();
-            const allLessonsFromModules: Lesson[] = [];
-
-            if (productData.product && productData.product.modules) {
-              productData.product.modules.forEach(
-                (module: ModuleWithLessons) => {
-                  if (module.lessons) {
-                    allLessonsFromModules.push(...module.lessons);
-                  }
-                },
-              );
+          if (!productRes.ok) {
+            if (productRes.status === 401 || productRes.status === 403) {
+              router.push("/dashboard/purchases");
+              return;
             }
-            setAllLessons(allLessonsFromModules);
+            throw new Error(
+              `Failed to fetch product: ${productRes.statusText}`,
+            );
           }
+          const productData = await productRes.json();
+          const allLessonsFromModules: Lesson[] = [];
+
+          if (productData.product && productData.product.modules) {
+            productData.product.modules.forEach((module: ModuleWithLessons) => {
+              if (module.lessons) {
+                allLessonsFromModules.push(...module.lessons);
+              }
+            });
+          }
+          setAllLessons(allLessonsFromModules);
         } catch (productError) {
           console.warn(
             "Could not fetch product data for navigation:",
@@ -648,7 +657,7 @@ const Page: React.FC<PageProps> = ({ params }) => {
     };
 
     fetchData();
-  }, [resolvedParams]);
+  }, [resolvedParams, router]);
 
   // Sync notes to localStorage
   useEffect(() => {

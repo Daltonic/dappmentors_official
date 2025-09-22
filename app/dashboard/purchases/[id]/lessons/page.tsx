@@ -11,6 +11,7 @@ import {
 import { useRouter } from "next/navigation";
 import LessonsContent from "@/components/dashboard/purchases/LessonContent";
 import ModulesNavigation from "@/components/dashboard/purchases/ModulesNavigation";
+import Link from "next/link";
 
 interface ProductInfo extends Product {
   progress: number;
@@ -103,9 +104,14 @@ const Header: React.FC<HeaderProps> = ({
             </div>
 
             <div className="min-w-0 flex-1">
-              <h1 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white truncate">
-                {product.title}
-              </h1>
+              <Link
+                href={`/products/${product.slug}`}
+                title={`View ${product.title}`}
+              >
+                <h1 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white truncate hover:text-[#D2145A] transition-colors duration-300">
+                  {product.title}
+                </h1>
+              </Link>
               <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 truncate">
                 {product.instructor.name}
               </p>
@@ -172,6 +178,10 @@ const Page: React.FC<PageProps> = ({ params, searchParams }) => {
       try {
         const productRes = await fetch(`/api/products/${productId}`);
         if (!productRes.ok) {
+          if (productRes.status === 401 || productRes.status === 403) {
+            router.push("/dashboard/purchases");
+            return;
+          }
           console.error("Failed to fetch product");
           return;
         }
@@ -179,6 +189,10 @@ const Page: React.FC<PageProps> = ({ params, searchParams }) => {
 
         const modulesRes = await fetch(`/api/products/${productId}/modules`);
         if (!modulesRes.ok) {
+          if (modulesRes.status === 401 || modulesRes.status === 403) {
+            router.push("/dashboard/purchases");
+            return;
+          }
           console.error("Failed to fetch modules");
           return;
         }
@@ -214,7 +228,7 @@ const Page: React.FC<PageProps> = ({ params, searchParams }) => {
     };
 
     loadData();
-  }, [params, searchParams]);
+  }, [params, searchParams, router]);
 
   if (!product) {
     return (

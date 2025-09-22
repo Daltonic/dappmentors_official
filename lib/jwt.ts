@@ -29,6 +29,8 @@ export interface SessionData {
   comments: number;
   authMethod: string;
   lastLogin: Date;
+  purchasedProducts?: string[];
+  purchasedServices?: string[];
 }
 
 // Get JWT secret from environment variables
@@ -135,6 +137,8 @@ export function createSessionData(user: User): SessionData {
     comments: user.comments,
     authMethod: user.authMethod,
     lastLogin: new Date(),
+    purchasedProducts: user.purchasedProducts || [],
+    purchasedServices: user.purchasedServices || [],
   };
 }
 

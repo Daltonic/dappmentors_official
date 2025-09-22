@@ -32,6 +32,7 @@ export async function GET(
     const db = await connectToDatabase();
     const productsCollection: Collection<ProductDocument> =
       db.collection("products");
+    const usersCollection = db.collection("users");
 
     const product = await productsCollection.findOne({
       _id: new ObjectId(productId),
@@ -52,18 +53,24 @@ export async function GET(
       }
     }
 
-    // Access control
+    // Access control: Require authentication
     if (!payload) {
-      if (product.status !== "published") {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-      }
-    } else {
-      if (
-        product.createdBy !== payload.userId &&
-        product.status !== "published"
-      ) {
-        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-      }
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Fetch user to check purchase
+    const user = await usersCollection.findOne({
+      _id: new ObjectId(payload.userId),
+    });
+
+    // Check if user is creator or has purchased the product
+    const hasAccess =
+      product.createdBy === payload.userId ||
+      user?.role === "admin" ||
+      (user?.purchasedProducts && user.purchasedProducts.includes(productId));
+
+    if (!hasAccess) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     console.log(

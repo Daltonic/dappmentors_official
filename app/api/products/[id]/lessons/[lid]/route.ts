@@ -1,8 +1,10 @@
+// /api/products/[id]/lessons/[lid]/route.ts
+
 import { connectToDatabase } from "@/lib/mongodb";
 import { verifyAccessToken } from "@/lib/jwt";
 import { Collection, ObjectId } from "mongodb";
 import { NextRequest, NextResponse } from "next/server";
-import { Lesson, Note, Product } from "@/utils/interfaces";
+import { Lesson, ModuleWithLessons, Note, Product } from "@/utils/interfaces";
 
 interface ProductDocument extends Omit<Product, "id"> {
   _id: ObjectId;
@@ -40,6 +42,7 @@ export async function GET(
     const db = await connectToDatabase();
     const productsCollection: Collection<ProductDocument> =
       db.collection("products");
+    const usersCollection = db.collection("users");
 
     const product = await productsCollection.findOne({
       _id: new ObjectId(productId),
@@ -60,18 +63,24 @@ export async function GET(
       }
     }
 
-    // Access control
+    // Access control: Require authentication
     if (!payload) {
-      if (product.status !== "published") {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-      }
-    } else {
-      if (
-        product.createdBy !== payload.userId &&
-        product.status !== "published"
-      ) {
-        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-      }
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Fetch user to check purchase
+    const user = await usersCollection.findOne({
+      _id: new ObjectId(payload.userId),
+    });
+
+    // Check if user is creator or has purchased the product
+    const hasAccess =
+      product.createdBy === payload.userId ||
+      user?.role === "admin" ||
+      (user?.purchasedProducts && user.purchasedProducts.includes(productId));
+
+    if (!hasAccess) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     console.log(`Lesson: ${lessonId}, Product: ${productId}`);
@@ -171,8 +180,8 @@ export async function PATCH(
     }
 
     const db = await connectToDatabase();
-    const productsCollection: Collection<ProductDocument> =
-      db.collection("products");
+    const productsCollection = db.collection("products");
+    const usersCollection = db.collection("users");
 
     const product = await productsCollection.findOne({
       _id: new ObjectId(productId),
@@ -182,20 +191,35 @@ export async function PATCH(
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
 
-    // Note: Skipping full access control for simplicity; in production, verify purchase/enrollment
+    // Fetch user to check purchase
+    const user = await usersCollection.findOne({
+      _id: new ObjectId(payload.userId),
+    });
+
+    // Check if user is creator or has purchased the product
+    const hasAccess =
+      product.createdBy === payload.userId ||
+      user?.role === "admin" ||
+      (user?.purchasedProducts && user.purchasedProducts.includes(productId));
+
+    if (!hasAccess) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
 
     // Find and update the lesson
     let updated = false;
-    const updatedModules = (product.modules || []).map((module) => {
-      const updatedLessons = module.lessons?.map((lesson: Lesson) => {
-        if (lesson.id === lessonId) {
-          updated = true;
-          return { ...lesson, completed };
-        }
-        return lesson;
-      });
-      return { ...module, lessons: updatedLessons };
-    });
+    const updatedModules = (product.modules || []).map(
+      (module: ModuleWithLessons) => {
+        const updatedLessons = module.lessons?.map((lesson: Lesson) => {
+          if (lesson.id === lessonId) {
+            updated = true;
+            return { ...lesson, completed };
+          }
+          return lesson;
+        });
+        return { ...module, lessons: updatedLessons };
+      },
+    );
 
     if (!updated) {
       return NextResponse.json({ error: "Lesson not found" }, { status: 404 });
