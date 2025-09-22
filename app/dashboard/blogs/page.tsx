@@ -2,7 +2,7 @@
 
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   FaBoxOpen,
@@ -17,10 +17,7 @@ import { BlogPost } from "@/utils/interfaces";
 import Controls from "@/components/dashboard/blogs/Controls";
 import BlogTable from "@/components/dashboard/blogs/BlogTable";
 import PostCard from "@/components/dashboard/blogs/PostCard";
-import { sampleBlogPost } from "@/data/global";
-
-// Mock data for blog posts
-const mockPosts: BlogPost[] = [sampleBlogPost];
+import { blogApiService } from "@/services/blogApiService";
 
 const EmptyState: React.FC<{ searchTerm: string }> = ({ searchTerm }) => (
   <div className="text-center py-16">
@@ -44,7 +41,7 @@ const EmptyState: React.FC<{ searchTerm: string }> = ({ searchTerm }) => (
   </div>
 );
 
-// Header Component
+// Header Component (No changes needed)
 const Header: React.FC = () => (
   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
     <div>
@@ -136,16 +133,25 @@ const BlogGrid: React.FC<{
   onToggle: (id: string) => void;
   getCategoryColor: (category: string) => string;
   getStatusColor: (status: BlogPost["status"]) => string;
-}> = ({ posts, selectedPosts, onToggle, getCategoryColor, getStatusColor }) => (
+  handleDelete: (id: string) => void;
+}> = ({
+  posts,
+  selectedPosts,
+  onToggle,
+  getCategoryColor,
+  getStatusColor,
+  handleDelete,
+}) => (
   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
     {posts.map((post) => (
       <PostCard
         key={post.id}
         post={post}
-        selected={selectedPosts.has(post.id.toString())}
-        onToggle={() => onToggle(post.id.toString())}
+        selected={selectedPosts.has(post.id)}
+        onToggle={() => onToggle(post.id)}
         getCategoryColor={getCategoryColor}
         getStatusColor={getStatusColor}
+        handleDelete={handleDelete}
       />
     ))}
   </div>
@@ -164,53 +170,52 @@ const Page: React.FC = () => {
     direction: "asc" | "desc";
   } | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "table">("table");
+  const [page, setPage] = useState(1);
+  const limit = 50;
+  const [blogs, setBlogs] = useState<BlogPost[]>([]);
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalBlogs: 0,
+    hasNextPage: false,
+    hasPrevPage: false,
+  });
+  const [loading, setLoading] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  // Fetch blogs
+  useEffect(() => {
+    const fetchBlogs = async () => {
+      setLoading(true);
+      const params = {
+        page,
+        limit,
+        search: searchTerm || undefined,
+        status: statusFilter !== "all" ? statusFilter : undefined,
+        category: selectedTab !== "all" ? selectedTab : undefined,
+        sortBy: sortConfig?.key,
+        sortOrder: sortConfig?.direction,
+      };
+      const response = await blogApiService.getBlogs(params);
+      if (response.data) {
+        setBlogs(response.data.blogs);
+        setPagination(response.data.pagination);
+      } else {
+        // Handle error, e.g., setErrors(response.error);
+      }
+      setLoading(false);
+    };
+    fetchBlogs();
+  }, [page, searchTerm, statusFilter, selectedTab, sortConfig, refreshKey]);
 
   // Unique categories for tabs
   const uniqueCategories = useMemo(() => {
-    const cats = new Set(mockPosts.map((post) => post.category));
+    const cats = new Set(blogs.map((post) => post.category));
     return ["all", ...Array.from(cats)];
-  }, []);
+  }, [blogs]);
 
-  // Filter posts
-  const filteredPosts = useMemo(() => {
-    return mockPosts.filter((post) => {
-      const matchesCategory =
-        selectedTab === "all" || post.category === selectedTab;
-      const matchesStatus =
-        statusFilter === "all" || post.status === statusFilter;
-      const matchesSearch =
-        post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        post.excerpt.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        post.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        post.topics.some((topic) =>
-          topic.toLowerCase().includes(searchTerm.toLowerCase()),
-        ) ||
-        post.author.name.toLowerCase().includes(searchTerm.toLowerCase());
-      return matchesCategory && matchesStatus && matchesSearch;
-    });
-  }, [selectedTab, statusFilter, searchTerm]);
-
-  // Sort posts
-  const sortedPosts = useMemo(() => {
-    if (!sortConfig) return filteredPosts;
-
-    return [...filteredPosts].sort((a, b) => {
-      const aValue = a[sortConfig.key];
-      const bValue = b[sortConfig.key];
-
-      if (typeof aValue === "string" && typeof bValue === "string") {
-        const comparison = aValue.localeCompare(bValue);
-        return sortConfig.direction === "asc" ? comparison : -comparison;
-      }
-
-      if (typeof aValue === "number" && typeof bValue === "number") {
-        const comparison = aValue - bValue;
-        return sortConfig.direction === "asc" ? comparison : -comparison;
-      }
-
-      return 0;
-    });
-  }, [filteredPosts, sortConfig]);
+  // Filter and sort posts locally if needed, but since API does it, use blogs directly
+  const filteredPosts = blogs;
 
   const handleSort = (key: keyof BlogPost) => {
     setSortConfig((prevConfig) => ({
@@ -235,10 +240,10 @@ const Page: React.FC = () => {
   };
 
   const toggleAllPosts = () => {
-    if (selectedPosts.size === sortedPosts.length) {
+    if (selectedPosts.size === filteredPosts.length) {
       setSelectedPosts(new Set());
     } else {
-      setSelectedPosts(new Set(sortedPosts.map((post) => post.id.toString())));
+      setSelectedPosts(new Set(filteredPosts.map((post) => post.id)));
     }
   };
 
@@ -275,44 +280,121 @@ const Page: React.FC = () => {
     }
   };
 
+  const handleDelete = async (id: string) => {
+    if (confirm("Are you sure you want to delete this blog post?")) {
+      const response = await blogApiService.deleteBlog(id);
+      if (response.data) {
+        setRefreshKey((prev) => prev + 1);
+      } else {
+        // Handle error
+      }
+    }
+  };
+
+  const handleBulkPublish = async () => {
+    const ids = Array.from(selectedPosts);
+    if (ids.length > 0) {
+      const response = await blogApiService.bulkUpdateStatus(ids, "published");
+      if (response.data) {
+        setSelectedPosts(new Set());
+        setRefreshKey((prev) => prev + 1);
+      } else {
+        // Handle error
+      }
+    }
+  };
+
+  const handleBulkArchive = async () => {
+    const ids = Array.from(selectedPosts);
+    if (ids.length > 0) {
+      const response = await blogApiService.bulkUpdateStatus(ids, "archived");
+      if (response.data) {
+        setSelectedPosts(new Set());
+        setRefreshKey((prev) => prev + 1);
+      } else {
+        // Handle error
+      }
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    const ids = Array.from(selectedPosts);
+    if (
+      ids.length > 0 &&
+      confirm("Are you sure you want to delete selected blog posts?")
+    ) {
+      const response = await blogApiService.bulkDeleteBlogs(ids);
+      if (response.data) {
+        setSelectedPosts(new Set());
+        setRefreshKey((prev) => prev + 1);
+      } else {
+        // Handle error
+      }
+    }
+  };
+
+  const handlePreviousPage = () => {
+    if (pagination.hasPrevPage) {
+      setPage((prev) => prev - 1);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (pagination.hasNextPage) {
+      setPage((prev) => prev + 1);
+    }
+  };
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <div className="min-h-screen p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
         <Header />
-        <StatsCards posts={mockPosts} />
+        <StatsCards posts={blogs} />
         <Controls
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
-          selectedTab={selectedTab}
-          setSelectedTab={setSelectedTab}
+          selectedCategory={selectedTab} // Changed selectedTab to selectedCategory
+          setSelectedCategory={setSelectedTab} // Changed setSelectedTab to setSelectedCategory
           statusFilter={statusFilter}
           setStatusFilter={setStatusFilter}
           viewMode={viewMode}
           setViewMode={setViewMode}
           selectedPosts={selectedPosts}
           uniqueCategories={uniqueCategories}
+          onBulkPublish={handleBulkPublish}
+          onBulkArchive={handleBulkArchive}
+          onBulkDelete={handleBulkDelete}
         />
-        {sortedPosts.length === 0 ? (
+        {filteredPosts.length === 0 ? (
           <EmptyState searchTerm={searchTerm} />
         ) : viewMode === "grid" ? (
           <BlogGrid
-            posts={sortedPosts}
+            posts={filteredPosts}
             selectedPosts={selectedPosts}
             onToggle={togglePostSelection}
             getCategoryColor={getCategoryColor}
             getStatusColor={getStatusColor}
+            handleDelete={handleDelete}
           />
         ) : (
           <BlogTable
-            posts={sortedPosts}
+            posts={filteredPosts}
             selectedPosts={selectedPosts}
             onToggle={togglePostSelection}
             toggleAll={toggleAllPosts}
             sortConfig={sortConfig}
             onSort={handleSort}
-            allPostsLength={mockPosts.length}
+            allPostsLength={pagination.totalBlogs}
             getCategoryColor={getCategoryColor}
             getStatusColor={getStatusColor}
+            handleDelete={handleDelete}
+            pagination={pagination}
+            handlePreviousPage={handlePreviousPage}
+            handleNextPage={handleNextPage}
           />
         )}
       </div>

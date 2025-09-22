@@ -19,13 +19,14 @@ import {
   FiTag,
 } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
+import { blogApiService } from "@/services/blogApiService";
 
 // Refined BlogPost interface
 
 interface BlogFormProps {
   blog?: BlogPost | null;
   onSubmit?: (blogData: Partial<BlogPost>) => void;
-  onSuccess?: (blog: Partial<BlogPost>) => void;
+  onSuccess?: (blog: BlogPost) => void;
   onCancel?: () => void;
   className?: string;
 }
@@ -125,7 +126,7 @@ const BlogForm: React.FC<BlogFormProps> = ({
         content: blog.content,
         excerpt: blog.excerpt,
         category: blog.category,
-        publishDate: blog.publishDate.toISOString().split("T")[0],
+        publishDate: new Date(blog.publishDate).toISOString().split("T")[0],
         topics: blog.topics || [],
         image: blog.image || DEFAULT_ICONS[0],
         featured: blog.featured,
@@ -277,38 +278,46 @@ const BlogForm: React.FC<BlogFormProps> = ({
         relatedProduct: formData.relatedProduct.trim() || undefined,
       };
 
-      // Dummy success handling
-      if (onSubmit) {
-        onSubmit(blogData);
+      let response;
+
+      if (isEditMode && blog) {
+        response = await blogApiService.updateBlog(blog.id, blogData);
+      } else {
+        response = await blogApiService.createBlog(blogData);
       }
 
-      if (onSuccess) {
-        onSuccess({
-          ...blogData,
-          id: blog ? blog.id : Math.floor(Math.random() * 1000), // Dummy ID
-          views: blog ? blog.views : 0,
-          comments: blog ? blog.comments : 0,
-          updatedAt: new Date(),
-        });
-      }
+      if (response.data) {
+        if (onSubmit) {
+          onSubmit(blogData);
+        }
 
-      if (!isEditMode) {
-        setFormData({
-          title: "",
-          content: "",
-          excerpt: "",
-          category: "",
-          publishDate: new Date().toISOString().split("T")[0],
-          topics: [],
-          image: DEFAULT_ICONS[0],
-          featured: false,
-          status: "draft",
-          authorName: "",
-          authorAvatar: "",
-          authorBio: "",
-          relatedProduct: "",
+        if (onSuccess) {
+          onSuccess(response.data.blog);
+        }
+
+        if (!isEditMode) {
+          setFormData({
+            title: "",
+            content: "",
+            excerpt: "",
+            category: "",
+            publishDate: new Date().toISOString().split("T")[0],
+            topics: [],
+            image: DEFAULT_ICONS[0],
+            featured: false,
+            status: "draft",
+            authorName: "",
+            authorAvatar: "",
+            authorBio: "",
+            relatedProduct: "",
+          });
+          setCurrentStep(1);
+        }
+      } else {
+        setErrors({
+          submit:
+            response.error || "An error occurred while saving the blog post",
         });
-        setCurrentStep(1);
       }
     } catch (error) {
       console.error("Error submitting form:", error);

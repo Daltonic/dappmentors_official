@@ -343,7 +343,7 @@ export const ADDITIONAL_DISPOSABLE_DOMAINS = [
 ];
 
 export const sampleBlogPost: BlogPost = {
-  id: 1,
+  id: "1",
   title: "How to Build a Solana Crowdfunding dApp: A Step-by-Step Guide",
   excerpt:
     "Learn how to create a decentralized crowdfunding platform on Solana using Rust and Anchor. This comprehensive tutorial walks you through setting up smart contracts, integrating a React front-end, and deploying your dApp.",

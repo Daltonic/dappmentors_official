@@ -9,7 +9,7 @@
     "start": "next start",
     "lint": "next lint",
     "prepare": "husky",
-    "seed": "npx tsx seed-users.ts && script/seed-products.ts && script/seed-services.ts"
+    "seed": "npx tsx seed-users.ts && script/seed-products.ts && script/seed-services.ts && script/seed-blogs.ts"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",

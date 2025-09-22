@@ -2,13 +2,16 @@
 
 import MarkdownRenderer from "@/components/blogs/details/MardownRenderer";
 import ProgressBar from "@/components/blogs/details/ProgressBar";
-import RelatedArticles from "@/components/blogs/details/RelatedArticles";
 import SocialShare from "@/components/blogs/details/SocialShare";
 import TableOfContents from "@/components/blogs/details/TableOfContent";
 import MarketingLayout from "@/components/layouts/MarketingLayout";
+import HeroSection from "@/components/shared/HeroSection";
 import { BlogPost } from "@/utils/interfaces";
 import Link from "next/link";
 import React, { useState, useEffect } from "react";
+import Image from "next/image";
+import Avatar from "@/components/shared/Avatar";
+import { getHighlightWord } from "@/heplers/global";
 
 interface PageClientProps {
   blogPost: BlogPost;
@@ -20,9 +23,18 @@ const PageClient: React.FC<PageClientProps> = ({ blogPost }) => {
 
   const currentUrl = typeof window !== "undefined" ? window.location.href : "";
 
+  // Format publish date for display
+  const formattedDate = new Date(blogPost.publishDate).toLocaleDateString(
+    "en-US",
+    {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    },
+  );
+
   const handleBookmark = () => {
     setIsBookmarked(!isBookmarked);
-    // In a real app, you'd save this to localStorage or send to your API
     if (typeof window !== "undefined") {
       localStorage.setItem(
         `bookmark-${blogPost.id}`,
@@ -36,12 +48,10 @@ const PageClient: React.FC<PageClientProps> = ({ blogPost }) => {
     href: string,
   ) => {
     e.preventDefault();
-    // In a real Next.js app, you'd use router.push(href)
     console.log(`Navigate to: ${href}`);
   };
 
   useEffect(() => {
-    // Load bookmark state
     if (typeof window !== "undefined") {
       const bookmarkState = localStorage.getItem(`bookmark-${blogPost.id}`);
       if (bookmarkState) {
@@ -55,22 +65,36 @@ const PageClient: React.FC<PageClientProps> = ({ blogPost }) => {
       <ProgressBar />
 
       {/* Hero Section */}
-      <section className="relative pt-20 pb-16 bg-gradient-to-br from-gray-50 via-white to-purple-50 dark:from-gray-900 dark:via-[#0A0A0A] dark:to-purple-900/20 overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-5 dark:opacity-10">
-          <div
-            className="absolute inset-0"
-            style={{
-              backgroundImage: `radial-gradient(circle at 1px 1px, rgba(255,255,255,0.3) 1px, transparent 0)`,
-              backgroundSize: "32px 32px",
-            }}
-          />
-        </div>
-
-        <div className="max-w-4xl mx-auto px-4 relative z-10">
+      <HeroSection
+        tagText={blogPost.category}
+        title={blogPost.title}
+        highlightText={getHighlightWord(blogPost.title)}
+        subtitle={
+          blogPost.excerpt.length > 50
+            ? blogPost.excerpt.substring(0, 48) + "..."
+            : blogPost.excerpt
+        }
+        backgroundGradient="from-gray-50 via-white to-purple-50 dark:from-gray-900 dark:via-[#0A0A0A] dark:to-purple-900/20"
+        layout="grid"
+        rightContent={
+          <div className="relative">
+            {blogPost.image && (
+              <Image
+                src={blogPost.image}
+                alt={blogPost.title}
+                width={600}
+                height={400}
+                className="rounded-2xl object-cover shadow-lg"
+                priority={blogPost.featured}
+              />
+            )}
+          </div>
+        }
+      >
+        <div className="space-y-6">
           {/* Breadcrumb */}
           <nav
-            className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-8"
+            className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400"
             aria-label="Breadcrumb"
           >
             <Link
@@ -82,8 +106,8 @@ const PageClient: React.FC<PageClientProps> = ({ blogPost }) => {
             </Link>
             <span>/</span>
             <Link
-              href="/blog"
-              onClick={(e) => handleNavClick(e, "/blog")}
+              href="/blogs"
+              onClick={(e) => handleNavClick(e, "/blogs")}
               className="hover:text-[#D2145A] transition-colors duration-200"
             >
               Blog
@@ -94,75 +118,81 @@ const PageClient: React.FC<PageClientProps> = ({ blogPost }) => {
             </span>
           </nav>
 
-          {/* Article Header */}
-          <div className="text-center mb-12">
-            <div className="flex items-center justify-center gap-4 mb-6">
-              <span className="bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white px-4 py-2 rounded-full text-sm font-semibold">
-                {blogPost.category}
+          {/* Meta Info */}
+          <div className="flex flex-wrap gap-4 text-sm">
+            <div className="flex items-center gap-2">
+              <span className="text-gray-500" aria-hidden="true">
+                📅
               </span>
-              <span className="text-gray-500 dark:text-gray-400">
-                {blogPost.publishDate.toISOString()}
+              <span className="text-gray-600 dark:text-gray-300">
+                {formattedDate}
               </span>
-              <span className="text-gray-500 dark:text-gray-400">•</span>
-              <span className="text-gray-500 dark:text-gray-400">
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-gray-500" aria-hidden="true">
+                ⏱️
+              </span>
+              <span className="text-gray-600 dark:text-gray-300">
                 {blogPost.readTime}
               </span>
             </div>
-
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-cambo font-normal text-gray-900 dark:text-white mb-8 leading-tight">
-              {blogPost.title}
-            </h1>
-
-            <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 leading-relaxed max-w-3xl mx-auto">
-              {blogPost.excerpt}
-            </p>
-
-            {/* Author & Actions */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-[#D2145A] to-[#FF4081] rounded-full flex items-center justify-center text-xl">
-                  {blogPost.author.avatar}
-                </div>
-                <div className="text-left">
-                  <div className="font-semibold text-gray-900 dark:text-white">
-                    {blogPost.author.name}
-                  </div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400">
-                    {blogPost.author.bio}
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-4">
-                <SocialShare title={blogPost.title} url={currentUrl} />
-                <button
-                  onClick={handleBookmark}
-                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 ${
-                    isBookmarked
-                      ? "bg-[#D2145A] text-white"
-                      : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-[#D2145A] hover:text-white"
-                  }`}
-                  aria-label={isBookmarked ? "Remove bookmark" : "Add bookmark"}
-                >
-                  {isBookmarked ? "♥" : "♡"}
-                </button>
-              </div>
-            </div>
-
-            {/* Topics */}
-            <div className="flex flex-wrap justify-center gap-2 mt-8">
-              {blogPost.topics.map((topic, index) => (
-                <span
-                  key={index}
-                  className="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-3 py-1 rounded-full text-sm font-medium hover:bg-[#D2145A] hover:text-white transition-colors duration-300 cursor-pointer"
-                >
-                  {topic}
-                </span>
-              ))}
+            <div className="flex items-center gap-2">
+              <span className="text-gray-500" aria-hidden="true">
+                👀
+              </span>
+              <span className="text-gray-600 dark:text-gray-300">
+                {blogPost.views} views
+              </span>
             </div>
           </div>
+
+          {/* Author & Actions */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+            <div className="flex items-center gap-4">
+              <Avatar
+                src={blogPost.author.avatar || "/images/default-avatar.jpg"}
+                alt={blogPost.author.name}
+                className="flex-shrink-0"
+              />
+              <div className="text-left">
+                <div className="font-semibold text-gray-900 dark:text-white">
+                  {blogPost.author.name}
+                </div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">
+                  {blogPost.author.bio || "Web3 Enthusiast"}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <SocialShare title={blogPost.title} url={currentUrl} />
+              <button
+                onClick={handleBookmark}
+                className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 ${
+                  isBookmarked
+                    ? "bg-[#D2145A] text-white"
+                    : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-[#D2145A] hover:text-white"
+                }`}
+                aria-label={isBookmarked ? "Remove bookmark" : "Add bookmark"}
+              >
+                {isBookmarked ? "♥" : "♡"}
+              </button>
+            </div>
+          </div>
+
+          {/* Topics */}
+          <div className="flex flex-wrap gap-2">
+            {blogPost.topics.map((topic, index) => (
+              <span
+                key={index}
+                className="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-3 py-1 rounded-full text-sm font-medium hover:bg-[#D2145A] hover:text-white transition-colors duration-300 cursor-pointer"
+              >
+                {topic}
+              </span>
+            ))}
+          </div>
         </div>
-      </section>
+      </HeroSection>
 
       {/* Article Content */}
       <section className="py-16">
@@ -194,12 +224,18 @@ const PageClient: React.FC<PageClientProps> = ({ blogPost }) => {
                     connect with fellow developers.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center max-w-md sm:max-w-none mx-auto">
-                    <button className="bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white px-6 sm:px-8 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-semibold text-sm sm:text-base hover:scale-105 transition-all duration-300 w-full sm:w-auto">
+                    <Link
+                      href="/discord"
+                      className="bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white px-6 sm:px-8 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-semibold text-sm sm:text-base hover:scale-105 transition-all duration-300 w-full sm:w-auto"
+                    >
                       Join Discord Community
-                    </button>
-                    <button className="border-2 border-[#D2145A] text-[#D2145A] hover:bg-[#D2145A] hover:text-white px-6 sm:px-8 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-semibold text-sm sm:text-base transition-all duration-300 w-full sm:w-auto">
+                    </Link>
+                    <Link
+                      href="/newsletter"
+                      className="border-2 border-[#D2145A] text-[#D2145A] hover:bg-[#D2145A] hover:text-white px-6 sm:px-8 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-semibold text-sm sm:text-base transition-all duration-300 w-full sm:w-auto"
+                    >
                       Subscribe to Newsletter
-                    </button>
+                    </Link>
                   </div>
                 </div>
               </div>
@@ -207,9 +243,6 @@ const PageClient: React.FC<PageClientProps> = ({ blogPost }) => {
           </div>
         </div>
       </section>
-
-      {/* Related Articles */}
-      <RelatedArticles />
 
       {/* Mobile TOC Toggle */}
       <div className="lg:hidden fixed bottom-4 right-4 z-40">

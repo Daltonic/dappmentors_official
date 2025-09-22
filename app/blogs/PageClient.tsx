@@ -1,15 +1,22 @@
 "use client";
 
 import AllPostsSection from "@/components/blogs/AllPostsSection";
-import FeaturedPostsSection from "@/components/blogs/FeaturedPostSection";
 import SearchFilterSection from "@/components/blogs/SearchFilterSection";
 import MarketingLayout from "@/components/layouts/MarketingLayout";
 import CTASection from "@/components/shared/CTASection";
 import HeroSection from "@/components/shared/HeroSection";
 import React from "react";
+import { BlogPost } from "@/utils/interfaces";
+import FeaturedPostsSection from "@/components/blogs/FeaturedPostSection";
 
-// Client Component for Blogs Page
-const PageClient = () => {
+interface PageClientProps {
+  blogs: BlogPost[];
+}
+
+const PageClient = ({ blogs }: PageClientProps) => {
+  const featuredBlogs = blogs.filter((blog) => blog.featured);
+  const notFeatured = blogs.filter((blog) => !blog.featured);
+
   return (
     <MarketingLayout>
       <HeroSection
@@ -19,8 +26,8 @@ const PageClient = () => {
         subtitle="Free, high-quality tutorials, guides, and insights into the ever-evolving world of blockchain development from our expert team."
       />
       <SearchFilterSection />
-      <FeaturedPostsSection />
-      <AllPostsSection />
+      <FeaturedPostsSection blogs={featuredBlogs} />
+      <AllPostsSection blogs={notFeatured} />
       <CTASection
         title="Ready to Start Your Web3 Journey?"
         highlightText="Web3 Journey"

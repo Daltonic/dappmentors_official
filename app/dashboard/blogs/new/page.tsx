@@ -3,12 +3,13 @@
 import { motion } from "framer-motion";
 import { BlogPost } from "@/utils/interfaces";
 import BlogForm from "@/components/dashboard/blogs/BlogForm";
+import { toast } from "react-toastify";
 
 // Example usage component
 const Page: React.FC = () => {
   const handleFormSubmit = (blogData: Partial<BlogPost>) => {
     console.log("Form submitted with data:", blogData);
-    alert(`Blog ${blogData.id ? "updated" : "created"} successfully!`);
+    toast.success(`Blog ${blogData.id ? "updated" : "created"} successfully!`);
   };
 
   return (

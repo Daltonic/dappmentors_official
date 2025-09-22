@@ -1,3 +1,5 @@
+"use client";
+
 import { User } from "@/utils/interfaces";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -26,8 +28,8 @@ interface ControlsProps {
   uniqueRoles: string[];
   onBulkRoleChange?: (userIds: string[], newRole: string) => void;
   onBulkStatusChange?: (userIds: string[], newStatus: User["status"]) => void;
-  onUsersUpdate?: (users: User[]) => void; // Callback to update parent component's user list
-  onNotification?: (message: string, type: "success" | "error") => void; // Callback for notifications
+  onUsersUpdate?: (users: User[]) => void;
+  onNotification?: (message: string, type: "success" | "error") => void;
 }
 
 // Controls Component
@@ -41,7 +43,6 @@ const Controls: React.FC<ControlsProps> = ({
   viewMode,
   setViewMode,
   selectedUsers,
-  uniqueRoles,
   onBulkRoleChange,
   onBulkStatusChange,
   onUsersUpdate,
@@ -102,12 +103,10 @@ const Controls: React.FC<ControlsProps> = ({
           "success",
         );
 
-        // Update the parent component with new user data
         if (data.users && onUsersUpdate) {
           onUsersUpdate(data.users);
         }
 
-        // Call the original callback if provided (for backward compatibility)
         if (onBulkRoleChange) {
           onBulkRoleChange(selectedUserIds, newRole);
         }
@@ -142,12 +141,10 @@ const Controls: React.FC<ControlsProps> = ({
           "success",
         );
 
-        // Update the parent component with new user data
         if (data.users && onUsersUpdate) {
           onUsersUpdate(data.users);
         }
 
-        // Call the original callback if provided (for backward compatibility)
         if (onBulkStatusChange) {
           onBulkStatusChange(selectedUserIds, newStatus);
         }
@@ -163,9 +160,9 @@ const Controls: React.FC<ControlsProps> = ({
     );
   };
 
-  // Close role menu on outside click
+  // Close dropdown menus on outside click
   useEffect(() => {
-    const handleClickOutsideRole = (event: MouseEvent) => {
+    const handleClickOutside = (event: MouseEvent) => {
       if (
         roleMenuRef.current &&
         !roleMenuRef.current.contains(event.target as Node) &&
@@ -174,17 +171,7 @@ const Controls: React.FC<ControlsProps> = ({
       ) {
         setIsRoleMenuOpen(false);
       }
-    };
 
-    document.addEventListener("mousedown", handleClickOutsideRole);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutsideRole);
-    };
-  }, []);
-
-  // Close status menu on outside click
-  useEffect(() => {
-    const handleClickOutsideStatus = (event: MouseEvent) => {
       if (
         statusMenuRef.current &&
         !statusMenuRef.current.contains(event.target as Node) &&
@@ -195,9 +182,9 @@ const Controls: React.FC<ControlsProps> = ({
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutsideStatus);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutsideStatus);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
@@ -222,22 +209,23 @@ const Controls: React.FC<ControlsProps> = ({
 
         {/* Filters */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-          {/* Role Filter */}
-          <div className="flex flex-wrap gap-2">
-            {uniqueRoles.map((role) => (
-              <button
-                key={role}
-                onClick={() => setSelectedRole(role)}
-                className={`px-3 py-1 sm:px-4 sm:py-2 rounded-xl font-semibold transition-all duration-300 capitalize text-xs sm:text-sm ${
-                  selectedRole === role
-                    ? "bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white shadow-lg"
-                    : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gradient-to-r hover:from-[#D2145A]/10 hover:to-[#FF4081]/10"
-                }`}
-              >
-                {role}
-              </button>
-            ))}
-          </div>
+          {/* Role Filter (Dropdown) */}
+          <select
+            value={selectedRole}
+            onChange={(e) => setSelectedRole(e.target.value as "all" | string)}
+            className="px-3 py-1 sm:px-4 sm:py-2 bg-gray-100 dark:bg-gray-800 border border-gray-200/50 dark:border-gray-700/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF4081]/50 text-xs sm:text-sm"
+          >
+            {/* {uniqueRoles.map((role) => (
+              <option key={role} value={role}>
+                {role.charAt(0).toUpperCase() + role.slice(1)}
+              </option>
+            ))} */}
+
+            <option value="all">All Roles</option>
+            <option value="student">Student</option>
+            <option value="instructor">Instructor</option>
+            <option value="admin">Admin</option>
+          </select>
 
           {/* Status Filter */}
           <select

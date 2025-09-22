@@ -1,16 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { postx } from "@/data/global";
-import { PostProp } from "@/utils/interfaces";
-import PostCard from "./PostCard";
+import { BlogPost } from "@/utils/interfaces";
+import PostCard from "../shared/PostCard";
 
-const AllPostsSection = () => {
+interface AllPostsSectionProps {
+  blogs: BlogPost[];
+}
+
+const AllPostsSection = ({ blogs }: AllPostsSectionProps) => {
   const [visiblePosts, setVisiblePosts] = useState(3); // Start with 3 posts
   const postsPerLoad = 3; // Load 3 more posts each time
-  const allPosts: PostProp[] = postx;
-
-  const totalPosts = allPosts.length;
+  const totalPosts = blogs.length;
   const hasMorePosts = visiblePosts < totalPosts;
 
   const handleLoadMore = () => {
@@ -39,7 +40,7 @@ const AllPostsSection = () => {
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {allPosts.slice(0, visiblePosts).map((post, index) => (
+          {blogs.slice(0, visiblePosts).map((post, index) => (
             <PostCard key={index} post={post} />
           ))}
         </div>

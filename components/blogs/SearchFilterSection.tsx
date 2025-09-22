@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-// Search and Filter Section
+// Search and Filter Section (unchanged, as it doesn't depend on dynamic data yet)
 const SearchFilterSection = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");

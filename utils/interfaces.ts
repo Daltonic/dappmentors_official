@@ -246,9 +246,11 @@ export type Particle = {
   delay: number;
 };
 
+export type BlogStatus = "published" | "draft" | "archived";
+
 export interface BlogPost {
   _id?: ObjectId;
-  id: number;
+  id: string;
   title: string;
   slug: string;
   content: string;

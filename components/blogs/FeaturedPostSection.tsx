@@ -1,14 +1,18 @@
+"use client";
+
 import { useState } from "react";
 import PostCard from "../shared/PostCard";
-import { PostProp } from "@/utils/interfaces";
-import { postx } from "@/data/global";
+import { BlogPost } from "@/utils/interfaces";
+
+interface FeaturedPostsSectionProps {
+  blogs: BlogPost[];
+}
 
 // Featured Posts Section
-const FeaturedPostsSection = () => {
-  const featuredPosts: PostProp[] = postx;
+const FeaturedPostsSection = ({ blogs }: FeaturedPostsSectionProps) => {
   const [visibleArticles, setVisibleArticles] = useState(3);
   const articlesPerLoad = 3;
-  const totalArticles = featuredPosts.length;
+  const totalArticles = blogs.length;
   const hasMoreArticles = visibleArticles < totalArticles;
 
   const handleLoadMore = () => {
@@ -39,7 +43,7 @@ const FeaturedPostsSection = () => {
         </div>
 
         <div className="grid lg:grid-cols-3 gap-8">
-          {featuredPosts.slice(0, visibleArticles).map((post, index) => (
+          {blogs.slice(0, visibleArticles).map((post, index) => (
             <PostCard key={index} post={post} />
           ))}
         </div>
