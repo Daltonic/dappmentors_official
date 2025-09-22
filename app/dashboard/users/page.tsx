@@ -18,7 +18,6 @@ import UserTable from "@/components/dashboard/users/UserTable";
 import { userApiService, apiUtils } from "@/services/api.services";
 import EmptyState from "@/components/dashboard/EmptyState";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
-import TransactionTable from "@/components/dashboard/users/TransactionsTable";
 
 // Notification component type
 interface Notification {
@@ -669,12 +668,6 @@ const Page: React.FC = () => {
             getRoleColor={getRoleColor}
           />
         )}
-
-        {/* Transactions Section */}
-        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mt-12 mb-6">
-          Platform Transactions
-        </h3>
-        <TransactionTable />
       </div>
     </div>
   );

@@ -368,7 +368,9 @@ export interface Activity {
     | "items_activities"
     | "course_completed"
     | "payment_received"
-    | "new_review";
+    | "spam_attempt"
+    | "disposable_email_silent_block";
+
   title: string;
   description: string;
   timestamp: Date; // ISO string from DB
@@ -376,10 +378,14 @@ export interface Activity {
   color: string;
   metadata?: {
     userId?: string;
+    email?: string;
     userName?: string;
+    transactionId?: string;
+    message?: string;
     amount?: number;
     itemTtitle?: string;
     itemType?: string;
     itemSlug?: string;
+    ip?: string;
   };
 }

@@ -37,7 +37,8 @@ export function getActivityIcon(type: Activity["type"]): string {
     items_activities: "✅",
     course_completed: "📚",
     payment_received: "🤑",
-    new_review: "⭐",
+    spam_attempt: "🦀",
+    disposable_email_silent_block: "⏳",
   };
   return icons[type] || "ℹ️";
 }
@@ -48,7 +49,8 @@ export function getActivityColor(type: Activity["type"]): string {
     items_activities: "text-green-500",
     course_completed: "text-green-500",
     payment_received: "text-yellow-500",
-    new_review: "text-purple-500",
+    spam_attempt: "text-purple-500",
+    disposable_email_silent_block: "text-violet-500",
   };
   return colors[type] || "text-gray-500";
 }
