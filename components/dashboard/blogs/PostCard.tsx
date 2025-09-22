@@ -22,8 +22,8 @@ const PostCard: React.FC<{
     {/* Thumbnail */}
     <div className="relative h-48 overflow-hidden">
       <Image
-        src={post.imageSrc}
-        alt={post.alt}
+        src={post.image}
+        alt={post.title}
         width={400}
         height={192}
         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
@@ -90,13 +90,13 @@ const PostCard: React.FC<{
             Publish Date:
           </span>
           <span className="text-gray-700 dark:text-gray-300">
-            {post.publishDate}
+            {post.publishDate.toLocaleDateString()}
           </span>
         </div>
         <div className="flex items-center justify-between">
           <span className="text-gray-500 dark:text-gray-400">Author:</span>
           <span className="text-gray-700 dark:text-gray-300">
-            {post.author}
+            {post.author.name}
           </span>
         </div>
         <div className="flex items-center justify-between">

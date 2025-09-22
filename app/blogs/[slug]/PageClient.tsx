@@ -6,29 +6,9 @@ import RelatedArticles from "@/components/blogs/details/RelatedArticles";
 import SocialShare from "@/components/blogs/details/SocialShare";
 import TableOfContents from "@/components/blogs/details/TableOfContent";
 import MarketingLayout from "@/components/layouts/MarketingLayout";
+import { BlogPost } from "@/utils/interfaces";
 import Link from "next/link";
 import React, { useState, useEffect } from "react";
-
-// Type definitions
-export interface Author {
-  name: string;
-  avatar: string;
-  bio: string;
-}
-
-export interface BlogPost {
-  id: number;
-  title: string;
-  excerpt: string;
-  category: string;
-  readTime: string;
-  publishDate: string;
-  author: Author;
-  topics: string[];
-  image: string;
-  gradient: string;
-  content: string;
-}
 
 interface PageClientProps {
   blogPost: BlogPost;
@@ -121,7 +101,7 @@ const PageClient: React.FC<PageClientProps> = ({ blogPost }) => {
                 {blogPost.category}
               </span>
               <span className="text-gray-500 dark:text-gray-400">
-                {blogPost.publishDate}
+                {blogPost.publishDate.toISOString()}
               </span>
               <span className="text-gray-500 dark:text-gray-400">•</span>
               <span className="text-gray-500 dark:text-gray-400">

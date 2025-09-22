@@ -17,141 +17,10 @@ import { BlogPost } from "@/utils/interfaces";
 import Controls from "@/components/dashboard/blogs/Controls";
 import BlogTable from "@/components/dashboard/blogs/BlogTable";
 import PostCard from "@/components/dashboard/blogs/PostCard";
+import { sampleBlogPost } from "@/data/global";
 
 // Mock data for blog posts
-const mockPosts: BlogPost[] = [
-  {
-    id: "1",
-    title: "Understanding Blockchain Fundamentals",
-    excerpt:
-      "Dive into the basics of blockchain technology and its applications in modern development",
-    category: "Blockchain Development",
-    readTime: "8 min",
-    publishDate: "2024-08-15",
-    topics: ["Blockchain", "Crypto", "Decentralization"],
-    imageSrc:
-      "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=400&h=240&fit=crop",
-    alt: "Blockchain illustration",
-    icon: "🔗",
-    gradient: "from-blue-500 to-purple-500",
-    featured: true,
-    relatedProduct: "Complete Solidity Course",
-    status: "published",
-    views: 1247,
-    comments: 45,
-    author: "Darlington Gospel",
-    updatedAt: "2024-08-20",
-  },
-  {
-    id: "2",
-    title: "Mastering Solana Development",
-    excerpt:
-      "Explore advanced techniques in Solana blockchain development using Rust and Anchor",
-    category: "Web3 Development",
-    readTime: "12 min",
-    publishDate: "2024-07-28",
-    topics: ["Solana", "Rust", "dApps"],
-    imageSrc:
-      "https://images.unsplash.com/photo-1518186233392-c232efbf2373?w=400&h=240&fit=crop",
-    alt: "Solana development",
-    icon: "⚡",
-    gradient: "from-purple-500 to-pink-500",
-    featured: true,
-    relatedProduct: "Solana Bootcamp",
-    status: "published",
-    views: 892,
-    comments: 32,
-    author: "Darlington Gospel",
-    updatedAt: "2024-08-18",
-  },
-  {
-    id: "3",
-    title: "DeFi Protocols Explained",
-    excerpt:
-      "A comprehensive guide to decentralized finance protocols and their implementation",
-    category: "DeFi",
-    readTime: "10 min",
-    publishDate: "2024-06-10",
-    topics: ["DeFi", "Yield Farming", "Liquidity Pools"],
-    imageSrc:
-      "https://images.unsplash.com/photo-1544377193-33dcf4d68fb5?w=400&h=240&fit=crop",
-    alt: "DeFi protocols",
-    icon: "💰",
-    gradient: "from-green-500 to-blue-500",
-    featured: false,
-    relatedProduct: "DeFi Ebook",
-    status: "published",
-    views: 2156,
-    comments: 78,
-    author: "Darlington Gospel",
-    updatedAt: "2024-07-25",
-  },
-  {
-    id: "4",
-    title: "Building NFT Marketplaces",
-    excerpt: "Step-by-step guide to creating production-ready NFT marketplaces",
-    category: "NFT Development",
-    readTime: "15 min",
-    publishDate: "2024-05-05",
-    topics: ["NFTs", "Marketplaces", "Auctions"],
-    imageSrc:
-      "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&h=240&fit=crop",
-    alt: "NFT marketplace",
-    icon: "🎨",
-    gradient: "from-orange-500 to-red-500",
-    featured: false,
-    relatedProduct: "NFT Codebase",
-    status: "draft",
-    views: 156,
-    comments: 12,
-    author: "Darlington Gospel",
-    updatedAt: "2024-08-18",
-  },
-  {
-    id: "5",
-    title: "Integrating Web3 with React",
-    excerpt:
-      "Learn how to build decentralized applications using React and Web3.js",
-    category: "Frontend Development",
-    readTime: "6 min",
-    publishDate: "2024-04-12",
-    topics: ["React", "Web3.js", "MetaMask"],
-    imageSrc:
-      "https://images.unsplash.com/photo-1633356122102-3fe601e05bd2?w=400&h=240&fit=crop",
-    alt: "React Web3 integration",
-    icon: "⚛️",
-    gradient: "from-cyan-500 to-blue-500",
-    featured: false,
-    relatedProduct: "React Masterclass",
-    status: "published",
-    views: 890,
-    comments: 56,
-    author: "Sarah Johnson",
-    updatedAt: "2024-08-12",
-  },
-  {
-    id: "6",
-    title: "Blockchain Security Best Practices",
-    excerpt:
-      "Essential security measures for smart contract and DeFi development",
-    category: "Security",
-    readTime: "9 min",
-    publishDate: "2024-03-30",
-    topics: ["Security", "Smart Contracts", "Audits"],
-    imageSrc:
-      "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=400&h=240&fit=crop",
-    alt: "Blockchain security",
-    icon: "🔒",
-    gradient: "from-gray-500 to-black",
-    featured: false,
-    relatedProduct: "Security Ebook",
-    status: "archived",
-    views: 567,
-    comments: 23,
-    author: "Michael Chen",
-    updatedAt: "2024-06-15",
-  },
-];
+const mockPosts: BlogPost[] = [sampleBlogPost];
 
 const EmptyState: React.FC<{ searchTerm: string }> = ({ searchTerm }) => (
   <div className="text-center py-16">
@@ -273,8 +142,8 @@ const BlogGrid: React.FC<{
       <PostCard
         key={post.id}
         post={post}
-        selected={selectedPosts.has(post.id)}
-        onToggle={() => onToggle(post.id)}
+        selected={selectedPosts.has(post.id.toString())}
+        onToggle={() => onToggle(post.id.toString())}
         getCategoryColor={getCategoryColor}
         getStatusColor={getStatusColor}
       />
@@ -316,7 +185,7 @@ const Page: React.FC = () => {
         post.topics.some((topic) =>
           topic.toLowerCase().includes(searchTerm.toLowerCase()),
         ) ||
-        post.author.toLowerCase().includes(searchTerm.toLowerCase());
+        post.author.name.toLowerCase().includes(searchTerm.toLowerCase());
       return matchesCategory && matchesStatus && matchesSearch;
     });
   }, [selectedTab, statusFilter, searchTerm]);
@@ -369,7 +238,7 @@ const Page: React.FC = () => {
     if (selectedPosts.size === sortedPosts.length) {
       setSelectedPosts(new Set());
     } else {
-      setSelectedPosts(new Set(sortedPosts.map((post) => post.id)));
+      setSelectedPosts(new Set(sortedPosts.map((post) => post.id.toString())));
     }
   };
 

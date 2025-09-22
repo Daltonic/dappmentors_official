@@ -8,7 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "prepare": "husky"
+    "prepare": "husky",
+    "seed": "npx tsx seed-users.ts && script/seed-products.ts && script/seed-services.ts"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",

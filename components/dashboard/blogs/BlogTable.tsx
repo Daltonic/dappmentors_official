@@ -143,16 +143,16 @@ const BlogTable: React.FC<{
               <td className="px-4 py-4">
                 <input
                   type="checkbox"
-                  checked={selectedPosts.has(post.id)}
-                  onChange={() => onToggle(post.id)}
+                  checked={selectedPosts.has(post.id.toString())}
+                  onChange={() => onToggle(post.id.toString())}
                   className="w-4 h-4 text-[#D2145A] bg-gray-100 border-gray-300 rounded focus:ring-[#D2145A] focus:ring-2"
                 />
               </td>
               <td className="px-4 py-4">
                 <div className="flex items-center gap-3">
                   <Image
-                    src={post.imageSrc}
-                    alt={post.alt}
+                    src={post.image}
+                    alt={post.title}
                     width={48}
                     height={32}
                     className="w-12 h-8 object-cover rounded-lg flex-shrink-0"
@@ -163,7 +163,7 @@ const BlogTable: React.FC<{
                       {post.title}
                     </h4>
                     <p className="text-gray-600 dark:text-gray-300 text-xs line-clamp-1">
-                      {post.author} • {post.category}
+                      {post.author.name} • {post.category}
                     </p>
                     {post.featured && (
                       <span className="inline-block bg-yellow-100 text-yellow-800 text-xs font-semibold px-2 py-0.5 rounded-full mt-1">
@@ -200,7 +200,7 @@ const BlogTable: React.FC<{
                 {post.readTime}
               </td>
               <td className="px-4 py-4 text-gray-900 dark:text-white">
-                {post.publishDate}
+                {post.publishDate.toLocaleDateString()}
               </td>
               <td className="px-4 py-4 text-gray-900 dark:text-white">
                 {post.views.toLocaleString()}

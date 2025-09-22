@@ -247,24 +247,28 @@ export type Particle = {
 };
 
 export interface BlogPost {
-  id: string;
+  _id?: ObjectId;
+  id: number;
   title: string;
+  slug: string;
+  content: string;
   excerpt: string;
   category: string;
   readTime: string;
-  publishDate: string;
+  publishDate: Date;
+  updatedAt: Date;
   topics: string[];
-  imageSrc: string;
-  alt: string;
-  icon: string;
-  gradient: string;
+  image: string;
   featured: boolean;
-  relatedProduct: string;
   status: "published" | "draft" | "archived";
   views: number;
   comments: number;
-  author: string;
-  updatedAt: string;
+  author: {
+    name: string;
+    avatar: string;
+    bio: string;
+  };
+  relatedProduct?: string;
 }
 
 export interface UserProfile {
