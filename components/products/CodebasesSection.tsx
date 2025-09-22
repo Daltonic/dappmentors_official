@@ -2,13 +2,25 @@
 
 import { Product } from "@/utils/interfaces";
 import Link from "next/link";
+import { useState } from "react";
 
 interface CodebasesSectionProps {
   products: Product[];
 }
 
 const CodebasesSection = ({ products }: CodebasesSectionProps) => {
+  const [visibleCodebases, setVisibleCodebases] = useState(2); // Start with 2 codebases
+  const codebasesPerLoad = 2; // Number of codebases to load each time
   const codebases = products;
+  const totalCodebases = codebases.length; // Total number of codebases
+  const displayedCodebases = codebases.slice(0, visibleCodebases);
+  const hasMoreCodebases = visibleCodebases < totalCodebases; // Check if more codebases can be loaded
+
+  const handleLoadMore = () => {
+    setVisibleCodebases((prev) =>
+      Math.min(prev + codebasesPerLoad, totalCodebases),
+    );
+  };
 
   return (
     <section className="py-20 bg-white dark:bg-[#0A0A0A]">
@@ -24,7 +36,7 @@ const CodebasesSection = ({ products }: CodebasesSectionProps) => {
         </div>
 
         <div className="grid md:grid-cols-2 gap-8">
-          {codebases.map((codebase) => (
+          {displayedCodebases.map((codebase) => (
             <div
               key={codebase.id}
               className="group relative bg-gray-50 dark:bg-gray-900 rounded-3xl p-8 hover:shadow-2xl transition-all duration-700 border border-gray-200/50 dark:border-gray-700/50 hover:border-transparent"
@@ -34,14 +46,11 @@ const CodebasesSection = ({ products }: CodebasesSectionProps) => {
               <div className="relative z-10">
                 <div className="flex items-center justify-between mb-6">
                   <div className="w-16 h-16 bg-gradient-to-br from-[#D2145A] to-[#FF4081] rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-500">
-                    {"💻"}
+                    💻
                   </div>
                   <div className="text-right">
                     <div className="text-3xl font-bold text-gray-900 dark:text-white">
                       ${codebase.price}
-                    </div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400">
-                      {"100+"} downloads
                     </div>
                   </div>
                 </div>
@@ -82,12 +91,26 @@ const CodebasesSection = ({ products }: CodebasesSectionProps) => {
                 </div>
 
                 <button className="w-full bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white py-3 px-6 rounded-xl font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg">
-                  Download Codebase
+                  View Details
                 </button>
               </div>
             </div>
           ))}
         </div>
+
+        {hasMoreCodebases && (
+          <div className="text-center mt-16">
+            <button
+              onClick={handleLoadMore}
+              className="group relative bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white px-10 py-4 rounded-2xl font-semibold text-base transition-all duration-500 hover:scale-105 hover:shadow-2xl overflow-hidden"
+            >
+              <span className="relative z-10 flex items-center gap-2">
+                Load More
+              </span>
+              <div className="absolute inset-0 bg-white/20 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
+            </button>
+          </div>
+        )}
       </div>
     </section>
   );

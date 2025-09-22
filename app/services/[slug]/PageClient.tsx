@@ -6,7 +6,7 @@ import HeroSection from "@/components/shared/HeroSection";
 import Image from "next/image";
 import CTASection from "@/components/shared/CTASection";
 import FAQSection from "@/components/shared/FAQSection";
-import { ICheckoutItem, Service } from "@/utils/interfaces";
+import { ICheckoutItem, Service, ServiceType } from "@/utils/interfaces";
 import { Star, ArrowRight } from "lucide-react";
 import QuoteSection from "@/components/services/details/QuoteSection";
 import PackagesSection from "@/components/services/details/PackageSection";
@@ -99,6 +99,56 @@ const PageClient: React.FC<PageClientProps> = ({ service }) => {
     typeof service.price === "number" ||
     (typeof service.price === "string" &&
       !isNaN(parseFloat(service.price.replace(/[^0-9.-]/g, ""))));
+
+  const getPrimaryActionText = (type: ServiceType, isFixedPrice: boolean) => {
+    if (isFixedPrice) {
+      const buyTexts: Record<ServiceType, string> = {
+        Hiring: "Hire Now",
+        Education: "Hire Us Now",
+        Mentorship: "Book Now",
+        Professional: "Hire Us Now",
+        Writing: "Hire Us Now",
+      };
+      return buyTexts[type] || "Buy Now";
+    } else {
+      const quoteTexts: Record<ServiceType, string> = {
+        Hiring: "Request Hiring",
+        Education: "Request Partnership",
+        Mentorship: "Request Booking",
+        Professional: "Request Development",
+        Writing: "Request Writing",
+      };
+      return quoteTexts[type] || "Get Quote";
+    }
+  };
+
+  const getSecondaryActionText = (type: ServiceType, isFixedPrice: boolean) => {
+    if (isFixedPrice) {
+      return "Get Custom Quote";
+    } else {
+      return `View ${type} Packages`;
+    }
+  };
+
+  const primaryOnClick = isFixedPrice
+    ? () =>
+        document
+          .getElementById("packages-section")
+          ?.scrollIntoView({ behavior: "smooth" })
+    : () =>
+        document
+          .getElementById("quote-section")
+          ?.scrollIntoView({ behavior: "smooth" });
+
+  const secondaryOnClick = isFixedPrice
+    ? () =>
+        document
+          .getElementById("quote-section")
+          ?.scrollIntoView({ behavior: "smooth" })
+    : () =>
+        document
+          .getElementById("packages-section")
+          ?.scrollIntoView({ behavior: "smooth" });
 
   // Generate structured data for SEO
   const structuredData = {
@@ -193,27 +243,19 @@ const PageClient: React.FC<PageClientProps> = ({ service }) => {
 
         <div className="flex flex-col sm:flex-row gap-4">
           <button
-            onClick={() =>
-              document
-                .getElementById("quote-section")
-                ?.scrollIntoView({ behavior: "smooth" })
-            }
+            onClick={primaryOnClick}
             className="group bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-500 hover:scale-105 hover:shadow-2xl"
           >
             <span className="flex items-center justify-center gap-2">
-              Get Quote
+              {getPrimaryActionText(service.type as ServiceType, isFixedPrice)}
               <ArrowRight className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" />
             </span>
           </button>
           <button
-            onClick={() =>
-              document
-                .getElementById("packages-section")
-                ?.scrollIntoView({ behavior: "smooth" })
-            }
+            onClick={secondaryOnClick}
             className="group bg-white/80 dark:bg-white/10 backdrop-blur-sm border-2 border-[#FF4081]/50 dark:border-white/30 text-[#D2145A] dark:text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 hover:bg-gradient-to-r hover:from-[#D2145A] hover:to-[#FF4081] hover:text-white hover:border-transparent"
           >
-            View Packages
+            {getSecondaryActionText(service.type as ServiceType, isFixedPrice)}
           </button>
         </div>
       </HeroSection>

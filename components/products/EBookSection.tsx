@@ -2,13 +2,23 @@
 
 import { Product } from "@/utils/interfaces";
 import Link from "next/link";
+import { useState } from "react";
 
 interface EBooksSectionProps {
   products: Product[];
 }
 
 const EBooksSection = ({ products }: EBooksSectionProps) => {
+  const [visibleEbooks, setVisibleEbooks] = useState(3); // Start with 3 ebooks
+  const ebooksPerLoad = 3; // Number of ebooks to load each time
   const ebooks = products;
+  const totalEbooks = ebooks.length; // Total number of ebooks
+  const displayedEbooks = ebooks.slice(0, visibleEbooks);
+  const hasMoreEbooks = visibleEbooks < totalEbooks; // Check if more ebooks can be loaded
+
+  const handleLoadMore = () => {
+    setVisibleEbooks((prev) => Math.min(prev + ebooksPerLoad, totalEbooks));
+  };
 
   return (
     <section className="py-20 bg-gradient-to-r from-[#D2145A] to-[#FF4081] relative overflow-hidden">
@@ -26,21 +36,18 @@ const EBooksSection = ({ products }: EBooksSectionProps) => {
         </div>
 
         <div className="grid lg:grid-cols-3 gap-8">
-          {ebooks.map((ebook) => (
+          {displayedEbooks.map((ebook) => (
             <div
               key={ebook.id}
               className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 border border-white/20 hover:bg-white/20 transition-all duration-500 group"
             >
               <div className="flex items-center justify-between mb-6">
                 <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center text-3xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-                  {"📘"}
+                  📘
                 </div>
                 <div className="text-right">
                   <div className="text-3xl font-bold text-white">
                     ${ebook.price}
-                  </div>
-                  <div className="text-white/70 text-sm">
-                    ★ {ebook.rating || "4.5/5"}
                   </div>
                 </div>
               </div>
@@ -57,10 +64,10 @@ const EBooksSection = ({ products }: EBooksSectionProps) => {
 
               <div className="flex justify-between items-center mb-6 text-sm">
                 <span className="bg-white/20 text-white px-3 py-1 rounded-full">
-                  {"200+ pages"}
+                  200+ pages
                 </span>
                 <span className="bg-white/20 text-white px-3 py-1 rounded-full">
-                  {"PDF & ePub"}
+                  PDF & ePub
                 </span>
               </div>
 
@@ -78,11 +85,26 @@ const EBooksSection = ({ products }: EBooksSectionProps) => {
               )}
 
               <button className="w-full bg-white text-[#D2145A] py-3 px-6 rounded-xl font-semibold transition-all duration-300 hover:bg-gray-100 hover:scale-105">
-                Download Ebook
+                View Details
               </button>
             </div>
           ))}
         </div>
+
+        {hasMoreEbooks && (
+          <div className="text-center mt-16">
+            <button
+              onClick={handleLoadMore}
+              className="group relative text-base hover:shadow-2xl overflow-hidden bg-white text-[#D2145A] 
+              py-3 px-6 rounded-xl font-semibold transition-all duration-300 hover:bg-gray-100 hover:scale-105"
+            >
+              <span className="relative z-10 flex items-center gap-2">
+                Load More
+              </span>
+              <div className="absolute inset-0 bg-white/20 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
+            </button>
+          </div>
+        )}
       </div>
     </section>
   );

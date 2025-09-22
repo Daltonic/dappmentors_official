@@ -130,7 +130,7 @@ export default async function Page() {
 
   try {
     const response = await fetch(
-      `${BASE_URL}/api/products?status=published&featured=true&limit=100`, // Increased limit
+      `${BASE_URL}/api/products?status=published&limit=100`, // Increased limit
       {
         method: "GET",
         headers: {

@@ -175,7 +175,7 @@ const PageClient: React.FC = () => {
       <div className="text-center mb-8">
         <button
           type="button"
-          onClick={() => router.back()}
+          onClick={() => router.push("/")}
           className="inline-flex items-center gap-3 bg-gradient-to-r from-[#D2145A]/10 to-[#FF4081]/10 backdrop-blur-sm rounded-full px-6 py-2 mb-6"
         >
           <span className="flex items-center gap-2 text-[#D2145A] font-semibold text-sm uppercase tracking-wider">
@@ -397,17 +397,10 @@ const PageClient: React.FC = () => {
               <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">
                 I agree to the{" "}
                 <Link
-                  href="/terms"
-                  className="text-[#D2145A] hover:text-[#FF4081] transition-colors font-medium"
-                >
-                  Terms of Service
-                </Link>{" "}
-                and{" "}
-                <Link
                   href="/privacy"
                   className="text-[#D2145A] hover:text-[#FF4081] transition-colors font-medium"
                 >
-                  Privacy Policy
+                  Terms of Service
                 </Link>
               </span>
             </label>

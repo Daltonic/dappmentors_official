@@ -134,7 +134,7 @@ const PageClient: React.FC = () => {
       <div className="text-center mb-8">
         <button
           type="button"
-          onClick={() => router.back()}
+          onClick={() => router.push("/")}
           className="inline-flex items-center gap-3 bg-gradient-to-r from-[#D2145A]/10 to-[#FF4081]/10 backdrop-blur-sm rounded-full px-6 py-2 mb-6"
         >
           <span className="flex items-center gap-2 text-[#D2145A] font-semibold text-sm uppercase tracking-wider">

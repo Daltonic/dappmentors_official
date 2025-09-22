@@ -50,7 +50,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
           onClick={() => router.push(`/services/${service.slug}`)}
           className="w-full bg-white text-[#D2145A] py-3 px-6 rounded-xl font-semibold transition-all duration-300 hover:bg-gray-100 hover:scale-105"
         >
-          Get Quote
+          View Details
         </button>
       </div>
     );
@@ -108,7 +108,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
           onClick={() => router.push(`/services/${service.slug}`)}
           className="w-full bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 text-gray-900 dark:text-white py-3 px-6 rounded-xl font-semibold transition-all duration-300 group-hover:bg-gradient-to-r group-hover:from-[#D2145A] group-hover:to-[#FF4081] group-hover:text-white hover:scale-105"
         >
-          Get Quote
+          View Details
         </button>
       </div>
     </div>

@@ -10,26 +10,65 @@ import ProductContentSection from "@/components/products/details/ProductContentS
 import InstructorSection from "@/components/products/details/InstructorSection";
 import TestimonialsSection from "@/components/products/details/TestimonialsSection";
 import FAQSection from "@/components/shared/FAQSection";
-import FinalCTASection from "@/components/products/details/FinalCTASection";
 import { toast } from "react-toastify";
 import { Star, ArrowRight } from "lucide-react";
 import { getHighlightWord } from "@/heplers/global";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/contexts/UserContext";
+import CTASection from "@/components/shared/CTASection";
 
 interface PageClientProps {
   product: Product;
 }
 
 const PageClient: React.FC<PageClientProps> = ({ product }) => {
-  const [isEnrolling, setIsEnrolling] = useState(false);
+  const [isPurchasing, setIsPurchasing] = useState(false);
   const { user } = useUser();
   const router = useRouter();
 
-  const isPurchased = user && user.purchasedProducts?.includes(product.id);
+  // Ensure isPurchased is always a boolean
+  const isPurchased = user?.purchasedProducts?.includes(product.id) ?? false;
 
-  const handleEnroll = async () => {
-    setIsEnrolling(true);
+  const getActionText = (
+    type: string,
+    isPurchased: boolean,
+    isLoading: boolean,
+  ) => {
+    const viewTexts: Record<string, string> = {
+      Course: "View Course",
+      Bootcamp: "View Bootcamp",
+      Ebook: "View Ebook",
+      Codebase: "View Codebase",
+    };
+
+    const buyTexts: Record<string, string> = {
+      Course: "Enroll Now",
+      Bootcamp: "Join Now",
+      Ebook: "Buy Now",
+      Codebase: "Get Now",
+    };
+
+    const loadingText = "Processing...";
+
+    if (isPurchased) {
+      return viewTexts[type] || `View ${type}`;
+    }
+
+    if (isLoading) {
+      return loadingText;
+    }
+
+    return buyTexts[type] || "Buy Now";
+  };
+
+  const actionButtonText = getActionText(
+    product.type,
+    isPurchased,
+    isPurchasing,
+  );
+
+  const handlePurchase = async () => {
+    setIsPurchasing(true);
 
     const item: ICheckoutItem = {
       id: product.id,
@@ -64,14 +103,14 @@ const PageClient: React.FC<PageClientProps> = ({ product }) => {
       const data = await response.json();
       window.location.href = data.checkoutSession.url;
     } catch (error) {
-      console.error("Enrollment error:", error);
+      console.error("Purchase error:", error);
       toast.error(
         error instanceof Error
           ? error.message
-          : "An error occurred during enrollment",
+          : "An error occurred during purchase",
       );
     } finally {
-      setIsEnrolling(false);
+      setIsPurchasing(false);
     }
   };
 
@@ -79,42 +118,60 @@ const PageClient: React.FC<PageClientProps> = ({ product }) => {
     if (isPurchased) {
       router.push(`/dashboard/purchases/${product.id}/lessons`);
     } else {
-      handleEnroll();
+      handlePurchase();
     }
   };
 
-  const actionButtonText = isPurchased
-    ? `View ${product.type}`
-    : isEnrolling
-      ? "Enrolling..."
-      : "Enroll Now";
-
   // Generate structured data for SEO
+  const getStructuredDataType = (type: string) => {
+    switch (type) {
+      case "Course":
+      case "Bootcamp":
+        return "Course";
+      case "Ebook":
+        return "Book";
+      case "Codebase":
+        return "SoftwareApplication";
+      default:
+        return "Product";
+    }
+  };
+
   const structuredData = {
     "@context": "https://schema.org",
-    "@type": "Course",
+    "@type": getStructuredDataType(product.type),
     name: product.title,
     description: product.description,
     provider: {
       "@type": "Organization",
       name: "Dapp Mentors",
     },
-    instructor: {
-      "@type": "Person",
-      name: product.instructor.name,
-      description: product.instructor.bio || "", // Fallback for optional bio
-    },
+    ...(product.type === "Ebook" && {
+      author: {
+        "@type": "Person",
+        name: product.instructor?.name || "",
+      },
+    }),
+    ...(product.type !== "Ebook" && {
+      instructor: {
+        "@type": "Person",
+        name: product.instructor?.name || "",
+        description: product.instructor?.bio || "",
+      },
+    }),
     offers: {
       "@type": "Offer",
       price: product.price,
       priceCurrency: product.currency,
       availability: "https://schema.org/InStock",
     },
-    aggregateRating: {
-      "@type": "AggregateRating",
-      ratingValue: product.rating || 0, // Fallback for optional rating
-      ratingCount: product.totalReviews,
-    },
+    ...(product.rating && {
+      aggregateRating: {
+        "@type": "AggregateRating",
+        ratingValue: product.rating,
+        ratingCount: product.totalReviews || 0,
+      },
+    }),
   };
 
   return (
@@ -128,14 +185,14 @@ const PageClient: React.FC<PageClientProps> = ({ product }) => {
       {/* Hero Section */}
       <HeroSection
         layout="grid"
-        tagText="Course"
+        tagText={product.type}
         title={product.title}
         highlightText={getHighlightWord(product.title)}
         subtitle={product.subtitle || product.description}
         rightContent={
           <div className="relative">
             <Image
-              src={product.imageUrl || "/placeholder-image.svg"} // Fallback for undefined imageUrl
+              src={product.imageUrl || "/placeholder-image.svg"}
               alt={product.title}
               width={1280}
               height={720}
@@ -205,7 +262,7 @@ const PageClient: React.FC<PageClientProps> = ({ product }) => {
         <div className="flex flex-col sm:flex-row gap-4">
           <button
             onClick={handleAction}
-            disabled={isEnrolling && !isPurchased}
+            disabled={isPurchasing && !isPurchased}
             className="group bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-500 hover:scale-105 hover:shadow-2xl disabled:opacity-50"
           >
             <span className="flex items-center justify-center gap-2">
@@ -216,7 +273,7 @@ const PageClient: React.FC<PageClientProps> = ({ product }) => {
             </span>
           </button>
           <button className="group bg-white/80 dark:bg-white/10 backdrop-blur-sm border-2 border-[#FF4081]/50 dark:border-white/30 text-[#D2145A] dark:text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 hover:bg-gradient-to-r hover:from-[#D2145A] hover:to-[#FF4081] hover:text-white hover:border-transparent">
-            Preview Course
+            Preview {product.type}
           </button>
         </div>
       </HeroSection>
@@ -226,7 +283,7 @@ const PageClient: React.FC<PageClientProps> = ({ product }) => {
 
       {/* Course Content Section */}
       <ProductContentSection
-        modules={product.modules || []} // Fallback for optional modules
+        modules={product.modules || []}
         includes={product.includes || []}
       />
 
@@ -243,13 +300,7 @@ const PageClient: React.FC<PageClientProps> = ({ product }) => {
       />
 
       {/* Final CTA Section */}
-      <FinalCTASection
-        product={product}
-        onEnroll={handleEnroll}
-        onView={() => router.push(`/dashboard/purchases/${product.id}/lessons`)}
-        isPurchased={!!isPurchased}
-        isEnrolling={isEnrolling}
-      />
+      <CTASection />
 
       {/* Sticky Bottom CTA for Mobile */}
       <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 p-4 md:hidden z-50">
@@ -266,7 +317,7 @@ const PageClient: React.FC<PageClientProps> = ({ product }) => {
           </div>
           <button
             onClick={handleAction}
-            disabled={isEnrolling && !isPurchased}
+            disabled={isPurchasing && !isPurchased}
             className="bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-105 disabled:opacity-50"
           >
             {actionButtonText}
@@ -275,12 +326,12 @@ const PageClient: React.FC<PageClientProps> = ({ product }) => {
       </div>
 
       {/* Loading Overlay */}
-      {isEnrolling && (
+      {isPurchasing && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
           <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 text-center">
             <div className="w-16 h-16 border-4 border-[#D2145A] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
             <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-              Processing Enrollment
+              Processing Purchase
             </h3>
             <p className="text-gray-600 dark:text-gray-300">
               Please wait while we set up your access...
