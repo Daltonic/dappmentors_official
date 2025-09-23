@@ -3,22 +3,28 @@
 import ServicesSection from "@/components/contact/ServicesSection";
 import FeaturedContentSection from "@/components/home/FeaturedContentSection";
 import FeaturedProductsSection from "@/components/home/FeaturedProductsSection";
+import RecentBlogsSection from "@/components/home/RecentBlogsSection";
 import MarketingLayout from "@/components/layouts/MarketingLayout";
 import CommunityStatsSection from "@/components/shared/CommunityStatsSection";
 import CTASection from "@/components/shared/CTASection";
 import HeroSection from "@/components/shared/HeroSection";
 import WhyChooseSection from "@/components/shared/WhyChooseSection";
-import { Product, Service } from "@/utils/interfaces";
+import { Product, Service, BlogPost } from "@/utils/interfaces";
 import React from "react";
 
 // Define props interface
 interface PageClientProps {
   products: Product[];
   services: Service[];
+  blogs: BlogPost[];
 }
 
 // Client Component for Home Page
-const PageClient: React.FC<PageClientProps> = ({ products, services }) => {
+const PageClient: React.FC<PageClientProps> = ({
+  products,
+  services,
+  blogs,
+}) => {
   return (
     <MarketingLayout>
       <HeroSection
@@ -39,7 +45,7 @@ const PageClient: React.FC<PageClientProps> = ({ products, services }) => {
         <div className="flex flex-col sm:flex-row gap-8 justify-center items-center text-gray-600 dark:text-gray-400">
           <div className="flex items-center gap-2">
             <span className="text-2xl">👥</span>
-            <span className="font-semibold">5,450+ Community Members</span>
+            <span className="font-semibold">5,550+ Community Members</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-2xl">⭐</span>
@@ -58,6 +64,7 @@ const PageClient: React.FC<PageClientProps> = ({ products, services }) => {
       />
       <FeaturedContentSection />
       <CommunityStatsSection />
+      <RecentBlogsSection blogs={blogs} />
       <CTASection
         title="Ready to Shape the Decentralized Future?"
         highlightText="Decentralized Future"

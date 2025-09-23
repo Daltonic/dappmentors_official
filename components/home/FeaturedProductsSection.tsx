@@ -1,11 +1,10 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React from "react";
 import "swiper/css";
 import "swiper/css/pagination";
 import "swiper/css/navigation";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Pagination, Navigation } from "swiper/modules";
-import { SkeletonTheme } from "react-loading-skeleton";
 import { Product } from "@/utils/interfaces";
 import ProductCard from "../shared/ProductCard";
 // Import react-icons
@@ -19,15 +18,7 @@ interface FeaturedProductsSectionProps {
 const FeaturedProductsSection: React.FC<FeaturedProductsSectionProps> = ({
   products,
 }) => {
-  const [loading, setLoading] = useState(true);
   const shouldAutoScroll = products.length > 3;
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 1800);
-    return () => clearTimeout(timer);
-  }, []);
 
   return (
     <section className="w-full py-8 sm:py-12 md:py-16 lg:py-20 bg-gradient-to-br from-gray-50 to-purple-50 dark:from-[#1A1A1A] dark:to-purple-900/10">
@@ -88,129 +79,111 @@ const FeaturedProductsSection: React.FC<FeaturedProductsSectionProps> = ({
 
         {/* Products Container */}
         <div className="relative">
-          {loading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 justify-items-center">
-              {Array.from({ length: Math.min(products.length, 3) }).map(
-                (_, i) => (
-                  <SkeletonTheme
-                    key={i}
-                    baseColor="#202020"
-                    highlightColor="#444"
-                    borderRadius={8}
-                  >
-                    <div className="w-full max-w-[380px] h-[600px] rounded-3xl bg-gray-800" />
-                  </SkeletonTheme>
-                ),
-              )}
-            </div>
-          ) : (
-            <>
-              {/* Desktop/Tablet View with Swiper */}
-              <div className="hidden md:block">
-                <div className="mb-16">
-                  <Swiper
-                    autoplay={
-                      shouldAutoScroll
-                        ? {
-                            delay: 4000,
-                            disableOnInteraction: false,
-                            pauseOnMouseEnter: true,
-                          }
-                        : false
-                    }
-                    pagination={{
-                      clickable: true,
-                      el: ".desktop-pagination",
-                    }}
-                    navigation={{
-                      enabled: shouldAutoScroll,
-                      nextEl: ".desktop-next",
-                      prevEl: ".desktop-prev",
-                    }}
-                    loop={shouldAutoScroll}
-                    modules={[Autoplay, Pagination, Navigation]}
-                    className="mb-8"
-                    spaceBetween={20}
-                    breakpoints={{
-                      768: {
-                        slidesPerView:
-                          products.length >= 2 ? 2 : products.length,
-                        spaceBetween: 24,
-                      },
-                      1024: {
-                        slidesPerView: Math.min(3, products.length),
-                        spaceBetween: 28,
-                      },
-                      1280: {
-                        slidesPerView: Math.min(3, products.length),
-                        spaceBetween: 32,
-                      },
-                    }}
-                  >
-                    {products.map((product, index) => (
-                      <SwiperSlide key={index} className="!flex justify-center">
-                        <ProductCard product={product} />
-                      </SwiperSlide>
-                    ))}
-                  </Swiper>
+          <>
+            {/* Desktop/Tablet View with Swiper */}
+            <div className="hidden md:block">
+              <div className="mb-16">
+                <Swiper
+                  autoplay={
+                    shouldAutoScroll
+                      ? {
+                          delay: 4000,
+                          disableOnInteraction: false,
+                          pauseOnMouseEnter: true,
+                        }
+                      : false
+                  }
+                  pagination={{
+                    clickable: true,
+                    el: ".desktop-pagination",
+                  }}
+                  navigation={{
+                    enabled: shouldAutoScroll,
+                    nextEl: ".desktop-next",
+                    prevEl: ".desktop-prev",
+                  }}
+                  loop={shouldAutoScroll}
+                  modules={[Autoplay, Pagination, Navigation]}
+                  className="mb-8"
+                  spaceBetween={20}
+                  breakpoints={{
+                    768: {
+                      slidesPerView: products.length >= 2 ? 2 : products.length,
+                      spaceBetween: 24,
+                    },
+                    1024: {
+                      slidesPerView: Math.min(3, products.length),
+                      spaceBetween: 28,
+                    },
+                    1280: {
+                      slidesPerView: Math.min(3, products.length),
+                      spaceBetween: 32,
+                    },
+                  }}
+                >
+                  {products.map((product, index) => (
+                    <SwiperSlide key={index} className="!flex justify-center">
+                      <ProductCard product={product} />
+                    </SwiperSlide>
+                  ))}
+                </Swiper>
 
-                  {/* Desktop Navigation and Pagination */}
-                  <div className="flex items-center justify-between mx-[32px]">
-                    {/* Navigation Arrows */}
-                    {shouldAutoScroll && (
-                      <div className="flex items-center gap-4">
-                        <button className="desktop-prev w-12 h-12 rounded-full bg-transparent dark:from-[#D2145A] to-[#FF4081] border-2 border-[#D2145A] flex items-center justify-center hover:bg-[#D2145A] hover:text-white transition-all duration-300 shadow-lg">
-                          <FiChevronLeft className="w-5 h-5 text-[#D2145A] hover:text-white" />
-                        </button>
-                        <button className="desktop-next w-12 h-12 rounded-full bg-transparent dark:from-[#D2145A] to-[#FF4081] border-2 border-[#D2145A] flex items-center justify-center hover:bg-[#D2145A] hover:text-white transition-all duration-300 shadow-lg">
-                          <FiChevronRight className="w-5 h-5 text-[#D2145A] hover:text-white" />
-                        </button>
-                      </div>
-                    )}
-
-                    {/* Pagination */}
-                    <div className="desktop-pagination flex items-center justify-end gap-2 ml-auto">
-                      {/* Pagination bullets will be rendered here by Swiper */}
+                {/* Desktop Navigation and Pagination */}
+                <div className="flex items-center justify-between mx-[32px]">
+                  {/* Navigation Arrows */}
+                  {shouldAutoScroll && (
+                    <div className="flex items-center gap-4">
+                      <button className="desktop-prev w-12 h-12 rounded-full bg-transparent dark:from-[#D2145A] to-[#FF4081] border-2 border-[#D2145A] flex items-center justify-center hover:bg-[#D2145A] hover:text-white transition-all duration-300 shadow-lg">
+                        <FiChevronLeft className="w-5 h-5 text-[#D2145A] hover:text-white" />
+                      </button>
+                      <button className="desktop-next w-12 h-12 rounded-full bg-transparent dark:from-[#D2145A] to-[#FF4081] border-2 border-[#D2145A] flex items-center justify-center hover:bg-[#D2145A] hover:text-white transition-all duration-300 shadow-lg">
+                        <FiChevronRight className="w-5 h-5 text-[#D2145A] hover:text-white" />
+                      </button>
                     </div>
-                  </div>
-                </div>
-              </div>
+                  )}
 
-              {/* Mobile View with Auto-scroll */}
-              <div className="block md:hidden">
-                <div className="mb-12">
-                  <Swiper
-                    autoplay={{
-                      delay: 4000,
-                      disableOnInteraction: false,
-                      pauseOnMouseEnter: true,
-                    }}
-                    pagination={{
-                      clickable: true,
-                      el: ".mobile-pagination",
-                    }}
-                    navigation={false}
-                    loop={true}
-                    modules={[Autoplay, Pagination]}
-                    className="mb-8"
-                    spaceBetween={16}
-                    slidesPerView={1}
-                  >
-                    {products.map((product, index) => (
-                      <SwiperSlide key={index} className="!flex justify-center">
-                        <ProductCard product={product} />
-                      </SwiperSlide>
-                    ))}
-                  </Swiper>
-
-                  {/* Mobile Pagination */}
-                  <div className="mobile-pagination flex items-center justify-center gap-2">
+                  {/* Pagination */}
+                  <div className="desktop-pagination flex items-center justify-end gap-2 ml-auto">
                     {/* Pagination bullets will be rendered here by Swiper */}
                   </div>
                 </div>
               </div>
-            </>
-          )}
+            </div>
+
+            {/* Mobile View with Auto-scroll */}
+            <div className="block md:hidden">
+              <div className="mb-12">
+                <Swiper
+                  autoplay={{
+                    delay: 4000,
+                    disableOnInteraction: false,
+                    pauseOnMouseEnter: true,
+                  }}
+                  pagination={{
+                    clickable: true,
+                    el: ".mobile-pagination",
+                  }}
+                  navigation={false}
+                  loop={true}
+                  modules={[Autoplay, Pagination]}
+                  className="mb-8"
+                  spaceBetween={16}
+                  slidesPerView={1}
+                >
+                  {products.map((product, index) => (
+                    <SwiperSlide key={index} className="!flex justify-center">
+                      <ProductCard product={product} />
+                    </SwiperSlide>
+                  ))}
+                </Swiper>
+
+                {/* Mobile Pagination */}
+                <div className="mobile-pagination flex items-center justify-center gap-2">
+                  {/* Pagination bullets will be rendered here by Swiper */}
+                </div>
+              </div>
+            </div>
+          </>
         </div>
 
         {/* Call to Action */}

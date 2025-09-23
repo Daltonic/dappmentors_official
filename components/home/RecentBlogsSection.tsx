@@ -1,47 +1,48 @@
 "use client";
-import Link from "next/link";
 import React from "react";
-import { FiArrowRight, FiChevronLeft, FiChevronRight } from "react-icons/fi";
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Autoplay, Pagination, Navigation } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/pagination";
 import "swiper/css/navigation";
-import { Service } from "@/utils/interfaces";
-import ServiceCard from "../shared/ServiceCard";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Autoplay, Pagination, Navigation } from "swiper/modules";
+import PostCard from "../shared/PostCard";
+import { BlogPost } from "@/utils/interfaces";
+import { FiArrowRight, FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import Link from "next/link";
 
-interface ServicesSectionProps {
-  services: Service[];
+interface RecentBlogsSectionProps {
+  blogs: BlogPost[];
 }
 
-const ServicesSection: React.FC<ServicesSectionProps> = ({ services }) => {
-  const shouldAutoScroll = services.length > 3; // Enable autoplay if more than 3 services
+const RecentBlogsSection: React.FC<RecentBlogsSectionProps> = ({ blogs }) => {
+  const shouldAutoScroll = blogs.length > 3;
 
   return (
-    <section className="w-full py-8 sm:py-12 md:py-16 lg:py-20 bg-white dark:bg-[#0A0A0A]">
+    <section className="w-full py-8 sm:py-12 md:py-16 lg:py-20 bg-gradient-to-br from-gray-50 to-purple-50 dark:from-[#1A1A1A] dark:to-purple-900/10">
       <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 2xl:px-20">
         {/* Header Section */}
         <div className="text-center mb-8 sm:mb-12 md:mb-16 lg:mb-20">
           <div className="inline-flex items-center gap-3 mb-6">
             <div className="w-12 h-0.5 bg-gradient-to-r from-[#D2145A] to-[#FFBAD4]"></div>
             <span className="text-[#D2145A] font-semibold text-sm uppercase tracking-wider">
-              Professional Services
+              Recent Blog Posts
             </span>
             <div className="w-12 h-0.5 bg-gradient-to-r from-[#FFBAD4] to-[#D2145A]"></div>
           </div>
+
           <h2 className="text-4xl md:text-5xl font-cambo font-normal text-gray-900 dark:text-white mb-6">
-            Professional Services
+            Latest Web3 Tutorials & Guides
           </h2>
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-4xl mx-auto">
-            Looking to build a custom dApp, smart contract, or Web3 solution?
-            Our team offers comprehensive development services.
+            Practical, hands-on content designed to guide you through every step
+            of your Web3 development journey.
           </p>
         </div>
 
         {/* Custom Pagination Styles */}
         <style jsx global>{`
-          .services-desktop-pagination .swiper-pagination-bullet,
-          .services-mobile-pagination .swiper-pagination-bullet {
+          .desktop-pagination .swiper-pagination-bullet,
+          .mobile-pagination .swiper-pagination-bullet {
             width: 12px;
             height: 12px;
             background: #d1d5db;
@@ -50,30 +51,30 @@ const ServicesSection: React.FC<ServicesSectionProps> = ({ services }) => {
             transition: all 0.3s ease;
           }
 
-          .services-desktop-pagination .swiper-pagination-bullet-active,
-          .services-mobile-pagination .swiper-pagination-bullet-active {
+          .desktop-pagination .swiper-pagination-bullet-active,
+          .mobile-pagination .swiper-pagination-bullet-active {
             background: #d2145a;
             width: 32px;
             border-radius: 6px;
           }
 
-          .dark .services-desktop-pagination .swiper-pagination-bullet,
-          .dark .services-mobile-pagination .swiper-pagination-bullet {
+          .dark .desktop-pagination .swiper-pagination-bullet,
+          .dark .mobile-pagination .swiper-pagination-bullet {
             background: #4b5563;
           }
 
-          .dark .services-desktop-pagination .swiper-pagination-bullet-active,
-          .dark .services-mobile-pagination .swiper-pagination-bullet-active {
+          .dark .desktop-pagination .swiper-pagination-bullet-active,
+          .dark .mobile-pagination .swiper-pagination-bullet-active {
             background: #d2145a;
           }
 
-          .services-desktop-prev:hover svg,
-          .services-desktop-next:hover svg {
+          .desktop-prev:hover svg,
+          .desktop-next:hover svg {
             color: white !important;
           }
         `}</style>
 
-        {/* Services Container */}
+        {/* Products Container */}
         <div className="relative">
           <>
             {/* Desktop/Tablet View with Swiper */}
@@ -91,12 +92,12 @@ const ServicesSection: React.FC<ServicesSectionProps> = ({ services }) => {
                   }
                   pagination={{
                     clickable: true,
-                    el: ".services-desktop-pagination",
+                    el: ".desktop-pagination",
                   }}
                   navigation={{
                     enabled: shouldAutoScroll,
-                    nextEl: ".services-desktop-next",
-                    prevEl: ".services-desktop-prev",
+                    nextEl: ".desktop-next",
+                    prevEl: ".desktop-prev",
                   }}
                   loop={shouldAutoScroll}
                   modules={[Autoplay, Pagination, Navigation]}
@@ -104,28 +105,28 @@ const ServicesSection: React.FC<ServicesSectionProps> = ({ services }) => {
                   spaceBetween={20}
                   breakpoints={{
                     768: {
-                      slidesPerView: services.length >= 2 ? 2 : services.length,
+                      slidesPerView: blogs.length >= 2 ? 2 : blogs.length,
                       spaceBetween: 24,
                     },
                     1024: {
-                      slidesPerView: Math.min(4, services.length),
+                      slidesPerView: Math.min(3, blogs.length),
                       spaceBetween: 28,
                     },
                     1280: {
-                      slidesPerView: Math.min(4, services.length),
+                      slidesPerView: Math.min(3, blogs.length),
                       spaceBetween: 32,
                     },
                   }}
                 >
-                  {services.map((service, index) => (
+                  {blogs.map((blog, index) => (
                     <SwiperSlide key={index} className="!flex justify-center">
-                      <ServiceCard service={service} />
+                      <PostCard post={blog} />
                     </SwiperSlide>
                   ))}
                 </Swiper>
 
                 {/* Desktop Navigation and Pagination */}
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mx-[32px]">
                   {/* Navigation Arrows */}
                   {shouldAutoScroll && (
                     <div className="flex items-center gap-4">
@@ -139,7 +140,7 @@ const ServicesSection: React.FC<ServicesSectionProps> = ({ services }) => {
                   )}
 
                   {/* Pagination */}
-                  <div className="services-desktop-pagination flex items-center justify-end gap-2 ml-auto">
+                  <div className="desktop-pagination flex items-center justify-end gap-2 ml-auto">
                     {/* Pagination bullets will be rendered here by Swiper */}
                   </div>
                 </div>
@@ -157,7 +158,7 @@ const ServicesSection: React.FC<ServicesSectionProps> = ({ services }) => {
                   }}
                   pagination={{
                     clickable: true,
-                    el: ".services-mobile-pagination",
+                    el: ".mobile-pagination",
                   }}
                   navigation={false}
                   loop={true}
@@ -166,15 +167,15 @@ const ServicesSection: React.FC<ServicesSectionProps> = ({ services }) => {
                   spaceBetween={16}
                   slidesPerView={1}
                 >
-                  {services.map((service, index) => (
+                  {blogs.map((blog, index) => (
                     <SwiperSlide key={index} className="!flex justify-center">
-                      <ServiceCard service={service} />
+                      <PostCard post={blog} />
                     </SwiperSlide>
                   ))}
                 </Swiper>
 
                 {/* Mobile Pagination */}
-                <div className="services-mobile-pagination flex items-center justify-center gap-2">
+                <div className="mobile-pagination flex items-center justify-center gap-2">
                   {/* Pagination bullets will be rendered here by Swiper */}
                 </div>
               </div>
@@ -185,11 +186,11 @@ const ServicesSection: React.FC<ServicesSectionProps> = ({ services }) => {
         {/* Call to Action */}
         <div className="text-center mt-16">
           <Link
-            href="/services"
+            href="/blogs"
             className="group relative bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white px-10 py-4 rounded-2xl font-semibold text-base transition-all duration-500 hover:scale-105 hover:shadow-2xl overflow-hidden inline-block"
           >
             <span className="relative z-10 flex items-center gap-2">
-              View All Services
+              View All Posts
               <FiArrowRight className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" />
             </span>
             <div className="absolute inset-0 bg-white/20 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
@@ -200,4 +201,4 @@ const ServicesSection: React.FC<ServicesSectionProps> = ({ services }) => {
   );
 };
 
-export default ServicesSection;
+export default RecentBlogsSection;

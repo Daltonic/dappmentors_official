@@ -2,7 +2,7 @@
 const CommunityStatsSection = () => {
   const stats = [
     {
-      number: "5,450+",
+      number: "5,550+",
       label: "YouTube Subscribers",
       description: "Active learners following our tutorials",
       icon: "📺",

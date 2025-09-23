@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import PageClient from "./PageClient";
-import { Product, Service } from "@/utils/interfaces";
+import { Product, Service, BlogPost } from "@/utils/interfaces";
 
 // Define the expected API response type
 interface ProductsResponse {
@@ -33,6 +33,23 @@ interface ServicesResponse {
   filters: {
     search: string;
     type: string;
+    status: string;
+    category: string;
+    featured: string;
+  };
+}
+
+interface BlogsResponse {
+  blogs: BlogPost[];
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalBlogs: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  };
+  filters: {
+    search: string;
     status: string;
     category: string;
     featured: string;
@@ -110,12 +127,12 @@ export default async function Page() {
 
   // Fetch products
   console.log(
-    `Fetching featured products from ${BASE_URL}/api/products?status=published&featured=true`,
+    `Fetching featured products from ${BASE_URL}/api/products?status=published&featured=true&limit=6`,
   );
   let products: Product[] = [];
   try {
     const productsResponse = await fetch(
-      `${BASE_URL}/api/products?status=published&featured=true`,
+      `${BASE_URL}/api/products?status=published&featured=true&limit=6`,
       {
         method: "GET",
         headers: {
@@ -137,12 +154,12 @@ export default async function Page() {
 
   // Fetch services
   console.log(
-    `Fetching services data from ${BASE_URL}/api/services?status=active&featured=true&limit=100`,
+    `Fetching services data from ${BASE_URL}/api/services?status=active&featured=true&limit=6`,
   );
   let services: Service[] = [];
   try {
     const servicesResponse = await fetch(
-      `${BASE_URL}/api/services?status=active&featured=true&limit=100`,
+      `${BASE_URL}/api/services?status=active&featured=true&limit=6`,
       {
         method: "GET",
         headers: {
@@ -163,7 +180,32 @@ export default async function Page() {
     console.error("Failed to fetch services:", error);
   }
 
-  // Use fetched services if available, otherwise fallback to static
+  // Fetch recent blogs
+  console.log(
+    `Fetching recent blogs from ${BASE_URL}/api/blogs?status=published&limit=6&sortBy=publishDate&sortOrder=desc`,
+  );
+  let blogs: BlogPost[] = [];
+  try {
+    const blogsResponse = await fetch(
+      `${BASE_URL}/api/blogs?status=published&limit=6&sortBy=publishDate&sortOrder=desc`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        cache: "no-store",
+      },
+    );
 
-  return <PageClient products={products} services={services} />;
+    if (blogsResponse.ok) {
+      const data: BlogsResponse = await blogsResponse.json();
+      blogs = data.blogs || [];
+    } else {
+      console.error(`Blogs API request failed: ${blogsResponse.status}`);
+    }
+  } catch (error) {
+    console.error("Failed to fetch recent blogs:", error);
+  }
+
+  return <PageClient products={products} services={services} blogs={blogs} />;
 }
