@@ -45,7 +45,7 @@ const ContactMethodsSection = () => {
       title: "YouTube",
       description:
         "Subscribe to our channel for free tutorials and leave a comment to connect with us!",
-      contact: "youtube.com/@dappmentors",
+      contact: "youtube.com/@dappmentors?sub_confirmation=1",
       responseTime: "1-3 days",
       icon: "📺",
       gradient: "from-red-500 to-pink-500",

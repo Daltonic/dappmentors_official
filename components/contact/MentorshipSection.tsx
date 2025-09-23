@@ -1,5 +1,16 @@
+import { useRouter } from "next/navigation";
+
 // Mentorship Booking Section
 const MentorshipSection = () => {
+  const router = useRouter();
+
+  const scrollToWhyChooseSection = () => {
+    const contactFormSection = document.getElementById("contact-form-section");
+    if (contactFormSection) {
+      contactFormSection.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   return (
     <section className="py-20 bg-gradient-to-r from-[#D2145A] to-[#FF4081] relative overflow-hidden">
       <div className="absolute inset-0 bg-black/10"></div>
@@ -63,11 +74,17 @@ const MentorshipSection = () => {
               or DM us on Discord
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="bg-white text-[#D2145A] px-8 py-4 rounded-2xl font-bold text-lg hover:bg-gray-100 transition-all duration-300 hover:scale-105">
+              <button
+                onClick={scrollToWhyChooseSection}
+                className="bg-white text-[#D2145A] px-8 py-4 rounded-2xl font-bold text-lg hover:bg-gray-100 transition-all duration-300 hover:scale-105"
+              >
                 Email Us
               </button>
-              <button className="bg-transparent border-2 border-white text-white px-8 py-4 rounded-2xl font-bold text-lg hover:bg-white hover:text-[#D2145A] transition-all duration-300">
-                Join Discord
+              <button
+                onClick={() => router.push("/services")}
+                className="bg-transparent border-2 border-white text-white px-8 py-4 rounded-2xl font-bold text-lg hover:bg-white hover:text-[#D2145A] transition-all duration-300"
+              >
+                Our Services
               </button>
             </div>
           </div>

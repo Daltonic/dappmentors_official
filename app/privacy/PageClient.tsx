@@ -1,9 +1,11 @@
+// app/privacy/page.tsx
 "use client";
 
 import MarketingLayout from "@/components/layouts/MarketingLayout";
 import CTASection from "@/components/shared/CTASection";
 import HeroSection from "@/components/shared/HeroSection";
 import React from "react";
+import { useRouter } from "next/navigation";
 
 interface PrivacySectionProps {
   title: string;
@@ -206,6 +208,13 @@ Deletion Requests: We will delete your data upon request, except where retention
 
 // Client Component for Privacy Page
 const PageClient = () => {
+  const router = useRouter();
+
+  // CTA Actions
+  const handlePrimaryCTA = () => {
+    router.push("/contact");
+  };
+
   return (
     <MarketingLayout>
       <HeroSection
@@ -222,11 +231,7 @@ const PageClient = () => {
         highlightText="Your Privacy"
         subtitle="If you have any questions about this Privacy Policy or our data practices, we're here to help clarify anything you need."
         primaryButtonText="Contact Us"
-        secondaryButtonText="Email Support"
-        gradientFrom="from-gray-900"
-        gradientTo="to-purple-900"
-        darkGradientFrom="dark:from-black"
-        darkGradientTo="dark:to-purple-900"
+        primaryOnClick={handlePrimaryCTA}
       />
     </MarketingLayout>
   );

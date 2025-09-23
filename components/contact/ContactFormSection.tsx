@@ -438,7 +438,7 @@ const ContactFormSection = () => {
 
               <div className="space-y-4">
                 <Link
-                  href="https://youtube.com/@dappmentors"
+                  href="https://youtube.com/@dappmentors?sub_confirmation=1"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="block w-full bg-gradient-to-r from-red-500 to-pink-500 text-white py-3 px-6 rounded-xl font-semibold transition-all duration-300 hover:scale-105 text-center"

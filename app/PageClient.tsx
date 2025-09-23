@@ -1,3 +1,4 @@
+// app/page.tsx (Home Page)
 "use client";
 
 import ServicesSection from "@/components/contact/ServicesSection";
@@ -12,6 +13,7 @@ import WhyChooseSection from "@/components/shared/WhyChooseSection";
 import { Product, Service, BlogPost } from "@/utils/interfaces";
 import React from "react";
 import { useRouter } from "next/navigation"; // Use Next.js navigation hook
+import { FaYoutube } from "react-icons/fa";
 
 // Define props interface
 interface PageClientProps {
@@ -36,6 +38,18 @@ const PageClient: React.FC<PageClientProps> = ({
     if (featuredContentSection) {
       featuredContentSection.scrollIntoView({ behavior: "smooth" });
     }
+  };
+
+  // CTA Actions
+  const handlePrimaryCTA = () => {
+    router.push("/products");
+  };
+
+  const handleSecondaryCTA = () => {
+    window.open(
+      "https://youtube.com/@dappmentors?sub_confirmation=1",
+      "_blank",
+    );
   };
 
   return (
@@ -92,11 +106,12 @@ const PageClient: React.FC<PageClientProps> = ({
         highlightText="Decentralized Future"
         subtitle="Whether you're a beginner exploring Web3 or a seasoned developer launching a dApp, we have the resources, expertise, and community to support you."
         primaryButtonText="Start Learning Today"
-        secondaryButtonText="Join Discord Community"
-        gradientFrom="from-gray-900"
-        gradientTo="to-purple-900"
-        darkGradientFrom="dark:from-black"
-        darkGradientTo="dark:to-purple-900"
+        secondaryButtonText="Join YouTube Channel"
+        primaryOnClick={handlePrimaryCTA}
+        secondaryOnClick={handleSecondaryCTA}
+        secondaryIcon={
+          <FaYoutube className="w-6 h-6 transition-transform duration-300 group-hover:rotate-12" />
+        }
       />
     </MarketingLayout>
   );

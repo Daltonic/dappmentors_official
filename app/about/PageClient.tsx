@@ -11,6 +11,7 @@ import CTASection from "@/components/shared/CTASection";
 import HeroSection from "@/components/shared/HeroSection";
 import { useRouter } from "next/navigation";
 import React from "react";
+import { FaYoutube } from "react-icons/fa";
 
 // Client Component for About Page
 const PageClient = () => {
@@ -22,6 +23,18 @@ const PageClient = () => {
     if (offeringsSection) {
       offeringsSection.scrollIntoView({ behavior: "smooth" });
     }
+  };
+
+  // CTA Actions
+  const handlePrimaryCTA = () => {
+    router.push("/products");
+  };
+
+  const handleSecondaryCTA = () => {
+    window.open(
+      "https://youtube.com/@dappmentors?sub_confirmation=1",
+      "_blank",
+    );
   };
 
   return (
@@ -59,11 +72,12 @@ const PageClient = () => {
         highlightText="Decentralized"
         subtitle="Dapp Mentors is more than just a learning platform—it's a movement to empower developers to shape the future of the internet. Join our community today and start building the decentralized applications of tomorrow."
         primaryButtonText="Start Learning Today"
-        secondaryButtonText="Join Community"
-        gradientFrom="from-gray-900"
-        gradientTo="to-purple-900"
-        darkGradientFrom="dark:from-black"
-        darkGradientTo="dark:to-purple-900"
+        secondaryButtonText="Join YouTube Channel"
+        primaryOnClick={handlePrimaryCTA}
+        secondaryOnClick={handleSecondaryCTA}
+        secondaryIcon={
+          <FaYoutube className="w-6 h-6 transition-transform duration-300 group-hover:rotate-12" />
+        }
       />
     </MarketingLayout>
   );

@@ -2,15 +2,25 @@
 
 import { CTASectionProps } from "@/utils/interfaces";
 import React from "react";
+import { FaArrowRight, FaUsers } from "react-icons/fa";
 
-const CTASection: React.FC<CTASectionProps> = ({
+interface ExtendedCTASectionProps extends CTASectionProps {
+  primaryOnClick?: () => void;
+  secondaryOnClick?: () => void;
+  secondaryIcon?: React.ReactNode;
+}
+
+const CTASection: React.FC<ExtendedCTASectionProps> = ({
   title = "Ready to Start Your Web3 Journey?",
   highlightText = "Web3 Journey",
   subtitle = "Join thousands of developers who have transformed their careers with Dapp Mentors. Let’s build the decentralized applications of tomorrow, together.",
   primaryButtonText = "Start Learning Today",
-  secondaryButtonText = "Join Community",
+  secondaryButtonText = "",
   primaryButtonClassName = "group bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white px-10 py-5 rounded-2xl font-bold text-xl transition-all duration-500 hover:scale-105 hover:shadow-2xl",
   secondaryButtonClassName = "group bg-white/80 dark:bg-white/10 backdrop-blur-sm border-2 border-[#FF4081]/50 dark:border-white/30 text-[#D2145A] dark:text-white px-10 py-5 rounded-2xl font-bold text-xl transition-all duration-300 hover:bg-gradient-to-r hover:from-[#D2145A] hover:to-[#FF4081] hover:text-white dark:hover:bg-white dark:hover:text-[#D2145A]",
+  primaryOnClick,
+  secondaryOnClick,
+  secondaryIcon,
 }) => {
   // Function to split title and highlight the specified text
   const renderHighlightedTitle = () => {
@@ -58,43 +68,29 @@ const CTASection: React.FC<CTASectionProps> = ({
         </p>
 
         <div className="flex flex-col sm:flex-row gap-6 justify-center">
-          <button className={primaryButtonClassName}>
+          <button className={primaryButtonClassName} onClick={primaryOnClick}>
             <span className="flex items-center gap-3">
               {primaryButtonText}
-              <svg
-                className="w-6 h-6 transition-transform duration-300 group-hover:translate-x-1"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M17 8l4 4m0 0l-4 4m4-4H3"
-                />
-              </svg>
+              <FaArrowRight className="w-6 h-6 transition-transform duration-300 group-hover:translate-x-1" />
             </span>
           </button>
 
-          <button className={secondaryButtonClassName}>
-            <span className="flex items-center gap-3">
-              {secondaryButtonText}
-              <svg
-                className="w-6 h-6 transition-transform duration-300 group-hover:rotate-12"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                />
-              </svg>
-            </span>
-          </button>
+          {secondaryButtonText && (
+            <button
+              className={secondaryButtonClassName}
+              onClick={secondaryOnClick}
+            >
+              <span className="flex items-center gap-3">
+                {secondaryButtonText}
+
+                {secondaryIcon ? (
+                  secondaryIcon
+                ) : (
+                  <FaUsers className="w-6 h-6 transition-transform duration-300 group-hover:rotate-12" />
+                )}
+              </span>
+            </button>
+          )}
         </div>
       </div>
     </section>

@@ -1,9 +1,9 @@
+// app/contact/page.tsx
 "use client";
 
 import ContactFormSection from "@/components/contact/ContactFormSection";
 import ContactMethodsSection from "@/components/contact/ContactMethodsSection";
 import MentorshipSection from "@/components/contact/MentorshipSection";
-// import ServicesSection from "@/components/contact/ServicesSection";
 import MarketingLayout from "@/components/layouts/MarketingLayout";
 import CTASection from "@/components/shared/CTASection";
 import FAQSection from "@/components/shared/FAQSection";
@@ -53,6 +53,15 @@ const PageClient = () => {
     }
   };
 
+  // CTA Actions
+  const handlePrimaryCTA = () => {
+    router.push("/products");
+  };
+
+  const handleSecondaryCTA = () => {
+    window.open("https://discord.gg/PgFDUVT6n9", "_blank");
+  };
+
   return (
     <MarketingLayout>
       <HeroSection
@@ -84,7 +93,6 @@ const PageClient = () => {
         <ContactFormSection />
       </div>
       <MentorshipSection />
-      {/* <ServicesSection /> */}
       <FAQSection
         subtitle="Quick answers to common questions about our services and community"
         faqs={faqs}
@@ -95,10 +103,8 @@ const PageClient = () => {
         subtitle="Join thousands of developers who have transformed their careers with Dapp Mentors. Let's build the decentralized applications of tomorrow, together."
         primaryButtonText="Start Learning Today"
         secondaryButtonText="Join Community"
-        gradientFrom="from-gray-900"
-        gradientTo="to-purple-900"
-        darkGradientFrom="dark:from-black"
-        darkGradientTo="dark:to-purple-900"
+        primaryOnClick={handlePrimaryCTA}
+        secondaryOnClick={handleSecondaryCTA}
       />
     </MarketingLayout>
   );

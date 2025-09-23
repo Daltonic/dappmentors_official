@@ -25,7 +25,7 @@ const FooterSection = () => {
       },
       {
         label: "YouTube Channel",
-        link: "https://youtube.com/@dappmentors",
+        link: "https://youtube.com/@dappmentors?sub_confirmation=1",
         icon: <FaYoutube />,
       },
       {
@@ -91,7 +91,7 @@ const FooterSection = () => {
                 <FaDiscord className="text-lg" />
               </a>
               <a
-                href="https://youtube.com/@dappmentors"
+                href="https://youtube.com/@dappmentors?sub_confirmation=1"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-gradient-to-r hover:from-red-500 hover:to-pink-500 transition-colors duration-300"

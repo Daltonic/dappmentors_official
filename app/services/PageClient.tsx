@@ -1,3 +1,4 @@
+// app/services/page.tsx
 "use client";
 
 import MarketingLayout from "@/components/layouts/MarketingLayout";
@@ -10,12 +11,15 @@ import CTASection from "@/components/shared/CTASection";
 import HeroSection from "@/components/shared/HeroSection";
 import WhyChooseSection from "@/components/shared/WhyChooseSection";
 import { Service } from "@/utils/interfaces";
+import { useRouter } from "next/navigation";
+import React from "react";
 
 interface PageClientProps {
   services: Service[];
 }
 
 const PageClient = ({ services }: PageClientProps) => {
+  const router = useRouter();
   const educationServices = services.filter(
     (service) => service.type === "Education",
   );
@@ -31,6 +35,16 @@ const PageClient = ({ services }: PageClientProps) => {
   const hiringServices = services.filter(
     (service) => service.type === "Hiring",
   );
+
+  // CTA Actions
+  const handlePrimaryCTA = () => {
+    router.push("/contact");
+  };
+
+  const handleSecondaryCTA = () => {
+    // Since it's already on services, perhaps loop back or to products; here, redirect to products for related action
+    router.push("/products");
+  };
 
   return (
     <MarketingLayout>
@@ -51,11 +65,9 @@ const PageClient = ({ services }: PageClientProps) => {
         highlightText="Web3 Journey"
         subtitle="Whether you're looking to master blockchain development, launch a groundbreaking dApp, or hire top Web3 talent, we're here to make it happen. Get Started Today"
         primaryButtonText="Get Started Today"
-        secondaryButtonText="View All Services"
-        gradientFrom="from-gray-900"
-        gradientTo="to-purple-900"
-        darkGradientFrom="dark:from-black"
-        darkGradientTo="dark:to-purple-900"
+        secondaryButtonText="Browse Our Products"
+        primaryOnClick={handlePrimaryCTA}
+        secondaryOnClick={handleSecondaryCTA}
       />
     </MarketingLayout>
   );

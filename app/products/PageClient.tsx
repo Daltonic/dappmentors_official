@@ -1,3 +1,4 @@
+// app/products/page.tsx
 "use client";
 
 import MarketingLayout from "@/components/layouts/MarketingLayout";
@@ -9,16 +10,28 @@ import CTASection from "@/components/shared/CTASection";
 import HeroSection from "@/components/shared/HeroSection";
 import WhyChooseSection from "@/components/shared/WhyChooseSection";
 import { Product } from "@/utils/interfaces";
+import { useRouter } from "next/navigation";
+import React from "react";
 
 interface PageClientProps {
   products: Product[];
 }
 
 const PageClient = ({ products }: PageClientProps) => {
+  const router = useRouter();
   const Courses = products.filter((product) => product.type === "Course");
   const Bootcamps = products.filter((product) => product.type === "Bootcamp");
   const Codebases = products.filter((product) => product.type === "Codebase");
   const EBooks = products.filter((product) => product.type === "Ebook");
+
+  // CTA Actions
+  const handlePrimaryCTA = () => {
+    router.push("/services");
+  };
+
+  const handleSecondaryCTA = () => {
+    router.push("/contact");
+  };
 
   return (
     <MarketingLayout>
@@ -37,14 +50,12 @@ const PageClient = ({ products }: PageClientProps) => {
 
       <CTASection
         title="Start Building the Decentralized Future"
-        highlightText="Blockchain Mastery"
+        highlightText="Decentralized Future"
         subtitle="Whether you're mastering smart contracts, launching a dApp, or accelerating your project with ready-to-use codebases, our products provide the tools you need to succeed."
         primaryButtonText="Explore Our Services"
         secondaryButtonText="Contact Us"
-        gradientFrom="from-gray-900"
-        gradientTo="to-purple-900"
-        darkGradientFrom="dark:from-black"
-        darkGradientTo="dark:to-purple-900"
+        primaryOnClick={handlePrimaryCTA}
+        secondaryOnClick={handleSecondaryCTA}
       />
     </MarketingLayout>
   );

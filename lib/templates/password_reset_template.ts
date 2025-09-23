@@ -287,7 +287,7 @@ export const generatePasswordResetEmailHTML = (
             
             <div class="social-links">
                 <a href="https://discord.gg/PgFDUVT6n9">💬 Discord</a>
-                <a href="https://youtube.com/@dappmentors">🎥 YouTube</a>
+                <a href="https://youtube.com/@dappmentors?sub_confirmation=1">🎥 YouTube</a>
                 <a href="https://linkedin.com/company/dappmentors">💼 LinkedIn</a>
                 <a href="https://twitter.com/iDaltonic">📱 X</a>
             </div>
