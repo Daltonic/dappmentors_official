@@ -93,9 +93,7 @@ const PageClient: React.FC<PageClientProps> = ({
       {/* Add an ID to the WhyChooseSection for scrolling */}
       <WhyChooseSection />
       <FeaturedProductsSection products={products} />
-      <ServicesSection
-        services={services.filter((service) => service.type === "Professional")}
-      />
+      <ServicesSection services={services} />
       <div id="featured-content-section">
         <FeaturedContentSection />
       </div>

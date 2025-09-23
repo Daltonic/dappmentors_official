@@ -207,14 +207,14 @@ const PageClient: React.FC<PageClientProps> = ({ service }) => {
         }
       >
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10">
-          <div className="text-center">
+          {/* <div className="text-center">
             <div className="text-3xl font-bold text-gray-900 dark:text-white">
               {service.clients}+
             </div>
             <div className="text-sm text-gray-600 dark:text-gray-300">
               Projects Completed
             </div>
-          </div>
+          </div> */}
           <div className="text-center">
             <div className="text-3xl font-bold text-gray-900 dark:text-white">
               {service.packages?.length || 3}

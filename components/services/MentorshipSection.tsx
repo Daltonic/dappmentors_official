@@ -19,6 +19,7 @@ const MentorshipSection = ({ services }: MentorshipSectionProps) => {
     "Book private mentorship to debug code, design dApps, or navigate specific challenges in smart contract development.",
     "Work with mentors to create a personalized roadmap for transitioning from Web2 to Web3, tailored to your goals.",
     "Receive expert advice on building secure, scalable dApps, from ideation to deployment on various blockchains.",
+    "Strategize your career path in Web3, identify key skills, and prepare for interviews with leading blockchain companies.",
   ];
 
   return (
