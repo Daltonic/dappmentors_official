@@ -20,6 +20,7 @@ import {
 } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import { blogApiService } from "@/services/blogApiService";
+import MarkdownEditor from "./MarkdownEditor";
 
 // Refined BlogPost interface
 
@@ -655,22 +656,66 @@ const ContentSection: React.FC<ContentSectionProps> = ({
         <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
           Content (Markdown supported) *
         </label>
-        <textarea
-          rows={15}
+
+        <MarkdownEditor
           value={formData.content}
-          onChange={(e) => handleInputChange("content", e.target.value)}
-          className={`w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF4081]/50 focus:border-transparent transition-all duration-300 font-mono text-sm ${
-            errors.content
-              ? "border-red-300 dark:border-red-600"
-              : "border-gray-200/50 dark:border-gray-700/50"
-          }`}
-          placeholder={`# Heading\n\nParagraph text...\n\n\`\`\`code\n// Code block\n\`\`\`\n\n- List item\n\n![Image alt](https://image.url)`}
+          onChange={(value) => handleInputChange("content", value)}
+          placeholder="# Your Blog Title
+
+          Start writing your blog content here. You can use markdown formatting:
+
+          ## Subheading
+
+          Write your introduction paragraph...
+
+          ### Code Examples
+
+          ```javascript
+          const example = () => {
+            console.log('Hello, World!');
+          };
+          ```
+
+          - Bullet points work too
+          - Add as many as you need
+
+          [Link to external resource](https://example.com)
+
+          ![Image description](https://image-url.com/image.jpg)
+
+          > This is a blockquote for highlighting important information.
+
+          Continue writing your content..."
+          error={errors.content}
+          height="500px"
+          className="w-full"
         />
+
         {errors.content && (
           <p className="mt-2 text-sm text-red-600 dark:text-red-400">
             {errors.content}
           </p>
         )}
+
+        {/* Content Guidelines */}
+        <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+          <h4 className="text-sm font-semibold text-blue-900 dark:text-blue-300 mb-2">
+            Content Writing Tips:
+          </h4>
+          <ul className="text-xs text-blue-700 dark:text-blue-400 space-y-1">
+            <li>• Use descriptive headings to structure your content</li>
+            <li>• Include code examples and practical demonstrations</li>
+            <li>• Add images to illustrate key concepts</li>
+            <li>• Use blockquotes for important callouts</li>
+            <li>• Link to relevant external resources</li>
+            <li>• Keep paragraphs concise and readable</li>
+          </ul>
+        </div>
+
+        <div className="mt-2 flex justify-between items-center text-xs text-gray-500 dark:text-gray-400">
+          <span>Markdown syntax supported</span>
+          <span>{formData.content.length} characters</span>
+        </div>
       </div>
     </div>
   );

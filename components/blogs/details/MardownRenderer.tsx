@@ -111,6 +111,70 @@ const highlightSyntax = (code: string, language: string): React.ReactNode[] => {
         "pub",
         "use",
       ],
+      html: [
+        // Basic for HTML - focus on common tags/attributes
+        "div",
+        "span",
+        "a",
+        "img",
+        "p",
+        "h1",
+        "h2",
+        "h3",
+        "ul",
+        "ol",
+        "li",
+        "class",
+        "id",
+        "style",
+        "src",
+        "href",
+        "alt",
+      ],
+      css: [
+        "display",
+        "flex",
+        "grid",
+        "color",
+        "background",
+        "margin",
+        "padding",
+        "border",
+        "font-size",
+        "position",
+      ],
+      c: [
+        "int",
+        "float",
+        "double",
+        "char",
+        "void",
+        "if",
+        "else",
+        "for",
+        "while",
+        "return",
+        "struct",
+        "typedef",
+      ],
+      cpp: [
+        "int",
+        "float",
+        "double",
+        "char",
+        "void",
+        "if",
+        "else",
+        "for",
+        "while",
+        "return",
+        "class",
+        "public",
+        "private",
+        "namespace",
+        "using",
+      ],
+      // Add more languages as needed
     };
 
     const langKeywords =
@@ -118,15 +182,21 @@ const highlightSyntax = (code: string, language: string): React.ReactNode[] => {
 
     if (langKeywords.includes(token)) return "#ff7ac6"; // Pink for keywords
     if (token.match(/^["'].*["']$/)) return "#68d391"; // Green for strings
-    if (token.match(/^\/\/.*/)) return "#a0aec0"; // Gray for comments
+    if (token.match(/^\/\/.*/)) return "#a0aec0"; // Gray for comments (// style)
+    if (token.match(/^\/\*.*\*\/$/)) return "#a0aec0"; // Gray for block comments
+    if (token.match(/^<!--.*-->$/)) return "#a0aec0"; // HTML comments
     if (token.match(/^\d+$/)) return "#fbb6ce"; // Light pink for numbers
     if (token.match(/^[A-Z][a-zA-Z]*$/)) return "#63b3ed"; // Blue for types/classes
+    if (token.match(/^<[\/!?]?[a-zA-Z0-9-]*>$/)) return "#63b3ed"; // HTML tags (attempt to match even with split)
+    if (token.startsWith("<") || token.startsWith("</")) return "#63b3ed"; // Partial tag match
 
     return "#e2e8f0"; // Default light gray
   };
 
   return lines.map((line, lineIndex) => {
-    const tokens = line.split(/(\s+|[(){}[\];,.=+\-*/<>!&|"'])/);
+    const tokens = line
+      .split(/(\s+|[(){}[\];,.=+\-*/<>!&|"'])/)
+      .filter((t) => t !== "");
 
     return (
       <div key={lineIndex}>
@@ -595,15 +665,75 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
     let inCodeBlock = false;
     let codeContent = "";
     let codeLanguage = "";
+    let inYoutubeHtml = false;
+    let youtubeHtml = "";
 
     lines.forEach((line, index) => {
+      // Handle YouTube HTML blocks first (multi-line)
+      if (inYoutubeHtml) {
+        youtubeHtml += line + "\n";
+        if (line.trim().startsWith("</div>")) {
+          // Extract src from the HTML content
+          const srcMatch = youtubeHtml.match(/src="([^"]+)"/);
+          if (srcMatch) {
+            const src = srcMatch[1];
+            if (src.includes("youtube.com/embed/")) {
+              const videoId =
+                src.split("/embed/")[1].split("?")[0] ||
+                src.split("/embed/")[1];
+              elements.push(
+                <div
+                  key={`youtube-html-${index}`}
+                  style={{
+                    margin: "16px 0",
+                    position: "relative",
+                    paddingBottom: "56.25%", // 16:9 aspect ratio
+                    height: 0,
+                    overflow: "hidden",
+                    width: "100%",
+                  }}
+                >
+                  <iframe
+                    src={`https://www.youtube.com/embed/${videoId}`}
+                    title="YouTube video"
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    style={{
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                      width: "100%",
+                      height: "100%",
+                      borderRadius: "8px",
+                    }}
+                  />
+                </div>,
+              );
+            }
+          }
+          inYoutubeHtml = false;
+          youtubeHtml = "";
+        }
+        return;
+      }
+
+      if (
+        !inCodeBlock &&
+        line.trim().startsWith('<div class="youtube-embed">')
+      ) {
+        inYoutubeHtml = true;
+        youtubeHtml = line + "\n";
+        return;
+      }
+
       // Handle code blocks
       if (line.startsWith("```")) {
         if (inCodeBlock) {
           elements.push(
             <CodeBlock
               key={`code-${index}`}
-              code={codeContent.trim()}
+              code={codeContent} // Removed trim() to preserve exact formatting (leading/trailing whitespace preserved except trailing \n)
               language={codeLanguage}
             />,
           );
@@ -803,6 +933,54 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
         elements.push(<br key={index} />);
       }
     });
+
+    // If ended in code block, add it
+    if (inCodeBlock) {
+      elements.push(
+        <CodeBlock key="code-end" code={codeContent} language={codeLanguage} />,
+      );
+    }
+
+    // If ended in YouTube HTML, try to add if possible
+    if (inYoutubeHtml && youtubeHtml.includes("</div>")) {
+      const srcMatch = youtubeHtml.match(/src="([^"]+)"/);
+      if (srcMatch) {
+        const src = srcMatch[1];
+        if (src.includes("youtube.com/embed/")) {
+          const videoId =
+            src.split("/embed/")[1].split("?")[0] || src.split("/embed/")[1];
+          elements.push(
+            <div
+              key="youtube-html-end"
+              style={{
+                margin: "16px 0",
+                position: "relative",
+                paddingBottom: "56.25%",
+                height: 0,
+                overflow: "hidden",
+                width: "100%",
+              }}
+            >
+              <iframe
+                src={`https://www.youtube.com/embed/${videoId}`}
+                title="YouTube video"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  height: "100%",
+                  borderRadius: "8px",
+                }}
+              />
+            </div>,
+          );
+        }
+      }
+    }
 
     return elements;
   };
