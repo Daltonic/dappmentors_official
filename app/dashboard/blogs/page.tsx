@@ -1,8 +1,6 @@
-// Blogs Management
-
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import {
   FaBoxOpen,
@@ -11,6 +9,8 @@ import {
   FaCheck,
   FaPen,
   FaEye,
+  FaChevronLeft,
+  FaChevronRight,
 } from "react-icons/fa";
 import Link from "next/link";
 import { BlogPost } from "@/utils/interfaces";
@@ -18,7 +18,9 @@ import Controls from "@/components/dashboard/blogs/Controls";
 import BlogTable from "@/components/dashboard/blogs/BlogTable";
 import PostCard from "@/components/dashboard/blogs/PostCard";
 import { blogApiService } from "@/services/blogApiService";
+import { toast } from "react-toastify";
 
+// EmptyState Component (unchanged)
 const EmptyState: React.FC<{ searchTerm: string }> = ({ searchTerm }) => (
   <div className="text-center py-16">
     <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -41,7 +43,7 @@ const EmptyState: React.FC<{ searchTerm: string }> = ({ searchTerm }) => (
   </div>
 );
 
-// Header Component (No changes needed)
+// Header Component (unchanged)
 const Header: React.FC = () => (
   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
     <div>
@@ -66,7 +68,7 @@ const Header: React.FC = () => (
   </div>
 );
 
-// StatsCards Component
+// StatsCards Component (unchanged)
 const StatsCards: React.FC<{ posts: BlogPost[] }> = ({ posts }) => {
   const stats = [
     {
@@ -126,7 +128,7 @@ const StatsCards: React.FC<{ posts: BlogPost[] }> = ({ posts }) => {
   );
 };
 
-// BlogGrid Component
+// BlogGrid Component (updated to use currentPosts)
 const BlogGrid: React.FC<{
   posts: BlogPost[];
   selectedPosts: Set<string>;
@@ -157,6 +159,49 @@ const BlogGrid: React.FC<{
   </div>
 );
 
+// PaginationFooter Component (copied from services for grid)
+const PaginationFooter: React.FC<{
+  currentPage: number;
+  itemsPerPage: number;
+  total: number;
+  selectedCount: number;
+  onPageChange: (page: number) => void;
+}> = ({ currentPage, itemsPerPage, total, selectedCount, onPageChange }) => {
+  const from = (currentPage - 1) * itemsPerPage + 1;
+  const to = Math.min(currentPage * itemsPerPage, total);
+  const totalPages = Math.ceil(total / itemsPerPage);
+
+  return (
+    <div className="px-6 py-4 border-t border-gray-200/50 dark:border-gray-700/50 bg-gray-50/50 dark:bg-gray-800/50">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between text-sm text-gray-600 dark:text-gray-300 gap-4 sm:gap-0">
+        <span>
+          Showing {from}-{to} of {total} posts
+          {selectedCount > 0 && ` (${selectedCount} selected)`}
+        </span>
+        <div className="flex items-center gap-4">
+          <span>Rows per page: {itemsPerPage}</span>
+          <div className="flex gap-2">
+            <button
+              onClick={() => onPageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+            >
+              <FaChevronLeft className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => onPageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+            >
+              <FaChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Main Page Component
 const Page: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState<"all" | string>("all");
@@ -170,52 +215,74 @@ const Page: React.FC = () => {
     direction: "asc" | "desc";
   } | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "table">("table");
-  const [page, setPage] = useState(1);
-  const limit = 50;
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
   const [blogs, setBlogs] = useState<BlogPost[]>([]);
-  const [pagination, setPagination] = useState({
-    currentPage: 1,
-    totalPages: 1,
-    totalBlogs: 0,
-    hasNextPage: false,
-    hasPrevPage: false,
-  });
   const [loading, setLoading] = useState(true);
-  const [refreshKey, setRefreshKey] = useState(0);
 
-  // Fetch blogs
+  // Fetch all blogs once
   useEffect(() => {
     const fetchBlogs = async () => {
       setLoading(true);
-      const params = {
-        page,
-        limit,
-        search: searchTerm || undefined,
-        status: statusFilter !== "all" ? statusFilter : undefined,
-        category: selectedTab !== "all" ? selectedTab : undefined,
-        sortBy: sortConfig?.key,
-        sortOrder: sortConfig?.direction,
-      };
+      const params = { limit: 100 };
       const response = await blogApiService.getBlogs(params);
       if (response.data) {
         setBlogs(response.data.blogs);
-        setPagination(response.data.pagination);
-      } else {
-        // Handle error, e.g., setErrors(response.error);
       }
       setLoading(false);
     };
     fetchBlogs();
-  }, [page, searchTerm, statusFilter, selectedTab, sortConfig, refreshKey]);
+  }, []); // Fetch once on mount
 
-  // Unique categories for tabs
-  const uniqueCategories = useMemo(() => {
-    const cats = new Set(blogs.map((post) => post.category));
-    return ["all", ...Array.from(cats)];
-  }, [blogs]);
+  // Reset page on filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter, selectedTab]);
 
-  // Filter and sort posts locally if needed, but since API does it, use blogs directly
-  const filteredPosts = blogs;
+  // Filtered posts (client-side)
+  const filteredPosts = useMemo(() => {
+    return blogs.filter(
+      (post) =>
+        (statusFilter === "all" || post.status === statusFilter) &&
+        (selectedTab === "all" || post.category === selectedTab) &&
+        (post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          post.category.toLowerCase().includes(searchTerm.toLowerCase())),
+    );
+  }, [blogs, searchTerm, statusFilter, selectedTab]);
+
+  // Sorted posts (client-side)
+  const sortedPosts = useMemo(() => {
+    if (!sortConfig) return filteredPosts;
+    return [...filteredPosts].sort((a, b) => {
+      const aVal = a[sortConfig.key];
+      const bVal = b[sortConfig.key];
+      if (typeof aVal === "string" && typeof bVal === "string") {
+        const cmp = aVal.localeCompare(bVal);
+        return sortConfig.direction === "asc" ? cmp : -cmp;
+      } else if (typeof aVal === "number" && typeof bVal === "number") {
+        const cmp = aVal - bVal;
+        return sortConfig.direction === "asc" ? cmp : -cmp;
+      } else if (
+        sortConfig.key === "publishDate" ||
+        sortConfig.key === "updatedAt"
+      ) {
+        const aDate = new Date(aVal as string);
+        const bDate = new Date(bVal as string);
+        const cmp = aDate.getTime() - bDate.getTime();
+        return sortConfig.direction === "asc" ? cmp : -cmp;
+      }
+      return 0;
+    });
+  }, [filteredPosts, sortConfig]);
+
+  // Paginated posts (client-side)
+  const currentPosts = useMemo(() => {
+    const indexOfLast = currentPage * itemsPerPage;
+    const indexOfFirst = indexOfLast - itemsPerPage;
+    return sortedPosts.slice(indexOfFirst, indexOfLast);
+  }, [sortedPosts, currentPage, itemsPerPage]);
+
+  // const totalPosts = sortedPosts.length;
 
   const handleSort = (key: keyof BlogPost) => {
     setSortConfig((prevConfig) => ({
@@ -240,14 +307,19 @@ const Page: React.FC = () => {
   };
 
   const toggleAllPosts = () => {
-    if (selectedPosts.size === filteredPosts.length) {
-      setSelectedPosts(new Set());
-    } else {
-      setSelectedPosts(new Set(filteredPosts.map((post) => post.id)));
-    }
+    setSelectedPosts((prev) => {
+      const newSet = new Set(prev);
+      const allSelected = currentPosts.every((post) => newSet.has(post.id));
+      if (allSelected) {
+        currentPosts.forEach((post) => newSet.delete(post.id));
+      } else {
+        currentPosts.forEach((post) => newSet.add(post.id));
+      }
+      return newSet;
+    });
   };
 
-  const getCategoryColor = (category: string) => {
+  const getCategoryColor = useCallback((category: string) => {
     const colors = {
       "Blockchain Development":
         "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
@@ -265,9 +337,9 @@ const Page: React.FC = () => {
       colors[category as keyof typeof colors] ||
       "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300"
     );
-  };
+  }, []);
 
-  const getStatusColor = (status: BlogPost["status"]) => {
+  const getStatusColor = useCallback((status: BlogPost["status"]) => {
     switch (status) {
       case "published":
         return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300";
@@ -278,75 +350,53 @@ const Page: React.FC = () => {
       default:
         return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300";
     }
-  };
+  }, []);
 
   const handleDelete = async (id: string) => {
     if (confirm("Are you sure you want to delete this blog post?")) {
       const response = await blogApiService.deleteBlog(id);
       if (response.data) {
-        setRefreshKey((prev) => prev + 1);
+        setBlogs((prev) => prev.filter((p) => p.id !== id));
+        if (selectedPosts.has(id)) {
+          setSelectedPosts((prev) => {
+            const newSet = new Set(prev);
+            newSet.delete(id);
+            return newSet;
+          });
+        }
+        toast.success("Post deleted successfully");
       } else {
-        // Handle error
+        toast.error("Failed to delete post");
       }
     }
   };
 
-  const handleBulkPublish = async () => {
-    const ids = Array.from(selectedPosts);
-    if (ids.length > 0) {
-      const response = await blogApiService.bulkUpdateStatus(ids, "published");
-      if (response.data) {
-        setSelectedPosts(new Set());
-        setRefreshKey((prev) => prev + 1);
-      } else {
-        // Handle error
-      }
-    }
-  };
+  const handleBlogsUpdate = useCallback((updatedBlogs: BlogPost[]) => {
+    setBlogs((prev) =>
+      prev.map((post) => updatedBlogs.find((u) => u.id === post.id) || post),
+    );
+  }, []);
 
-  const handleBulkArchive = async () => {
-    const ids = Array.from(selectedPosts);
-    if (ids.length > 0) {
-      const response = await blogApiService.bulkUpdateStatus(ids, "archived");
-      if (response.data) {
-        setSelectedPosts(new Set());
-        setRefreshKey((prev) => prev + 1);
-      } else {
-        // Handle error
-      }
-    }
-  };
+  const handleBulkDelete = useCallback((ids: string[]) => {
+    setBlogs((prev) => prev.filter((p) => !ids.includes(p.id)));
+    setSelectedPosts((prev) => {
+      const newSet = new Set(prev);
+      ids.forEach((id) => newSet.delete(id));
+      return newSet;
+    });
+  }, []);
 
-  const handleBulkDelete = async () => {
-    const ids = Array.from(selectedPosts);
-    if (
-      ids.length > 0 &&
-      confirm("Are you sure you want to delete selected blog posts?")
-    ) {
-      const response = await blogApiService.bulkDeleteBlogs(ids);
-      if (response.data) {
-        setSelectedPosts(new Set());
-        setRefreshKey((prev) => prev + 1);
-      } else {
-        // Handle error
-      }
-    }
-  };
-
-  const handlePreviousPage = () => {
-    if (pagination.hasPrevPage) {
-      setPage((prev) => prev - 1);
-    }
-  };
-
-  const handleNextPage = () => {
-    if (pagination.hasNextPage) {
-      setPage((prev) => prev + 1);
-    }
-  };
+  const uniqueCategories = useMemo(() => {
+    const cats = new Set(blogs.map((post) => post.category));
+    return ["all", ...Array.from(cats).sort()];
+  }, [blogs]);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Loading...
+      </div>
+    );
   }
 
   return (
@@ -357,44 +407,54 @@ const Page: React.FC = () => {
         <Controls
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
-          selectedCategory={selectedTab} // Changed selectedTab to selectedCategory
-          setSelectedCategory={setSelectedTab} // Changed setSelectedTab to setSelectedCategory
+          selectedCategory={selectedTab}
+          setSelectedCategory={setSelectedTab}
           statusFilter={statusFilter}
           setStatusFilter={setStatusFilter}
           viewMode={viewMode}
           setViewMode={setViewMode}
           selectedPosts={selectedPosts}
           uniqueCategories={uniqueCategories}
-          onBulkPublish={handleBulkPublish}
-          onBulkArchive={handleBulkArchive}
+          onBlogsUpdate={handleBlogsUpdate}
           onBulkDelete={handleBulkDelete}
         />
-        {filteredPosts.length === 0 ? (
+        {sortedPosts.length === 0 ? (
           <EmptyState searchTerm={searchTerm} />
         ) : viewMode === "grid" ? (
-          <BlogGrid
-            posts={filteredPosts}
-            selectedPosts={selectedPosts}
-            onToggle={togglePostSelection}
-            getCategoryColor={getCategoryColor}
-            getStatusColor={getStatusColor}
-            handleDelete={handleDelete}
-          />
+          <div className="bg-white/10 dark:bg-gray-900/80 backdrop-blur-sm rounded-3xl border border-gray-200/50 dark:border-gray-700/50 shadow-lg overflow-hidden">
+            <BlogGrid
+              posts={currentPosts}
+              selectedPosts={selectedPosts}
+              onToggle={togglePostSelection}
+              getCategoryColor={getCategoryColor}
+              getStatusColor={getStatusColor}
+              handleDelete={handleDelete}
+            />
+            {sortedPosts.length > 0 && (
+              <PaginationFooter
+                currentPage={currentPage}
+                itemsPerPage={itemsPerPage}
+                total={sortedPosts.length}
+                selectedCount={selectedPosts.size}
+                onPageChange={setCurrentPage}
+              />
+            )}
+          </div>
         ) : (
           <BlogTable
-            posts={filteredPosts}
+            posts={currentPosts}
+            currentPage={currentPage}
+            totalPosts={sortedPosts.length}
+            itemsPerPage={itemsPerPage}
+            setCurrentPage={setCurrentPage}
             selectedPosts={selectedPosts}
             onToggle={togglePostSelection}
             toggleAll={toggleAllPosts}
             sortConfig={sortConfig}
             onSort={handleSort}
-            allPostsLength={pagination.totalBlogs}
             getCategoryColor={getCategoryColor}
             getStatusColor={getStatusColor}
             handleDelete={handleDelete}
-            pagination={pagination}
-            handlePreviousPage={handlePreviousPage}
-            handleNextPage={handleNextPage}
           />
         )}
       </div>

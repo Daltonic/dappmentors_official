@@ -70,8 +70,8 @@ const MentorshipSection = () => {
         <div className="text-center mt-12">
           <div className="space-y-4">
             <p className="text-white/90 text-lg">
-              <strong>How to Book:</strong> Email us at contact@dappmentors.org
-              or DM us on Discord
+              <strong>How to Book:</strong> Head over to the services page or
+              Email us
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button

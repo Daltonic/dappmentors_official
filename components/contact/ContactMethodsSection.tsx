@@ -1,25 +1,18 @@
+import Link from "next/link";
+
 // Contact Methods Section
 const ContactMethodsSection = () => {
   const contactMethods = [
     {
-      title: "Email",
-      description:
-        "Drop us a message for inquiries about our courses, mentorship programs, or professional services.",
-      contact: "contact@dappmentors.org",
-      responseTime: "24-48 hours",
-      icon: "📧",
-      gradient: "from-emerald-500 to-teal-500",
-      bgPattern: "emerald",
-    },
-    {
       title: "Discord",
       description:
         "Join our vibrant community to connect with fellow Web3 developers and ask questions in real-time.",
-      contact: "discord.gg/dappmentors",
+      contact: "discord.gg/PgFDUVT6n9",
       responseTime: "Real-time",
       icon: "💬",
       gradient: "from-indigo-500 to-purple-500",
       bgPattern: "indigo",
+      url: "https://discord.gg/PgFDUVT6n9",
     },
     {
       title: "LinkedIn",
@@ -30,26 +23,29 @@ const ContactMethodsSection = () => {
       icon: "💼",
       gradient: "from-blue-500 to-blue-600",
       bgPattern: "blue",
+      url: "https://www.linkedin.com/company/dappmentors",
     },
     {
       title: "X (Twitter)",
       description:
         "Stay in the loop with the latest Web3 news, tips, and community updates.",
-      contact: "@DappMentors",
+      contact: "@iDaltonic",
       responseTime: "Same day",
       icon: "🐦",
       gradient: "from-gray-600 to-gray-800",
       bgPattern: "gray",
+      url: "https://twitter.com/iDaltonic",
     },
     {
       title: "YouTube",
       description:
         "Subscribe to our channel for free tutorials and leave a comment to connect with us!",
-      contact: "youtube.com/@dappmentors?sub_confirmation=1",
+      contact: "youtube.com/@dappmentors",
       responseTime: "1-3 days",
       icon: "📺",
       gradient: "from-red-500 to-pink-500",
       bgPattern: "red",
+      url: "https://www.youtube.com/@dappmentors?sub_confirmation=1",
     },
   ];
 
@@ -115,11 +111,14 @@ const ContactMethodsSection = () => {
                 </div>
               </div>
 
-              <button
-                className={`mt-6 w-full py-3 px-6 bg-gradient-to-r ${method.gradient} text-white rounded-xl font-semibold text-sm transition-all duration-300 hover:shadow-lg group-hover:scale-105`}
+              <Link
+                href={method.url}
+                target={method.url.includes("http") ? "_blank" : "_self"}
+                rel="noopener noreferrer"
+                className={`mt-6 w-full py-3 px-6 bg-gradient-to-r ${method.gradient} text-white rounded-xl font-semibold text-sm transition-all duration-300 hover:shadow-lg group-hover:scale-105 block text-center`}
               >
                 Connect Now
-              </button>
+              </Link>
             </div>
           ))}
         </div>

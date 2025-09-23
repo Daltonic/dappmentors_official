@@ -1,4 +1,4 @@
-import { BlogPost, PostProp, Product } from "@/utils/interfaces";
+import { BlogPost, Product } from "@/utils/interfaces";
 // @/config/dashboardConfig.ts
 import {
   FaChartPie,
@@ -17,100 +17,6 @@ export const navlinks = [
   { label: "About", link: "/about" },
   { label: "Contact", link: "/contact" },
   { label: "Blogs", link: "/blogs" },
-];
-
-export const postx: PostProp[] = [
-  {
-    title: "How to Build a Solana Crowdfunding dApp: A Step-by-Step Guide",
-    excerpt:
-      "Learn how to create a decentralized crowdfunding platform on Solana using Rust and Anchor. This comprehensive tutorial walks you through setting up smart contracts, integrating a React front-end, and deploying your dApp.",
-    category: "Solana",
-    readTime: "15 min read",
-    publishDate: "July 15, 2025",
-    topics: ["Solana", "Rust", "Anchor", "React", "Smart Contracts"],
-    imageSrc: "/assets/images/blogs/solana.jpg",
-    alt: "Solana Crowdfunding dApp",
-    icon: "🚀",
-    gradient: "from-purple-500 to-indigo-500",
-    featured: true,
-    relatedProduct: "Solana dApp Development Bootcamp",
-  },
-  {
-    title: "Mastering Solidity: Writing Secure Smart Contracts for Ethereum",
-    excerpt:
-      "A beginner-friendly guide to writing secure, upgradable smart contracts using Solidity. Includes best practices to avoid vulnerabilities like reentrancy attacks and comprehensive security patterns.",
-    category: "Smart Contracts",
-    readTime: "12 min read",
-    publishDate: "June 28, 2025",
-    topics: ["Solidity", "Ethereum", "Security", "Truffle", "Hardhat"],
-    imageSrc: "/assets/images/blogs/ethereum.jpg",
-    alt: "Solidity Smart Contracts",
-    icon: "⚡",
-    gradient: "from-yellow-500 to-orange-500",
-    featured: true,
-    relatedProduct: "Solidity for Smart Contract Development",
-  },
-  {
-    title: "Decentralized Storage 101: Using IPFS, Filecoin, and Sia",
-    excerpt:
-      "Explore decentralized storage solutions and learn how to integrate IPFS, Filecoin, and Sia into your dApps for secure, scalable data management and enhanced user privacy.",
-    category: "Decentralized Storage",
-    readTime: "10 min read",
-    publishDate: "May 20, 2025",
-    topics: ["IPFS", "Filecoin", "Sia", "Storage", "dApp Architecture"],
-    imageSrc: "/assets/images/blogs/sia.jpg",
-    alt: "Decentralized Storage Solutions",
-    icon: "🗄️",
-    gradient: "from-green-500 to-emerald-500",
-    featured: true,
-    relatedProduct:
-      "Decentralized Storage: Mastering IPFS, Filecoin, and Sia Ebook",
-  },
-  {
-    title: "Building Scalable DeFi Protocols with Polygon",
-    excerpt:
-      "Discover how to develop decentralized finance (DeFi) applications on Polygon with high scalability and low transaction costs. This guide covers smart contract development and frontend integration.",
-    category: "DeFi",
-    readTime: "14 min read",
-    publishDate: "August 10, 2025",
-    topics: ["Polygon", "DeFi", "Smart Contracts", "Web3.js", "Scalability"],
-    imageSrc: "/assets/images/blogs/defi.jpg",
-    alt: "Polygon DeFi Protocols",
-    icon: "💸",
-    gradient: "from-blue-500 to-cyan-500",
-    featured: true,
-    relatedProduct: "Polygon DeFi Development Course",
-  },
-  {
-    title: "NFT Marketplace Development with Flow",
-    excerpt:
-      "Learn to build a non-fungible token (NFT) marketplace on the Flow blockchain. This tutorial includes setting up Cadence smart contracts and integrating with a Next.js frontend.",
-    category: "NFTs",
-    readTime: "13 min read",
-    publishDate: "July 30, 2025",
-    topics: ["Flow", "NFTs", "Cadence", "Next.js", "Blockchain"],
-    imageSrc: "/assets/images/blogs/nft.jpg",
-    alt: "NFT Marketplace on Flow",
-    icon: "🎨",
-    gradient: "from-pink-500 to-rose-500",
-    featured: true,
-    relatedProduct: "NFT Marketplace Development Bootcamp",
-  },
-  {
-    title: "Zero-Knowledge Proofs: A Beginner’s Guide to zk-SNARKs",
-    excerpt:
-      "Dive into the world of zero-knowledge proofs and learn how to implement zk-SNARKs for privacy-focused blockchain applications. Includes practical examples using Circom and SnarkJS.",
-    category: "Privacy",
-    readTime: "16 min read",
-    publishDate: "June 15, 2025",
-    topics: ["zk-SNARKs", "Privacy", "Circom", "SnarkJS", "Cryptography"],
-    imageSrc: "/assets/images/blogs/zk.jpg",
-    alt: "Zero-Knowledge Proofs",
-    icon: "🔒",
-    gradient: "from-teal-500 to-blue-500",
-    featured: true,
-    relatedProduct: "Zero-Knowledge Proofs Masterclass",
-  },
 ];
 
 export const sampleProduct: Product = {

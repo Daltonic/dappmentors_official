@@ -1,5 +1,6 @@
 // Mentorship Section
 import { Service } from "@/utils/interfaces";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 interface MentorshipSectionProps {
@@ -57,8 +58,11 @@ const MentorshipSection = ({ services }: MentorshipSectionProps) => {
                 How to Book:
               </p>
               <p className="text-gray-600 dark:text-gray-300">
-                Email us at contact@dappmentors.org or reach out via Discord to
-                schedule your session.
+                Email us at the{" "}
+                <Link href="/contact" className="underline font-semibold">
+                  contact page
+                </Link>{" "}
+                or reach out via Discord to schedule your session.
               </p>
             </div>
           </div>

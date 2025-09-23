@@ -4,18 +4,20 @@ import {
   FaEdit,
   FaEye,
   FaTrash,
-  FaChevronLeft,
-  FaChevronRight,
   FaSort,
   FaSortUp,
   FaSortDown,
 } from "react-icons/fa";
+import {
+  FiChevronLeft as FiChevronLeft,
+  FiChevronRight as FiChevronRight,
+} from "react-icons/fi";
 import { motion } from "framer-motion";
 import { BlogPost } from "@/utils/interfaces";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-// SortIcon Component
+// SortIcon Component (unchanged)
 const SortIcon: React.FC<{
   column: keyof BlogPost;
   sortConfig: { key: keyof BlogPost; direction: "asc" | "desc" } | null;
@@ -31,42 +33,42 @@ const SortIcon: React.FC<{
   );
 };
 
-// BlogTable Component
+// BlogTable Component (updated props and footer)
 const BlogTable: React.FC<{
   posts: BlogPost[];
+  totalPosts: number;
+  itemsPerPage: number;
+  setCurrentPage: (page: number) => void;
+  currentPage: number;
   selectedPosts: Set<string>;
   onToggle: (id: string) => void;
   toggleAll: () => void;
   sortConfig: { key: keyof BlogPost; direction: "asc" | "desc" } | null;
   onSort: (key: keyof BlogPost) => void;
-  allPostsLength: number;
   getCategoryColor: (category: string) => string;
   getStatusColor: (status: BlogPost["status"]) => string;
   handleDelete: (id: string) => void;
-  pagination: {
-    currentPage: number;
-    totalPages: number;
-    hasNextPage: boolean;
-    hasPrevPage: boolean;
-  };
-  handlePreviousPage: () => void;
-  handleNextPage: () => void;
 }> = ({
   posts,
+  totalPosts,
+  itemsPerPage,
+  setCurrentPage,
+  currentPage,
   selectedPosts,
   onToggle,
   toggleAll,
   sortConfig,
   onSort,
-  allPostsLength,
   getCategoryColor,
   getStatusColor,
   handleDelete,
-  pagination,
-  handlePreviousPage,
-  handleNextPage,
 }) => {
   const router = useRouter();
+
+  // Compute pagination
+  const totalPages = Math.ceil(totalPosts / itemsPerPage);
+  const hasPrevPage = currentPage > 1;
+  const hasNextPage = currentPage < totalPages;
 
   return (
     <div className="bg-white/10 dark:bg-gray-900/80 backdrop-blur-sm rounded-3xl border border-gray-200/50 dark:border-gray-700/50 shadow-lg overflow-hidden">
@@ -267,29 +269,29 @@ const BlogTable: React.FC<{
         </table>
       </div>
 
-      {/* Table Footer */}
+      {/* Table Footer (updated to client-side pagination) */}
       <div className="px-6 py-4 border-t border-gray-200/50 dark:border-gray-700/50 bg-gray-50/50 dark:bg-gray-800/50">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between text-sm text-gray-600 dark:text-gray-300 gap-4 sm:gap-0">
           <span>
-            Showing {posts.length} of {allPostsLength} posts
+            Showing {posts.length} of {totalPosts} posts
             {selectedPosts.size > 0 && ` (${selectedPosts.size} selected)`}
           </span>
           <div className="flex items-center gap-4">
-            <span>Rows per page: {50}</span>
+            <span>Rows per page: {itemsPerPage}</span>
             <div className="flex gap-2">
               <button
                 className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
-                disabled={!pagination.hasPrevPage}
-                onClick={handlePreviousPage}
+                disabled={!hasPrevPage}
+                onClick={() => setCurrentPage(currentPage - 1)}
               >
-                <FaChevronLeft className="w-4 h-4" />
+                <FiChevronLeft className="w-4 h-4" />
               </button>
               <button
                 className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
-                disabled={!pagination.hasNextPage}
-                onClick={handleNextPage}
+                disabled={!hasNextPage}
+                onClick={() => setCurrentPage(currentPage + 1)}
               >
-                <FaChevronRight className="w-4 h-4" />
+                <FiChevronRight className="w-4 h-4" />
               </button>
             </div>
           </div>
