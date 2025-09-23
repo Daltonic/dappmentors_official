@@ -11,6 +11,7 @@ import HeroSection from "@/components/shared/HeroSection";
 import WhyChooseSection from "@/components/shared/WhyChooseSection";
 import { Product, Service, BlogPost } from "@/utils/interfaces";
 import React from "react";
+import { useRouter } from "next/navigation"; // Use Next.js navigation hook
 
 // Define props interface
 interface PageClientProps {
@@ -25,19 +26,37 @@ const PageClient: React.FC<PageClientProps> = ({
   services,
   blogs,
 }) => {
+  const router = useRouter(); // Initialize router for navigation
+
+  // Function to scroll to the WhyChooseSection
+  const scrollToWhyChooseSection = () => {
+    const featuredContentSection = document.getElementById(
+      "featured-content-section",
+    );
+    if (featuredContentSection) {
+      featuredContentSection.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   return (
     <MarketingLayout>
       <HeroSection
         tagText="Blockchain Academy"
         title="Our Gateway to Web3 Success"
-        highlightText="Blockchain Academy"
-        subtitle="Build, Master, and Thrive in the Decentralized Future. Join 5,450+ developers learning blockchain development with expert-led courses, bootcamps, and hands-on projects."
+        highlightText="Web3 Success"
+        subtitle="Build, Master, and Thrive in the Decentralized Future. Join 5,550+ developers learning blockchain development with expert-led courses, bootcamps, and hands-on projects."
       >
         <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
-          <button className="bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white px-10 py-4 rounded-2xl font-bold text-lg hover:scale-105 transition-all duration-300 hover:shadow-xl">
+          <button
+            onClick={scrollToWhyChooseSection} // Scroll to WhyChooseSection
+            className="bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white px-10 py-4 rounded-2xl font-bold text-lg hover:scale-105 transition-all duration-300 hover:shadow-xl"
+          >
             Start Learning Today
           </button>
-          <button className="border-2 border-[#D2145A] text-[#D2145A] hover:bg-[#D2145A] hover:text-white px-10 py-4 rounded-2xl font-bold text-lg transition-all duration-300 hover:scale-105">
+          <button
+            onClick={() => router.push("/products")}
+            className="border-2 border-[#D2145A] text-[#D2145A] hover:bg-[#D2145A] hover:text-white px-10 py-4 rounded-2xl font-bold text-lg transition-all duration-300 hover:scale-105"
+          >
             Browse Courses
           </button>
         </div>
@@ -57,12 +76,15 @@ const PageClient: React.FC<PageClientProps> = ({
           </div>
         </div>
       </HeroSection>
+      {/* Add an ID to the WhyChooseSection for scrolling */}
       <WhyChooseSection />
       <FeaturedProductsSection products={products} />
       <ServicesSection
         services={services.filter((service) => service.type === "Professional")}
       />
-      <FeaturedContentSection />
+      <div id="featured-content-section">
+        <FeaturedContentSection />
+      </div>
       <CommunityStatsSection />
       <RecentBlogsSection blogs={blogs} />
       <CTASection

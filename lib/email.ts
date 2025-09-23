@@ -1,7 +1,7 @@
-// lib/email.ts
 import nodemailer from "nodemailer";
 import { generateVerificationEmailHTML } from "./templates/email_verify_template";
 import { generatePasswordResetEmailHTML } from "./templates/password_reset_template";
+import { generateContactEmailHTML } from "./templates/contact_template";
 
 interface EmailOptions {
   to: string;
@@ -126,6 +126,47 @@ export const sendPasswordResetEmail = async (
   return await sendEmail({
     to: email,
     subject,
+    html,
+    text,
+  });
+};
+
+// New export for contact form emails
+export const sendContactEmail = async (
+  name: string,
+  email: string,
+  subject: string,
+  message: string,
+  serviceType?: string,
+): Promise<boolean> => {
+  const fullSubject = `New Contact Form Submission: ${subject}`;
+  const adminEmail = process.env.CONTACT_EMAIL || "contact@dappmentors.org";
+
+  const html = generateContactEmailHTML(
+    name,
+    email,
+    subject,
+    message,
+    serviceType || "General",
+  );
+
+  const text = `
+    New contact form submission from ${name} (${email}):
+
+    Subject: ${subject}
+
+    Service Type: ${serviceType || "General"}
+
+    Message:
+    ${message}
+
+    ---
+    This email was sent via the Dapp Mentors contact form.
+  `;
+
+  return await sendEmail({
+    to: adminEmail,
+    subject: fullSubject,
     html,
     text,
   });
