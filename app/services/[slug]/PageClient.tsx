@@ -49,14 +49,27 @@ const PageClient: React.FC<PageClientProps> = ({ service }) => {
     setSelectedPackage(null);
   };
 
-  const handlePayment = async (packageName: string, packagePrice: number) => {
+  const handlePayment = async (packageName: string, packagePrice: string) => {
     setIsPurchasing(true);
+    const cleanedPrice = packagePrice.replace(/[^0-9.]/g, "");
+    const finalPrice = parseFloat(cleanedPrice);
+
+    if (isNaN(finalPrice)) {
+      console.error(
+        "Purchase error: Price could not be parsed as a valid number.",
+        packagePrice,
+      );
+      setIsPurchasing(false);
+      // toast.error("Invalid package price. Please contact support.");
+      return;
+    }
+
     const item: ICheckoutItem = {
       id: service.id,
       image: service.thumbnail,
       quantity: 1,
       type: "service",
-      price: packagePrice,
+      price: finalPrice,
       name: packageName,
     };
 
@@ -268,7 +281,7 @@ const PageClient: React.FC<PageClientProps> = ({ service }) => {
         setSelectedPackage={setSelectedPackage}
         isFixedPrice={isFixedPrice}
         handlePayment={(packageName, packagePrice) =>
-          handlePayment(packageName!, Number(packagePrice))
+          handlePayment(packageName!, packagePrice!)
         }
       />
 
