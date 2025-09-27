@@ -6,6 +6,7 @@ import {
   ProductFeature,
   ProductTestimonial,
   ProductType,
+  Package,
 } from "@/utils/interfaces";
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
@@ -77,6 +78,7 @@ interface FormData {
   features: ProductFeature[];
   testimonials: ProductTestimonial[];
   faqs: FAQs[];
+  packages: Package[];
 }
 
 interface FormErrors {
@@ -105,6 +107,7 @@ interface FormErrors {
   features?: string;
   testimonials?: string;
   faqs?: string;
+  packages?: string;
   submit?: string;
 }
 
@@ -165,6 +168,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
     features: [],
     testimonials: [],
     faqs: [],
+    packages: [],
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
@@ -181,6 +185,9 @@ const ProductForm: React.FC<ProductFormProps> = ({
   const [newTestimonialAvatar, setNewTestimonialAvatar] = useState("");
   const [newQuestion, setNewQuestion] = useState("");
   const [newAnswer, setNewAnswer] = useState("");
+  const [newPackageName, setNewPackageName] = useState("");
+  const [newPackagePrice, setNewPackagePrice] = useState("");
+  const [newPackageFeatures, setNewPackageFeatures] = useState("");
 
   // Categories based on product types
   const categoryOptions: CategoryOptions = {
@@ -255,6 +262,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
         features: product.features || [],
         testimonials: product.testimonials || [],
         faqs: product.faqs || [],
+        packages: product.packages || [],
       });
     } else {
       setFormData({
@@ -290,6 +298,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
         features: [],
         testimonials: [],
         faqs: [],
+        packages: [],
       });
     }
     setErrors({});
@@ -420,6 +429,10 @@ const ProductForm: React.FC<ProductFormProps> = ({
       if (tagsArray.length > 20) {
         newErrors.tags = "Maximum 20 tags allowed";
       }
+
+      if (formData.packages.length > 5) {
+        newErrors.packages = "Maximum 5 packages allowed";
+      }
     } else if (step === 3) {
       // Step 3: Features, Testimonials, and Media
       if (formData.imageUrl && !isValidUrl(formData.imageUrl)) {
@@ -475,7 +488,8 @@ const ProductForm: React.FC<ProductFormProps> = ({
       | string[]
       | ProductFeature[]
       | ProductTestimonial[]
-      | FAQs[],
+      | FAQs[]
+      | Package[],
   ) => {
     if (field.startsWith("instructor.")) {
       const instructorField = field.split(
@@ -635,6 +649,43 @@ const ProductForm: React.FC<ProductFormProps> = ({
     }));
   };
 
+  const addPackage = () => {
+    if (
+      newPackageName.trim() &&
+      newPackagePrice.trim() &&
+      formData.packages.length < 5
+    ) {
+      const featuresArray = newPackageFeatures
+        .split(",")
+        .map((f) => f.trim())
+        .filter(Boolean);
+      const packagePrice = isNaN(parseFloat(newPackagePrice))
+        ? newPackagePrice.trim()
+        : parseFloat(newPackagePrice);
+      setFormData((prev) => ({
+        ...prev,
+        packages: [
+          ...prev.packages,
+          {
+            name: newPackageName.trim(),
+            price: String(packagePrice),
+            features: featuresArray,
+          },
+        ],
+      }));
+      setNewPackageName("");
+      setNewPackagePrice("");
+      setNewPackageFeatures("");
+    }
+  };
+
+  const removePackage = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      packages: prev.packages.filter((_, i) => i !== index),
+    }));
+  };
+
   const handleNext = (e: React.MouseEvent) => {
     e.preventDefault();
     if (validateStep(currentStep)) {
@@ -700,6 +751,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
         features: formData.features,
         testimonials: formData.testimonials,
         faqs: formData.faqs,
+        packages: formData.packages,
       };
 
       let response;
@@ -758,6 +810,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
             features: [],
             testimonials: [],
             faqs: [],
+            packages: [],
           });
           setCurrentStep(1); // Reset to first step
         }
@@ -915,6 +968,18 @@ const ProductForm: React.FC<ProductFormProps> = ({
                 handleInputChange={handleInputChange}
                 errors={errors}
               />
+              <PackagesSection
+                formData={formData}
+                newPackageName={newPackageName}
+                setNewPackageName={setNewPackageName}
+                newPackagePrice={newPackagePrice}
+                setNewPackagePrice={setNewPackagePrice}
+                newPackageFeatures={newPackageFeatures}
+                setNewPackageFeatures={setNewPackageFeatures}
+                addPackage={addPackage}
+                removePackage={removePackage}
+                errors={errors}
+              />
             </>
           )}
           {currentStep === 3 && (
@@ -1050,7 +1115,8 @@ interface BasicInformationSectionProps {
       | string[]
       | ProductFeature[]
       | ProductTestimonial[]
-      | FAQs[],
+      | FAQs[]
+      | Package[],
   ) => void;
   errors: FormErrors;
   getTypeIcon: (type: ProductType) => React.ReactElement;
@@ -1175,7 +1241,8 @@ interface DescriptionSectionProps {
       | string[]
       | ProductFeature[]
       | ProductTestimonial[]
-      | FAQs[],
+      | FAQs[]
+      | Package[],
   ) => void;
   errors: FormErrors;
 }
@@ -1265,7 +1332,8 @@ interface PricingDetailsSectionProps {
       | string[]
       | ProductFeature[]
       | ProductTestimonial[]
-      | FAQs[],
+      | FAQs[]
+      | Package[],
   ) => void;
   errors: FormErrors;
   durationSuggestions: DurationSuggestions;
@@ -1421,7 +1489,8 @@ interface InstructorSectionProps {
       | string[]
       | ProductFeature[]
       | ProductTestimonial[]
-      | FAQs[],
+      | FAQs[]
+      | Package[],
   ) => void;
   errors: FormErrors;
   newInclude: string;
@@ -1520,7 +1589,7 @@ const InstructorSection: React.FC<InstructorSectionProps> = ({
                 ? "border-red-300 dark:border-red-600"
                 : "border-gray-200/50 dark:border-gray-700/50"
             }`}
-            placeholder="https://example.com/avatar.jpg"
+            placeholder="Enter an emoji (e.g., 👨‍💻) or image URL"
           />
           {errors.instructor?.avatar && (
             <p className="mt-2 text-sm text-red-600 dark:text-red-400">
@@ -1606,7 +1675,8 @@ interface CategoryDifficultySectionProps {
       | string[]
       | ProductFeature[]
       | ProductTestimonial[]
-      | FAQs[],
+      | FAQs[]
+      | Package[],
   ) => void;
   errors: FormErrors;
   categoryOptions: CategoryOptions;
@@ -1699,7 +1769,8 @@ interface TechStackSectionProps {
       | string[]
       | ProductFeature[]
       | ProductTestimonial[]
-      | FAQs[],
+      | FAQs[]
+      | Package[],
   ) => void;
   errors: FormErrors;
 }
@@ -1765,6 +1836,120 @@ const TechStackSection: React.FC<TechStackSectionProps> = ({
             Maximum 20 tags allowed
           </p>
         </div>
+      </div>
+    </div>
+  );
+};
+
+interface PackagesSectionProps {
+  formData: FormData;
+  newPackageName: string;
+  setNewPackageName: (value: string) => void;
+  newPackagePrice: string;
+  setNewPackagePrice: (value: string) => void;
+  newPackageFeatures: string;
+  setNewPackageFeatures: (value: string) => void;
+  addPackage: () => void;
+  removePackage: (index: number) => void;
+  errors: FormErrors;
+}
+
+const PackagesSection: React.FC<PackagesSectionProps> = ({
+  formData,
+  newPackageName,
+  setNewPackageName,
+  newPackagePrice,
+  setNewPackagePrice,
+  newPackageFeatures,
+  setNewPackageFeatures,
+  addPackage,
+  removePackage,
+  errors,
+}) => {
+  return (
+    <div>
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+        <FiDollarSign className="w-5 h-5 text-[#D2145A]" />
+        Packages
+      </h3>
+
+      <div className="space-y-4">
+        <div className="grid grid-cols-1 gap-3">
+          <input
+            type="text"
+            value={newPackageName}
+            onChange={(e) => setNewPackageName(e.target.value)}
+            className="px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200/50 dark:border-gray-700/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF4081]/50 focus:border-transparent transition-all duration-300"
+            placeholder="Package Name (e.g. Basic)"
+          />
+          <input
+            type="text"
+            value={newPackagePrice}
+            onChange={(e) => setNewPackagePrice(e.target.value)}
+            className="px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200/50 dark:border-gray-700/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF4081]/50 focus:border-transparent transition-all duration-300"
+            placeholder="Price (e.g. 99 or Custom)"
+          />
+          <input
+            type="text"
+            value={newPackageFeatures}
+            onChange={(e) => setNewPackageFeatures(e.target.value)}
+            className="px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200/50 dark:border-gray-700/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF4081]/50 focus:border-transparent transition-all duration-300"
+            placeholder="Features (comma-separated)"
+          />
+        </div>
+        <button
+          type="button"
+          onClick={addPackage}
+          disabled={
+            !newPackageName.trim() ||
+            !newPackagePrice.trim() ||
+            formData.packages.length >= 5
+          }
+          className="px-4 py-3 bg-[#D2145A] text-white rounded-xl hover:bg-[#D2145A]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <FiPlus className="w-5 h-5 inline mr-2" /> Add Package
+        </button>
+        {errors.packages && (
+          <p className="text-sm text-red-600 dark:text-red-400">
+            {errors.packages}
+          </p>
+        )}
+
+        {formData.packages.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              {formData.packages.length}/5 packages
+            </p>
+            <AnimatePresence>
+              {formData.packages.map((pkg, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  layout
+                  className="flex items-start gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200/50 dark:border-gray-700/50"
+                >
+                  <div className="flex-1">
+                    <div className="font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      {pkg.name} - {pkg.price}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      Features: {pkg.features.join(", ")}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removePackage(index)}
+                    className="p-1 text-red-500 hover:text-red-700 transition-colors"
+                  >
+                    <FiMinus className="w-4 h-4" />
+                  </button>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -2243,7 +2428,8 @@ interface MediaSettingsSectionProps {
       | string[]
       | ProductFeature[]
       | ProductTestimonial[]
-      | FAQs[],
+      | FAQs[]
+      | Package[],
   ) => void;
   errors: FormErrors;
   showImagePreview: boolean;

@@ -1,6 +1,6 @@
 import { connectToDatabase } from "@/lib/mongodb";
 import { verifyAccessToken } from "@/lib/jwt";
-import { Product, ProductType } from "@/utils/interfaces";
+import { Package, Product, ProductType } from "@/utils/interfaces";
 import { Collection, Filter, ObjectId } from "mongodb";
 import { NextRequest, NextResponse } from "next/server";
 import { generateSlug } from "@/heplers/global";
@@ -261,13 +261,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         ? parseFloat(String(body.originalPrice))
         : undefined,
       currency: body.currency || "USD",
-      status: (body.status || "draft") as ProductStatus,
       category: body.category.trim(),
       difficulty: body.difficulty as ProductDifficulty,
       level: body.level?.trim() || body.difficulty,
       duration: body.duration.trim(),
       language: body.language?.trim() || "English",
-      lastUpdated: now.toISOString(),
       instructor: {
         name: String(body.instructor.name || "")
           .trim()
@@ -284,14 +282,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
               .slice(0, 10)
           : [],
       },
-      createdAt: now,
-      updatedAt: now,
-      featured: Boolean(body.featured),
       imageUrl: body.imageUrl?.trim() || "",
-      enrollments: 0,
-      rating: parseFloat(String(body.rating)) || 0,
-      totalReviews: parseInt(String(body.totalReviews)) || 0,
-      studentsEnrolled: parseInt(String(body.studentsEnrolled)) || 0,
+      videoPreviewUrl: body.videoPreviewUrl?.trim() || "",
+      featured: Boolean(body.featured),
+      status: (body.status || "draft") as ProductStatus,
       tags: Array.isArray(body.tags)
         ? body.tags.map((tag: string) => String(tag).trim()).slice(0, 20)
         : [],
@@ -300,16 +294,31 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             .map((tech: string) => String(tech).trim())
             .slice(0, 15)
         : [],
-      features: validateAndNormalizeFeatures(body.features || []).slice(0, 10),
-      modules: validateAndNormalizeModules(body.modules || []),
       includes: Array.isArray(body.includes)
         ? body.includes.map((item: string) => String(item).trim()).slice(0, 20)
         : [],
+      features: validateAndNormalizeFeatures(body.features || []).slice(0, 10),
       testimonials: validateAndNormalizeTestimonials(
         body.testimonials || [],
       ).slice(0, 10),
       faqs: validateAndNormalizeFAQs(body.faqs || []).slice(0, 10),
-      videoPreviewUrl: body.videoPreviewUrl?.trim() || "",
+      modules: validateAndNormalizeModules(body.modules || []),
+      rating: parseFloat(String(body.rating)) || 0,
+      totalReviews: parseInt(String(body.totalReviews)) || 0,
+      studentsEnrolled: parseInt(String(body.studentsEnrolled)) || 0,
+      packages: Array.isArray(body.packages)
+        ? body.packages
+            .map((pkg: Package) => ({
+              name: pkg.name?.trim() || "",
+              price: pkg.price || "",
+              features: Array.isArray(pkg.features)
+                ? pkg.features.map((f: string) => f.trim()).filter(Boolean)
+                : [],
+            }))
+            .slice(0, 5)
+        : [],
+      createdAt: now,
+      updatedAt: now,
       createdBy: payload.userId,
     };
 

@@ -134,6 +134,7 @@ export interface Product {
   includes?: string[];
   slug?: string;
   createdBy?: string;
+  packages?: Package[];
 }
 export interface Lesson {
   id: string;

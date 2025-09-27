@@ -9,10 +9,10 @@ import FAQSection from "@/components/shared/FAQSection";
 import { ICheckoutItem, Service, ServiceType } from "@/utils/interfaces";
 import { Star, ArrowRight } from "lucide-react";
 import QuoteSection from "@/components/services/details/QuoteSection";
-import PackagesSection from "@/components/services/details/PackageSection";
 import FeaturesSection from "@/components/services/details/FeaturesSection";
 import { getHighlightWord } from "@/heplers/global";
 import { toast } from "react-toastify";
+import PackagesSection from "@/components/shared/PackageSection";
 
 interface PageClientProps {
   service: Service;
@@ -49,7 +49,7 @@ const PageClient: React.FC<PageClientProps> = ({ service }) => {
     setSelectedPackage(null);
   };
 
-  const handlePayment = async (packageName: string, packagePrice: string) => {
+  const handlePurchase = async (packageName: string, packagePrice: string) => {
     setIsPurchasing(true);
     const cleanedPrice = packagePrice.replace(/[^0-9.]/g, "");
     const finalPrice = parseFloat(cleanedPrice);
@@ -220,14 +220,6 @@ const PageClient: React.FC<PageClientProps> = ({ service }) => {
         }
       >
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10">
-          {/* <div className="text-center">
-            <div className="text-3xl font-bold text-gray-900 dark:text-white">
-              {service.clients}+
-            </div>
-            <div className="text-sm text-gray-600 dark:text-gray-300">
-              Projects Completed
-            </div>
-          </div> */}
           <div className="text-center">
             <div className="text-3xl font-bold text-gray-900 dark:text-white">
               {service.packages?.length || 3}
@@ -276,13 +268,14 @@ const PageClient: React.FC<PageClientProps> = ({ service }) => {
       <FeaturesSection features={service.features} />
 
       <PackagesSection
-        service={service}
+        item={service}
         selectedPackage={selectedPackage}
         setSelectedPackage={setSelectedPackage}
         isFixedPrice={isFixedPrice}
-        handlePayment={(packageName, packagePrice) =>
-          handlePayment(packageName!, packagePrice!)
+        handlePurchase={(packageName, packagePrice) =>
+          handlePurchase(packageName!, packagePrice!)
         }
+        itemType="service"
       />
 
       <QuoteSection

@@ -6,6 +6,7 @@ import {
   ProductFeature,
   ProductTestimonial,
   ProductType,
+  Package,
 } from "@/utils/interfaces";
 import { Collection, Filter, ObjectId } from "mongodb";
 import { NextRequest, NextResponse } from "next/server";
@@ -201,6 +202,7 @@ export async function PUT(
       "includes",
       "testimonials",
       "faqs",
+      "packages",
     ];
 
     allowedFields.forEach((field) => {
@@ -240,6 +242,18 @@ export async function PUT(
           );
         } else if (field === "faqs") {
           updateData[field] = validateAndNormalizeFAQs(value as FAQs[]);
+        } else if (field === "packages") {
+          updateData[field] = Array.isArray(value)
+            ? (value as Package[])
+                .map((pkg) => ({
+                  name: pkg.name?.trim() || "",
+                  price: pkg.price || "",
+                  features: Array.isArray(pkg.features)
+                    ? pkg.features.map((f: string) => f.trim()).filter(Boolean)
+                    : [],
+                }))
+                .slice(0, 5)
+            : [];
         } else if (
           field === "instructor" &&
           typeof value === "object" &&
@@ -283,10 +297,10 @@ export async function PUT(
       db,
       "items_activities",
       "Product updated",
-      `${updateData.title} ${updateData.type} has been updated`,
+      `${body.title || existingProduct.title} ${body.type || existingProduct.type} has been updated`,
       {
-        userId: updateData.createdBy,
-        itemSlug: updateData.slug,
+        userId: existingProduct.createdBy,
+        itemSlug: updateData.slug || existingProduct.slug,
         itemType: "product",
       },
     );

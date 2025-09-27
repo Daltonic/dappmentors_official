@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import MarketingLayout from "@/components/layouts/MarketingLayout";
 import HeroSection from "@/components/shared/HeroSection";
 import Image from "next/image";
@@ -16,6 +16,7 @@ import { getHighlightWord } from "@/heplers/global";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/contexts/UserContext";
 import CTASection from "@/components/shared/CTASection";
+import PackagesSection from "@/components/shared/PackageSection";
 
 interface PageClientProps {
   product: Product;
@@ -23,11 +24,19 @@ interface PageClientProps {
 
 const PageClient: React.FC<PageClientProps> = ({ product }) => {
   const [isPurchasing, setIsPurchasing] = useState(false);
+  const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
   const { user } = useUser();
   const router = useRouter();
 
   // Ensure isPurchased is always a boolean
   const isPurchased = user?.purchasedProducts?.includes(product.id) ?? false;
+
+  // Set first package as default on component mount
+  useEffect(() => {
+    if (product.packages && product.packages.length > 0) {
+      setSelectedPackage(product.packages[0].name);
+    }
+  }, [product]);
 
   const getActionText = (
     type: string,
@@ -67,16 +76,64 @@ const PageClient: React.FC<PageClientProps> = ({ product }) => {
     isPurchasing,
   );
 
-  const handlePurchase = async () => {
+  const isFixedPrice =
+    typeof product.price === "number" ||
+    (typeof product.price === "string" &&
+      !isNaN(parseFloat(product.price.replace(/[^0-9.-]/g, ""))));
+
+  const getPrimaryActionText = (type: string, isFixedPrice: boolean) => {
+    if (isFixedPrice && (!product.packages || product.packages.length === 0)) {
+      const buyTexts: Record<string, string> = {
+        Course: "Enroll Now",
+        Bootcamp: "Join Now",
+        Ebook: "Buy Now",
+        Codebase: "Get Now",
+      };
+      return buyTexts[type] || "Buy Now";
+    } else {
+      return "View Packages";
+    }
+  };
+
+  const getSecondaryActionText = (type: string, isFixedPrice: boolean) => {
+    if (isFixedPrice && (!product.packages || product.packages.length === 0)) {
+      return "Preview Content";
+    } else {
+      return "Learn More";
+    }
+  };
+
+  const handlePurchase = async (
+    packageName?: string,
+    packagePrice?: string,
+  ) => {
     setIsPurchasing(true);
 
+    const cleanedPrice = packagePrice
+      ? packagePrice.replace(/[^0-9.]/g, "")
+      : String(product.price).replace(/[^0-9.]/g, "");
+    const finalPrice = parseFloat(cleanedPrice);
+
+    if (isNaN(finalPrice)) {
+      console.error(
+        "Purchase error: Price could not be parsed as a valid number.",
+        packagePrice || product.price,
+      );
+      setIsPurchasing(false);
+      toast.error("Invalid price. Please contact support.");
+      return;
+    }
+
+    const itemName = packageName
+      ? `${product.title} - ${packageName}`
+      : product.title;
     const item: ICheckoutItem = {
       id: product.id,
       image: product.imageUrl,
       quantity: 1,
       type: "product",
-      price: Number(product.price),
-      name: product.title,
+      price: finalPrice,
+      name: itemName,
     };
 
     try {
@@ -114,11 +171,30 @@ const PageClient: React.FC<PageClientProps> = ({ product }) => {
     }
   };
 
+  const primaryOnClick =
+    isFixedPrice && (!product.packages || product.packages.length === 0)
+      ? handlePurchase
+      : () =>
+          document
+            .getElementById("packages-section")
+            ?.scrollIntoView({ behavior: "smooth" });
+
+  const secondaryOnClick = () => {
+    if (isPurchased) {
+      router.push(`/dashboard/purchases/${product.id}/lessons`);
+    } else {
+      // For preview, perhaps open a modal or scroll to content
+      document
+        .getElementById("content-section")
+        ?.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   const handleAction = () => {
     if (isPurchased) {
       router.push(`/dashboard/purchases/${product.id}/lessons`);
     } else {
-      handlePurchase();
+      primaryOnClick();
     }
   };
 
@@ -238,26 +314,34 @@ const PageClient: React.FC<PageClientProps> = ({ product }) => {
         </div>
 
         {/* Pricing */}
-        <div className="flex items-center gap-4 mb-8">
-          <div className="text-4xl font-bold text-gray-900 dark:text-white">
-            ${product.price}
+        {!product.packages || product.packages.length === 0 ? (
+          <div className="flex items-center gap-4 mb-8">
+            <div className="text-4xl font-bold text-gray-900 dark:text-white">
+              ${product.price}
+            </div>
+            {product.originalPrice && (
+              <>
+                <div className="text-2xl text-gray-500 line-through">
+                  ${product.originalPrice}
+                </div>
+                <div className="bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white px-3 py-1 rounded-full text-sm font-semibold">
+                  {Math.round(
+                    ((Number(product.originalPrice) - Number(product.price)) /
+                      Number(product.originalPrice)) *
+                      100,
+                  )}
+                  % OFF
+                </div>
+              </>
+            )}
           </div>
-          {product.originalPrice && (
-            <>
-              <div className="text-2xl text-gray-500 line-through">
-                ${product.originalPrice}
-              </div>
-              <div className="bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white px-3 py-1 rounded-full text-sm font-semibold">
-                {Math.round(
-                  ((Number(product.originalPrice) - Number(product.price)) /
-                    Number(product.originalPrice)) *
-                    100,
-                )}
-                % OFF
-              </div>
-            </>
-          )}
-        </div>
+        ) : (
+          <div className="text-center mb-8">
+            <p className="text-xl text-gray-600 dark:text-gray-300">
+              Multiple pricing options available - see packages below
+            </p>
+          </div>
+        )}
 
         <div className="flex flex-col sm:flex-row gap-4">
           <button
@@ -266,20 +350,43 @@ const PageClient: React.FC<PageClientProps> = ({ product }) => {
             className="group bg-gradient-to-r from-[#D2145A] to-[#FF4081] text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-500 hover:scale-105 hover:shadow-2xl disabled:opacity-50"
           >
             <span className="flex items-center justify-center gap-2">
-              {actionButtonText}
-              {!isPurchased && (
-                <ArrowRight className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" />
+              {getPrimaryActionText(
+                product.type,
+                isFixedPrice &&
+                  (!product.packages || product.packages.length === 0),
               )}
+              <ArrowRight className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" />
             </span>
           </button>
-          <button className="group bg-white/80 dark:bg-white/10 backdrop-blur-sm border-2 border-[#FF4081]/50 dark:border-white/30 text-[#D2145A] dark:text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 hover:bg-gradient-to-r hover:from-[#D2145A] hover:to-[#FF4081] hover:text-white hover:border-transparent">
-            Preview {product.type}
+          <button
+            onClick={secondaryOnClick}
+            className="group bg-white/80 dark:bg-white/10 backdrop-blur-sm border-2 border-[#FF4081]/50 dark:border-white/30 text-[#D2145A] dark:text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 hover:bg-gradient-to-r hover:from-[#D2145A] hover:to-[#FF4081] hover:text-white hover:border-transparent"
+          >
+            {getSecondaryActionText(
+              product.type,
+              isFixedPrice &&
+                (!product.packages || product.packages.length === 0),
+            )}
           </button>
         </div>
       </HeroSection>
 
       {/* Features Section */}
       <FeaturesSection features={product.features || []} />
+
+      {/* Packages Section */}
+      {product.packages && product.packages.length > 0 && (
+        <PackagesSection
+          item={product}
+          selectedPackage={selectedPackage}
+          setSelectedPackage={setSelectedPackage}
+          isFixedPrice={isFixedPrice}
+          handlePurchase={(packageName, packagePrice) =>
+            handlePurchase(packageName!, packagePrice!)
+          }
+          itemType="product"
+        />
+      )}
 
       {/* Course Content Section */}
       <ProductContentSection
