@@ -81,8 +81,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       return sum + item.amount * item.quantity;
     }, 0);
 
-    const SUCCESS_URL = `${BACKEND_DOMAIN}/payment-status?status=success&amount=${totalAmount}&service=${lineItems[0].name}`;
-    const CANCEL_URL = `${BACKEND_DOMAIN}/payment-status?status=failure&amount=${totalAmount}&service=${lineItems[0].name}`;
+    const encodedServiceName = encodeURIComponent(lineItems[0].name);
+    const encodedAmount = encodeURIComponent(totalAmount.toString());
+    const SUCCESS_URL = `${BACKEND_DOMAIN}/payment-status?status=success&amount=${encodedAmount}&service=${encodedServiceName}`;
+    const CANCEL_URL = `${BACKEND_DOMAIN}/payment-status?status=failure&amount=${encodedAmount}&service=${encodedServiceName}`;
 
     // Prepare payload for payment processor
     const checkoutPayload = {

@@ -7,10 +7,14 @@ export function generateSlug(title: string, id?: string | number): string {
     .toLowerCase()
     .trim()
     .replace(/\s+/g, "-")
-    .replace(/[^\w-]+/g, "")
-    .replace(/-+/g, "-");
+    .replace(/[^a-z0-9-]+/g, "") // Stricter: only allow a-z, 0-9, and -
+    .replace(/-+/g, "-")
+    .replace(/^-+|-+$/g, ""); // Remove leading/trailing hyphens
 
-  return id ? `${baseSlug}-${id}` : baseSlug;
+  // Ensure baseSlug isn't empty after processing (fallback to a default if needed)
+  const finalBaseSlug = baseSlug || "untitled";
+
+  return id ? `${finalBaseSlug}-${id}` : finalBaseSlug;
 }
 
 export const generateGradientFromString = (str: string): string => {
